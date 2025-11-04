@@ -1,0 +1,16 @@
+<svg viewBox="-72 -48 144 96" xmlns="http://www.w3.org/2000/svg" stroke-width="2">
+ <rect fill="#fff" x="-72" y="-48" width="144" height="96"/>
+ <g transform="rotate(-56.31)"><!--arctan(-3/2)-->
+  <g id="kor23a">
+   <path id="kor23b" d="M-12-52H12V-48H-12ZM-12-46H12V-42H-12ZM-12-40H12V-36H-12Z"/>
+   <use href="#kor23b" y="88"/>
+  </g>
+  <path stroke="#fff" d="M0 34V54"/>
+  <path fill="#c34" d="M0-24A24 24 0 0 1 0 24A12 12 0 0 0 0 0A12 12 0 0 1 0 -24Z"/>
+  <path fill="#049" d="M0-24A24 24 0 0 0 0 24A12 12 0 0 0 0 0A12 12 0 0 1 0 -24Z"/>
+ </g>
+ <g transform="rotate(-123.69)"><!--arctan(3/2)-->
+  <use href="#kor23a"/>
+  <path stroke="#fff" d="M0-47V-41M0 34V41M0 47V53"/>
+ </g>
+</svg>

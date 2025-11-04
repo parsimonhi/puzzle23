@@ -1,0 +1,25 @@
+<svg viewBox="0 0 2000 1500" xmlns="http://www.w3.org/2000/svg">
+	<!-- Democratic Republic of Congo flag, public domain -->
+	<rect fill="#007fff" width="2000" height="1500"/>
+	<g transform="translate(385,400) scale(30)" fill="#f7d618">
+		<g id="cod34-a">
+			<path id="cod34-b" d="M 0,-10 V 0 H 5" transform="rotate(18 0,-10)"/>
+			<use href="#cod34-b" transform="scale(-1,1)"/>
+		</g>
+		<use href="#cod34-a" transform="rotate(72)"/>
+		<use href="#cod34-a" transform="rotate(144)"/>
+		<use href="#cod34-a" transform="rotate(216)"/>
+		<use href="#cod34-a" transform="rotate(288)"/>
+	</g>
+	<path fill="#f7d618" d="M 1875,0 L 0,1125 V 1500 H 125 L 2000,375 V 0 H 1875"/>
+	<path fill="#ce1021" d="M 2000,0 L 0,1200 V 1500 L 2000,300 V 0"/>
+</svg>
+<!--
+H=1500, W=4*H/3
+star radius R=H/5=300
+start center cy=R+H/15=400
+start center cx=cos(18°)*R+H/15=385
+red line height=H/5=300
+yellow line height=H/20=75
+no reference
+-->

@@ -1,0 +1,3380 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Puzzle">
+<style>
+*
+{
+	font-family:sans-serif;
+}
+body
+{
+	--rf:1;
+	--esz00:1;
+	--btnSize:min(1.5cm,17vmin);
+	--bk:#fff;
+	/* avoid to use vmin, vmax, vw or vh as font-size units */
+	/* because some browsers will zoom these units and some others will not */
+	margin:0;
+	padding:0;
+	min-width:10rem;
+	-webkit-user-select:none; /* Safari */
+	user-select:none;
+}
+body:has(dialog[open])
+{
+	overflow:hidden; /* prevent body to be scrolled when a dialog is open */
+}
+.background
+{
+	display:block;
+	position:fixed;
+	top:0;
+	left:0;
+	width:100vw;
+	height:100vh;
+}
+.background rect
+{
+	fill:var(--bk);
+	width:100%;
+	height:100%;
+}
+.selectedArea
+{
+	position:absolute;
+	z-index:3;
+	background:#0003;
+	pointer-events:none;
+}
+.board.puzzle,
+.board:empty
+{
+	--img:url('_img/_animal/Mandarin-duck-Aix-galericulata.webp');
+	position:absolute;
+	z-index:1;
+	top:0;
+	left:0;
+	width:100vw;
+	height:100vh;
+	pointer-events:none;
+}
+body:has(.selectedArea),
+body:has(.selected)
+{
+	/* no scroll allowed when something is selected */
+	touch-action:none;
+}
+body:has(.board.puzzle) h1,
+.messenger
+{
+	position:fixed;
+	top:200vh;
+}
+.menu
+{
+	position:fixed;
+	left:0;
+	right:0;
+	top:0;
+	bottom:initial;
+	display:flex;
+	flex-flow:row;
+	justify-content:center;
+	gap:2vmin;
+	list-style-type:none;
+	margin:0;
+	padding:2vmin;
+	pointer-events:none;
+}
+.menu li
+{
+	margin:0;
+	padding:0;
+}
+.menu button
+{
+	background:#0000;
+	border:0;
+	display:block;
+	font-size:0;
+	width:var(--btnSize);
+    height:var(--btnSize);
+    line-height:var(--btnSize);
+	margin:0;
+	padding:0;
+	border-radius:0;
+    cursor:pointer;
+	pointer-events:auto;
+}
+.menu button img,
+.board.initial button.imgSelector img
+{
+	display:block;
+	width:100%;
+	height:100%;
+}
+.stopwatch
+{
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	font-size:min(1.5rem,15vh);
+	position:fixed;
+	left:0;
+	right:0;
+	top:calc(var(--btnSize) + 2vmin);
+	height:1.25em;
+	padding-top:0.25em;
+	opacity:0;
+	pointer-events:none;
+}
+.score
+{
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	font-size:min(1.5rem,15vh);
+	position:fixed;
+	left:0;
+	right:0;
+	bottom:0;
+	height:1.25em;
+	padding-bottom:0.25em;
+	opacity:0;
+	pointer-events:none;
+}
+.score img
+{
+	display-block;
+	height:100%;
+	width:auto;
+}
+.stopwatch.show,
+.score.show
+{
+	opacity:1;
+}
+.messenger
+{
+	display:block;
+}
+dialog
+{
+	font-size:1rem;
+	hyphens:auto;
+}
+dialog::backdrop
+{
+	background-color:#3333;
+}
+dialog fieldset,dialog form
+{
+	margin:0;
+	padding:0;
+	border:0;
+}
+.noOutline
+{
+	/* for instance to avoid an outlined h2 when the dialog opens with a click */
+	outline:none;
+}
+dialog ul
+{
+	list-style-type:none;
+}
+dialog h2,dialog p,dialog ul
+{
+	margin:0.25rem 0;
+	padding:0;
+}
+dialog li
+{
+	margin:0;
+	padding:0;
+}
+dialog .shortcuts>ul>li:first-letter
+{
+	font-family:Menlo,monospace;
+}
+dialog .shortcuts>ul>li>ul,
+dialog .selectingAndMoving>ul,
+dialog .screenReader>ul
+{
+	list-style-type:initial;
+	margin:initial;
+	padding:initial;
+	margin-left:2rem;
+}
+dialog .shortcuts>ul>li>ul>li,
+dialog .selectingAndMoving>ul>li,
+dialog .screenReader>ul>li
+{
+	margin:initial;
+	padding:initial;
+}
+dialog button
+{
+	margin:0.5rem 0.5rem 0 0;
+}
+dialog label
+{
+	display:flex;
+	flex-wrap:wrap;
+	align-items:center;
+	margin:0.25rem 0;
+}
+dialog label input, dialog label select
+{
+	display:inline-block;
+	max-width:100%;
+	margin:0 0.25rem;
+}
+dialog input[type="number"]
+{
+	width:3rem;
+}
+dialog input[type="range"]
+{
+	width:min(100%,11rem);
+}
+.figure
+{
+	position:absolute;
+	top:50%;
+	left:50%;
+	transform:translate(-50%,-50%) scale(var(--rf));
+	background-position:center;
+	background-repeat:no-repeat;
+	background-size:100% auto;
+	filter:drop-shadow(-2px 2px 3px #0007);
+	margin:0;
+	padding:0;
+}
+.figure figcaption
+{
+	display:block;
+	position:absolute;
+	margin:0;
+	padding:0;
+	color:#0000;
+}
+.puzzleElement
+{
+	display:block;
+	position:absolute;
+	stroke-linejoin:round;
+	stroke-linecap:round;
+	pointer-events:auto;
+	outline:none;
+	/* use transform below to speed up some safari on macOS and possibly some others? */
+	transform:translateZ(0);
+	-webkit-tap-highlight-color:transparent;
+	touch-action:none;
+}
+.puzzleElement:hover
+{
+	cursor:pointer;
+}
+.puzzleElement path
+{
+	/* #0000 instead of none, otherwise firefox does not return a correct bounding rect */
+	fill:#0000;
+}
+.puzzleElement:focus-visible path,
+.puzzleElement.selected path
+{
+	stroke:#0075ff;
+	stroke-width:calc(10px * var(--esz00));
+}
+.figure.noBorders .puzzleElement,
+.figure:not(:has(svg))
+{
+	background-image:var(--img);
+}
+.wait
+{
+	display:block;
+	position:fixed; /* important for loading speed !?! */
+	z-index:2;
+	top:50%;
+	left:50%;
+	transform:translate(-50%,-50%);
+	width:20vmin;
+	height:20vmin;
+	pointer-events:none;
+}
+@keyframes spin
+{
+	0%{transform:translate(-50%,-50%) rotate(0deg);}
+	100%{transform:translate(-50%,-50%) rotate(360deg);}
+}
+.wait.show
+{
+	visibility:visible;
+	animation:spin 6s linear infinite;
+}
+.wait.hide
+{
+	visibility:hidden; /* faster than display:none, no reflow, just repaint */
+	animation:none;
+}
+@media (min-aspect-ratio:9/10)
+{
+	.menu
+	{
+		flex-flow:column;
+		bottom:0;
+		right:initial;
+	}
+	.stopwatch
+	{
+		top:0;
+	}
+}
+
+.board.initial
+{
+	padding:0 min(1rem,10vw) min(1rem,10vw) min(1rem,10vw);
+}
+h1,h2,h3
+{
+	font-family:serif;
+}
+body:has(.board.initial) h1
+{
+	display:flex;
+	align-items:center;
+	font-size:min(2rem,20vw);
+	margin:0;
+	padding:0 min(1rem,10vw) 0 0;
+	color:#fff;
+	background:#000;
+	text-shadow:0.0625em 0.0625em 0.0625em #0007;
+}
+body:has(.board.initial) h1:before
+{
+	content:url('_icon/puzzle.svg');
+	display:inline-block;
+	width:min(4rem,40vw);
+	height:min(4rem,40vw);
+	filter:grayscale(1);
+}
+body:has(.board.initial) .background
+{
+	display:none;
+}
+.board.initial>h2
+{
+	font-size:min(1.5rem,15vw);
+	margin:min(1rem,10vw) 0;
+	padding:0;
+}
+.board.initial>h3
+{
+	font-size:min(1.25rem,12.5vw);
+	margin:min(1rem,10vw) 0;
+}
+.board.initial>h3:nth-of-type(2)+p
+{
+	margin-bottom:0.75rem;
+}
+.board.initial>h3+label span
+{
+	display:block;
+	margin:min(1rem,10vw) 0;
+}
+.board.initial>details
+{
+	margin:0;
+	padding:0;
+}
+.board.initial>details summary
+{
+	font-size:min(1rem,10vw);
+	margin:0.25rem 0;
+	padding:0.25rem;
+}
+.board.initial ul
+{
+	display:block;
+	list-style-type:none;
+	margin:0;
+	padding:0;
+	columns:auto 10em;
+	column-gap:min(0.5rem,5vw);
+}
+.board.initial ul
+{
+	margin:0;
+	padding:0;
+}
+.board.initial li
+{
+	margin:0 0 0.5rem 0;
+	paddig:0;
+	break-inside:avoid;
+	text-align:center;
+}
+.board.initial button.imgSelector
+{
+	border:0;
+	border-radius:0.125rem;
+	background:0;
+	margin:0;
+	padding:0.25rem;
+	width:100%;
+}
+.board.initial button.imgSelector img
+{
+	display:block;
+	width:100%;
+	margin:0 auto;
+	padding:0;
+	cursor:pointer;
+}
+.board.initial button.imgSelector img.flag
+{
+	box-sizing:border-box;
+	border:1px solid #000;
+	margin:0 0 0.5rem 0;
+}
+.board.initial em,
+.board.initial em a
+{
+	display:inline-block;
+	width:100%;
+	font-size:min(1rem,10vw);
+	color:#444;
+	font-style:italic;
+}
+.board.initial em a
+{
+	min-height:1.5rem;
+}
+.board.initial input[type="file"]
+{
+	max-width:100%;
+	white-space:normal;
+}
+.board.initial .copyright a
+{
+	color:#000;
+}
+button.standardBtn,
+input[type="file"],
+input::file-selector-button,
+dialog button
+{
+	font-size:1rem;
+	cursor:pointer;
+	outline-offset:0.25rem;
+}
+button.standardBtn,
+input::file-selector-button,
+dialog button
+{
+	color:#fff;
+	background:#000;
+	border:0;
+	border-radius:0.125em;
+	line-height:2rem;
+	font-weight:bold;
+}
+button.standardBtn:hover,
+input::file-selector-button:hover,
+dialog button:hover
+{
+	background:#ff8a00;
+}
+</style>
+<title>Puzzle</title>
+<link rel="icon" type="image/svg+xml" href="_icon/puzzle.svg">
+</head>
+<body>
+<h1>Puzzle 23</h1>
+<script>
+(async function()
+{
+	let pZ={};
+	// common
+	pZ.getNavigatorLang=function()
+	{
+		// test if en or fr are one of the preferred languages of the navigator
+		if(navigator.languages)
+		{
+			for(let e of navigator.languages)
+				if(e.match(/^(fr|en)/)) return e.replace(/^(..).*$/,"$1");
+		}
+		if(navigator.language&&navigator.language.match(/^(fr|en)/))
+			return navigator.language.replace(/^(..).*$/,"$1");
+		return "en";
+	}
+	pZ.getLang=function()
+	{
+		// test if there is a lang attribute for this script element or one of its parents
+		// return the lang if found or return the navigator preferred language
+		// if the lang is not en or fr, return en
+		let e=pZ.currentScript;
+		while(e&&!e.lang) e=e.parentNode;
+		return (e&&e.lang.match(/^(fr|en)/))?e.lang:pZ.getNavigatorLang();
+	}
+	pZ.locale=function(s)
+	{
+		if((pZ.lang=="en")||!pZ.i18n||!pZ.i18n[pZ.lang]||!pZ.i18n[pZ.lang][s]) return s;
+		return pZ.i18n[pZ.lang][s];
+	}
+	pZ.ucFirst=function(s){return String(s).charAt(0).toUpperCase()+String(s).slice(1);}
+	pZ.nearlyEqual=function(a,b){return Math.abs(a-b)<0.01;}
+	pZ.hashCode=s=>s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+	pZ.computeRf=function()
+	{
+		let sth=pZ.stopwatch.offsetHeight,
+		 	sch=pZ.score.offsetHeight,
+		 	ms=pZ.accessibility.offsetWidth*19/15,
+			bw=pZ.board.offsetWidth,
+			bh=pZ.board.offsetHeight,
+			fw=pZ.figure.offsetWidth*(pZ.w*1.25+1)/pZ.w,
+			fh=pZ.figure.offsetHeight*(pZ.h*1.25+1)/pZ.h;
+		if(0.9*bh>bw) bh=bh-ms-sth-sch;
+		else {bw=bw-2*ms;bh=bh-sth-sch;}
+		let rf=Math.min(bw/fw,bh/fh);
+		if(pZ.trace) console.log("rf",rf);
+		return rf;
+	}
+	pZ.computeWH=function()
+	{
+		pZ.initialScore=1;
+		pZ.w=Math.max(2,Math.round(Math.sqrt(pZ.whmax*pZ.iw/pZ.ih)));
+		pZ.h=Math.ceil(pZ.w*pZ.ih/pZ.iw);
+		pZ.wh=pZ.w*pZ.h;
+	}
+	pZ.initScrollArea=function()
+	{
+		pZ.board.style.removeProperty("transform");
+		window.scroll(0,0);
+	}
+	pZ.adaptScrollArea=function(s=0)
+	{
+		if(pZ.trace) console.log("adaptScrollArea");
+		if(!pZ.figure||!pZ.figcaption||pZ.abortSignal) return;
+		let a=pZ.board.getBoundingClientRect(),b=pZ.figcaption.getBoundingClientRect();
+		if(s&1)
+		{
+			// adapt
+			pZ.figcaption.style.left=(pZ.xmin-pZ.to)+"px";
+			pZ.figcaption.style.top=(pZ.ymin-pZ.to)+"px";
+			pZ.figcaption.style.width=(pZ.xmax-pZ.xmin+2*pZ.to)+"px";
+			pZ.figcaption.style.height=(pZ.ymax-pZ.ymin+2*pZ.to)+"px";
+			let c=pZ.board.getBoundingClientRect(),d=pZ.figcaption.getBoundingClientRect();
+			let dX=0,dY=0;
+			if(d.left<c.left) dX=c.left-d.left;
+			if(d.top<c.top) dY=c.top-d.top;
+			if(dX||dY) pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
+		}
+		if(s&2)
+		{
+			// center the figure
+			let e=pZ.board.getBoundingClientRect();
+			let scrollX=window.scrollX,scrollY=window.scrollY;
+			window.scroll(e.left-a.left+scrollX,e.top-a.top+scrollY);
+			let f=pZ.board.getBoundingClientRect();
+			window.scroll(e.left-a.left+scrollX+f.x,e.top-a.top+scrollY+f.y);
+		}
+	}
+	pZ.resize=function()
+	{
+		if(pZ.abortSignal) return;
+		pZ.rf=pZ.computeRf();
+		document.body.style.setProperty("--rf",pZ.rf);
+	}
+	pZ.doDialog=function(name,title,content,btns)
+	{
+		let dialog=document.getElementById(name+"Dialog"),b=btns;
+		pZ.inDialog=1;
+		if(!dialog)
+		{
+			let s;
+			dialog=document.createElement("dialog");
+			dialog.id=name+"Dialog";
+			s=`<h2 tabindex="0">`+title+`</h2>`;
+			s+=`<form method="dialog">`
+			+`<fieldset data-dialog-content></fieldset>`
+			+`<fieldset data-dialog-menu>`;
+			for(let a of b)
+			{
+				a.v=a.v?a.v:a.n;
+				a.l=a.l?a.l:a.n;
+				a.t=a.t?a.t:"submit";
+				s+=`<button name="${a.n}" type="${a.t}" value="${a.v}">${pZ.locale(a.l)}</button>`;
+			}
+			dialog.pZ=pZ;
+			dialog.addEventListener('close',function(ev){
+				for(let a of b)
+					if(a.a&&(this.returnValue==a.v))
+					{
+						this.pZ[`do${a.a}`]();
+					}
+				this.pZ.inDialog=0;
+			});
+			dialog.addEventListener('cancel',function(ev){
+				if(this.pZ[`do${name}Cancel`]) this.pZ[`do${name}Cancel`]();
+				this.pZ.inDialog=0;
+			});
+			s+=`</fieldset>`;
+			dialog.innerHTML=s;
+			for(let a of b)
+			{
+				if(a.t=="button")
+				{
+					let e=dialog.querySelector('[name="'+a.n+'"]');
+					e.addEventListener("click",pZ[`do${a.a}`]);
+				}
+			}
+			pZ.board.after(dialog);
+		}
+		let h2=dialog.querySelector('h2');
+		if(pZ.noH2Outline) h2.classList.add("noOutline");
+		else h2.classList.remove("noOutline");
+		pZ.noH2Outline=0;
+		dialog.querySelector('[data-dialog-content]').innerHTML=content;
+		dialog.showModal();
+	}
+	pZ.doAlert=function(t,s)
+	{
+		pZ.doDialog("Alert",t,s,[{n:"OK"}]);
+	}
+	// wait
+	pZ.showWait=function()
+	{
+		if(pZ.figure) pZ.figure.style.setProperty("display","none");
+		pZ.wait.classList.replace("hide","show");
+	}
+	pZ.hideWait=function()
+	{
+		pZ.wait.classList.replace("show","hide");
+	}
+	pZ.initWait=function()
+	{
+		pZ.wait=document.createElement("img");
+		pZ.wait.setAttribute("alt",pZ.locale("Please wait!"));
+		pZ.wait.setAttribute("width",64);
+		pZ.wait.setAttribute("height",64);
+		pZ.wait.classList.add("wait","hide");
+		pZ.wait.src="_icon/wait.svg";
+		document.body.append(pZ.wait);
+	}
+	// alea
+	pZ.alea=function(n)
+	{
+		// return random integer between 0 and n
+		return Math.floor(Math.random()*(n+1));
+	}
+	pZ.shuffleArray=function(a)
+	{
+		for(let i=a.length-1;i>0;i--)
+		{
+			let j=pZ.alea(i);
+			[a[i],a[j]]=[a[j],a[i]];
+		}
+		return a;
+	}
+	pZ.r2d=function(n)
+	{
+		n=parseFloat(n).toFixed(2);
+		n=n.replace(/\.00$/,"");
+		n=n.replace(/(\.[1-9])0$/,"$1");
+		return n;
+	}
+	pZ.a2A=function(z)
+	{
+		// round coordinate
+		let n=(z+pZ.to)/pZ.esz;
+		return pZ.r2d(n+2*pZ.to/pZ.esz);
+	}
+	pZ.b2B=function(z)
+	{
+		// round distance
+		// assume z>=1
+		let n=z/pZ.esz;
+		return pZ.r2d(n-2*pZ.to/pZ.esz);
+	}
+
+	// accessibility
+	pZ.doAccessibilityAlert=function()
+	{
+		let s="";
+		s+="<section class=\"screenReader\">";
+		s+="<h3>"+pZ.locale("Screen reader")+"</h3>";
+		s+="<p>"+pZ.locale("If you are using a screen reader, it is recommended that you choose the following settings:")+"</p>";
+		s+="<ul>";
+		s+="<li>"+pZ.locale("Piece type: squared or curvy")+"</li>";
+		s+="<li>"+pZ.locale("Match threshold: 60")+"</li>";
+		s+="<li>"+pZ.locale("Keyboard navigation increment: 100")+"</li>";
+		s+="<li>"+pZ.locale("Round initial coordinates: checked")+"</li>";
+		s+="</ul>";
+		s+="</section>";
+		s+="<section class=\"keyboardNavigation\">";
+		s+="<h3>"+pZ.locale("Keyboard navigation")+"</h3>";
+		s+="<p>"+pZ.locale("Use the Tab and Shift + Tab keys to move the focus.")+"</p>";
+		s+="<p>"+pZ.locale("Use the Enter key or the Space bar to activate a button.")+"</p>";
+		s+="</section>";
+		s+="<section class=\"shortcuts\">";
+		s+="<h3>"+pZ.locale("Shortcuts")+"</h3>";
+		s+="<ul>";
+		s+="<li><p>a"+pZ.locale(": ")+pZ.locale("open the Accessibility dialog")+"</p></li>";
+		s+="<li><p>"+"b"+pZ.locale(": ")+pZ.locale("give the focus to a puzzle element")+"</p>";
+		s+="<ul>";
+		s+="<li>"+pZ.locale("the next or the first one in the list of elements if a puzzle element is already in focus")+"</li>";
+		s+="<li>"+pZ.locale("the last one to have been in focus or the first one on the list of elements if no puzzle element is in focus")+"</li>";
+		s+="</ul>";
+		s+="</li>";
+		s+="<li><p>"+pZ.locale("Shift + ")+"b"+pZ.locale(": ")+pZ.locale("give the focus to a puzzle element")+"</p>";
+		s+="<ul>";
+		s+="<li>"+pZ.locale("the previous or the last one in the list of elements if a puzzle element is already in focus")+"</li>";
+		s+="<li>"+pZ.locale("the last one to have been in focus or the last one on the list of elements if no puzzle element is in focus")+"</li>";
+		s+="</ul>";
+		s+="</li>";
+		s+="<li><p>d"+pZ.locale(": ")+pZ.locale("if a screen reader is activated, describe the selection area if any or the selected puzzle elements if any or the puzzle element in focus")+"</p></li>";
+		s+="<li><p>e"+pZ.locale(": ")+pZ.locale("resize the puzzle to fit the window and center it")+"</p></li>";
+		s+="<li><p>g"+pZ.locale(": ")+pZ.locale("cancel the selection and blur focus (useful when one then wants to scroll the window content)")+"</p></li>";
+		s+="<li><p>h"+pZ.locale(": ")+pZ.locale("focus on the Home button")+"</p></li>";
+		s+="<li><p>p"+pZ.locale(": ")+pZ.locale("open the Preferences dialog")+"</p></li>";
+		s+="<li><p>r"+pZ.locale(": ")+pZ.locale("focus on the Restart button")+"</p></li>";
+		s+="</ul>";
+		s+="</section>";
+		s+="<section class=\"selectingAndMoving\">";
+		s+="<h3>"+pZ.locale("Selection and moving")+"</h3>";
+		s+="<p>"+pZ.locale("When a puzzle element receives the focus, it is automatically selected and all previously selected elements are unselected.");
+		s+=pZ.locale(" Then it can be moved with the arrow keys.")+"</p>";
+		s+="<p>"+pZ.locale("It is also possible to select and move one or multiple puzzle elements simultaneously by using a selection area:")+"</p>";
+		s+="<ul>";
+		s+="<li>"+pZ.locale("Create a selection area with the Shift + arrow keys")+"</li>";
+		s+="<li>"+pZ.locale("Enlarge or reduce the selection area with the Shift + arrow keys")+"</li>";
+		s+="<li>"+pZ.locale("Move the selection area without its content with the arrow keys")+"</li>";
+		s+="<li>"+pZ.locale("Validate the selection of the top most puzzle element that is in the selection area with the Space bar")+"</li>";
+		s+="<li>"+pZ.locale("Or validate the selection of all the puzzle elements that are in the selection area with the Shift key + the Space bar")+"</li>";
+		s+="<li>"+pZ.locale("Move the selected puzzle elements with the arrow keys")+"</li>";
+		s+="</ul>";
+		s+="</section>";
+		s+="<section class=\"gluing\">";
+		s+="<h3>"+pZ.locale("Gluing")+"</h3>";
+		s+="<p>"+pZ.locale("Finally, use the Space bar to glue together the selected puzzle elements to its neighbors if they match.")+"</p>";
+		s+="</section>";
+		pZ.doAlert(pZ.locale("Accessibility"),s);
+	}
+	pZ.doClickOnAccessibility=function(ev)
+	{
+		//if(!ev.key)
+			pZ.noH2Outline=1;
+		ev.stopPropagation();
+		pZ.doAccessibilityAlert();
+	}
+	pZ.initAccessibility=function(container)
+	{
+		let e=document.createElement('img');
+		e.src="_icon/visual-impairments.svg";
+		e.ariaHidden="true";
+		e.draggable=false;
+		pZ.accessibility=document.createElement('button');
+		pZ.accessibility.classList.add("accessibility");
+		pZ.accessibility.append(e);
+		pZ.accessibility.title=pZ.locale("Accessibility");
+		pZ.accessibility.addEventListener("click",pZ.doClickOnAccessibility);
+		container.append(pZ.accessibility);
+	}
+	// preferences
+	pZ.doPreferencesReset=function()
+	{
+		e=document.querySelector('[name="whmax"]');
+		e.value=pZ.defaultParams.whmax;
+		e=document.querySelector('[name="pt"]');
+		e.value=pZ.defaultParams.pt;
+		e=document.querySelector('[name="emb"]');
+		e.value=pZ.defaultParams.emb;
+		e=document.querySelector('[name="th"]');
+		e.value=pZ.defaultParams.th;
+		e=document.querySelector('[name="ms"]');
+		e.value=pZ.defaultParams.ms;
+		e=document.querySelector('[name="ric"]');
+		e.checked=pZ.defaultParams.ric?true:false;
+		e=document.querySelector('[name="showsw"]');
+		e.checked=pZ.defaultParams.showsw?true:false;
+		e=document.querySelector('[name="showsc"]');
+		e.checked=pZ.defaultParams.showsc?true:false;
+	}
+	pZ.makeEmbossFilter=function()
+	{
+		let s='<filter id="emboss" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">';
+		s+='<feGaussianBlur stdDeviation="3" in="SourceAlpha" result="G"></feGaussianBlur>';
+		s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L11">';
+		s+='<fePointLight x="0" y="-10000" z="100"></fePointLight>';
+		s+='</feSpecularLighting>';
+		s+='<feComposite in="L11" in2="SourceAlpha" operator="in" result="R11"></feComposite>';
+		s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L12">';
+		s+='<fePointLight x="0" y="10000" z="100"></fePointLight>';
+		s+='</feSpecularLighting>';
+		s+='<feComposite in="L12" in2="SourceAlpha" operator="in" result="R12"></feComposite>';
+		s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L21">';
+		s+='<fePointLight x="10000" y="0" z="100"></fePointLight>';
+		s+='</feSpecularLighting>';
+		s+='<feComposite in="L21" in2="SourceAlpha" operator="in" result="R21"></feComposite>';
+		s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L22">';
+		s+='<fePointLight x="-10000" y="0" z="100"></fePointLight>';
+		s+='</feSpecularLighting>';
+		s+='<feComposite in="L22" in2="SourceAlpha" operator="in" result="R22"></feComposite>';
+		s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L31">';
+		s+='<fePointLight x="7000" y="-7000" z="100"></fePointLight>';
+		s+='</feSpecularLighting>';
+		s+='<feComposite in="L31" in2="SourceAlpha" operator="in" result="R31"></feComposite>';
+		s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L32">';
+		s+='<fePointLight x="-7000" y="7000" z="100"></fePointLight>';
+		s+='</feSpecularLighting>';
+		s+='<feComposite in="L32" in2="SourceAlpha" operator="in" result="R32"></feComposite>';
+		s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R12" result="R13"></feColorMatrix>';
+		s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R11" in2="R13" operator="arithmetic" result="C1"></feComposite>';
+		s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R22" result="R23"></feColorMatrix>';
+		s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R21" in2="R23" operator="arithmetic" result="C2"></feComposite>';
+		s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R32" result="R33"></feColorMatrix>';
+		s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R31" in2="R33" operator="arithmetic" result="C3"></feComposite>';
+		s+='<feMerge>';
+		s+='<feMergeNode in="SourceGraphic"></feMergeNode>';
+		s+='<feMergeNode in="C1"></feMergeNode>';
+		s+='<feMergeNode in="C2"></feMergeNode>';
+		s+='<feMergeNode in="C3"></feMergeNode>';
+		s+='</feMerge>';
+		s+='</filter>';
+    	return s;
+	}
+	pZ.computeEsz=function()
+	{
+		// 200 for magicA is a decent value
+		// more means lower quality image (and a faster rendering)
+		// less means better quality image (and a slower rendering)
+		let magicA=200;
+		let r0=pZ.iw/(pZ.w*magicA);
+		let esz=Math.round(r0*20)*10; // must be a multiple of 10, otherwise arrow keys do not work properly
+		let r1=esz/250;
+		let stdD=r1*pZ.emboss;
+		let sc=r1*pZ.emboss;
+		pZ.embossFilterHtml=pZ.embossFilterHtml.replace(/stdDeviation="[0-9.]+"/g,"stdDeviation=\""+stdD+"\"");
+		pZ.embossFilterHtml=pZ.embossFilterHtml.replace(/surfaceScale="[0-9.]+"/g,"surfaceScale=\""+sc+"\"");
+		if(pZ.trace) console.log("r0",r0,"r1",r1,"esz",esz,"emboss",pZ.emboss);
+		return esz;
+	}
+	pZ.doPreferencesOK=function()
+	{
+		let e,changeStatus=0;
+		e=document.querySelector('[name="whmax"]');
+		if(e)
+		{
+			let whmax=parseInt(e.value);
+			whmax=!whmax?2:Math.max(2,whmax);
+			if(whmax!=pZ.whmax)
+			{
+				localStorage.pZ_whmax=pZ.whmax=whmax;
+				pZ.computeWH();
+				changeStatus|=8;
+			}
+		}
+		e=document.querySelector('[name="pt"]');
+		if(e&&(e.value!=pZ.pt))
+		{
+			localStorage.pZ_pt=pZ.pt=e.value;
+			changeStatus|=4;
+		}
+		e=document.querySelector('[name="emb"]');
+		if(e)
+		{
+			let emb=-(-e.value);
+			if(emb!=pZ.emboss)
+			{
+				localStorage.pZ_emb=pZ.emboss=emb;
+				pZ.internalBordersOn=emb?1:0;
+				changeStatus|=2;
+			}
+		}
+		e=document.querySelector('[name="th"]');
+		if(e)
+		{
+			let th=-(-e.value);
+			th=Math.max(0,Math.min(100,th));
+			localStorage.pZ_th=pZ.threshold=th;
+		}
+		e=document.querySelector('[name="ms"]');
+		if(e) localStorage.pZ_ms=pZ.moveStep=-(-e.value);
+		e=document.querySelector('[name="ric"]');
+		if(e) localStorage.pZ_ric=pZ.roundInitialCoordinates=e.checked?1:0;
+		e=document.querySelector('[name="showsw"]');
+		if(e)
+		{
+			localStorage.pZ_showsw=pZ.showStopwatch=e.checked?1:0;
+			if(pZ.stopwatch) pZ.showHideStopwatch();
+		}
+		e=document.querySelector('[name="showsc"]');
+		if(e)
+		{
+			localStorage.pZ_showsc=pZ.showScore=e.checked?1:0;
+			if(pZ.score) pZ.showHideScore();
+		}
+		if(pZ.abortSignal) changeStatus|=16;
+		if(pZ.board.querySelector('.figure svg')&&changeStatus)
+		{
+			// in theory localStorage.imgDataUrl can be null here, but not pZ.imgDataUrl
+			if(!localStorage.imgDataUrl&&pZ.imgDataUrl) localStorage.imgDataUrl=pZ.imgDataUrl;
+			pZ.restoreOn=changeStatus;
+			pZ.showWait();
+			pZ.clearFigure();
+			pZ.resetStopwatch();
+			pZ.updateScore();
+			setTimeout(()=>pZ.initPuzzle(),100);
+		}
+	}
+	pZ.doPreferencesDialog=function()
+	{
+		function makeOption(a,b)
+		{
+			let s="<option value=\""+a+"\""+((b==a)?" selected":"")+">";
+			return s+pZ.locale(a)+"</option>";
+		}
+		function makeCheckbox(a,b,c)
+		{
+			let s="<label><input name=\""+a+"\" type=\"checkbox\""+(b?" checked":"")+"> ";
+			return s+pZ.locale(c)+"</label>";
+		}
+		let t=pZ.locale("Preferences"),s="";
+		s+="<label>";
+		s+=pZ.locale("Number of puzzle pieces (approximate)")+" ";
+		s+="<input name=\"whmax\" type=\"number\" min=\"2\" max=\"5000\" value=\""+pZ.whmax+"\">";
+		s+="</label>";
+		s+="<label>";
+		s+=pZ.locale("Piece type")+" ";
+		s+="<select name=\"pt\">";
+		s+=makeOption("squared",pZ.pt);
+		s+=makeOption("curvy",pZ.pt);
+		s+=makeOption("quirky",pZ.pt);
+		s+="</select>";
+		s+="</label>";
+		s+="<label>";
+		s+=pZ.locale("Emboss")+" ";
+		s+="<input name=\"emb\" type=\"range\" min=\"0\" max=\"10\" value=\""+pZ.emboss+"\">";
+		s+="</label>";
+		s+="<label>";
+		s+=pZ.locale("Match threshold")+" ";
+		s+="<input name=\"th\" type=\"number\" min=\"0\" max=\"100\" step=\"5\" value=\""+pZ.threshold+"\">";
+		s+="</label>";
+		s+="<label>";
+		s+=pZ.locale("Keyboard navigation increment")+" ";
+		s+="<select name=\"ms\">";
+		s+=makeOption(10,pZ.moveStep);
+		s+=makeOption(20,pZ.moveStep);
+		s+=makeOption(50,pZ.moveStep);
+		s+=makeOption(100,pZ.moveStep);
+		s+="</select>";
+		s+="</label>";
+		s+=makeCheckbox("ric",pZ.roundInitialCoordinates,"Round initial coordinates");
+		s+=makeCheckbox("showsw",pZ.showStopwatch,"Show the stopwatch");
+		s+=makeCheckbox("showsc",pZ.showScore,"Show the score");
+		let o=[{n:"OK",a:"PreferencesOK"},{n:"Cancel"},{n:"Reset",l:"Default values",a:"PreferencesReset",t:"button"}];
+		pZ.doDialog("Preferences",t,s,o);
+	}
+	pZ.doClickOnPreferences=function(ev)
+	{
+		//if(!ev.key)
+			pZ.noH2Outline=1;
+		ev.stopPropagation();
+		if(pZ.inInit) pZ.abort(0);
+		pZ.doPreferencesDialog();
+	}
+	pZ.initPreferences=function(container)
+	{
+		let e=document.createElement('img');
+		e.src="_icon/preferences.svg";
+		e.ariaHidden="true";
+		e.draggable=false;
+		pZ.preferences=document.createElement('button');
+		pZ.preferences.classList.add("preferences");
+		pZ.preferences.append(e);
+		pZ.preferences.title=pZ.locale("Preferences");
+		pZ.preferences.addEventListener("click",pZ.doClickOnPreferences);
+		container.append(pZ.preferences);
+	}
+	// resize
+	pZ.resizeAndAdapt=function()
+	{
+		pZ.resize();
+		pZ.adaptScrollArea(3);
+	}
+	pZ.doClickOnResize=function(ev)
+	{
+		ev.stopPropagation();
+		if(pZ.abortSignal) return;
+		pZ.resizeAndAdapt();
+	}
+	pZ.initResize=function(container)
+	{
+		let e=document.createElement('img');
+		e.src="_icon/resize.svg";
+		e.ariaHidden="true";
+		e.draggable=false;
+		pZ.resizeBtn=document.createElement('button');
+		pZ.resizeBtn.classList.add("resize");
+		pZ.resizeBtn.append(e);
+		pZ.resizeBtn.title=pZ.locale("Resize and center");
+		pZ.resizeBtn.addEventListener("click",pZ.doClickOnResize);
+		container.append(pZ.resizeBtn);
+	}
+	// restart
+	pZ.doRestartOK=function()
+	{
+		pZ.resetScore();
+		pZ.resetStopwatch();
+		pZ.showWait();
+		setTimeout(()=>pZ.initPuzzle(),100);
+	}
+	pZ.doRestartDialog=function()
+	{
+		let t=pZ.locale("Restart"),s="";
+		s+="<p>";
+		s+=pZ.locale("The puzzle has not been completed.");
+		s+="</p>";
+		s+="<p>";
+		s+=pZ.locale("Do you still want to restart it?");
+		s+="</p>";
+		let o=[{n:"Yes",a:"RestartOK"},{n:"No"}];
+		pZ.doDialog("Restart",t,s,o);
+	}
+	pZ.doClickOnRestart=function(ev)
+	{
+		ev.stopPropagation();
+		if(pZ.abortSignal) return;
+		if(localStorage.imgDataUrl) pZ.doRestartDialog();
+		else pZ.doRestartOK();
+	}
+	pZ.initRestart=function(container)
+	{
+		// link in a button
+		let e=document.createElement('img');
+		e.src="_icon/restart.svg";
+		e.ariaHidden="true";
+		e.draggable=false;
+		pZ.restart=document.createElement('button');
+		pZ.restart.classList.add("restart");
+		pZ.restart.append(e);
+		pZ.restart.title=pZ.locale("Restart");
+		pZ.restart.addEventListener("click",pZ.doClickOnRestart);
+		container.append(pZ.restart);
+	}
+	// home
+	pZ.doClickOnHome=function(ev)
+	{
+		location.href="./"+pZ.search;
+	}
+	pZ.initHome=function(container)
+	{
+		// link in a button
+		let e=document.createElement('img');
+		e.src="_icon/home.svg";
+		e.ariaHidden="true";
+		e.draggable=false;
+		pZ.home=document.createElement('button');
+		pZ.home.classList.add("home");
+		pZ.home.append(e);
+		pZ.home.title=pZ.locale("Home");
+		pZ.home.addEventListener("click",pZ.doClickOnHome);
+		container.append(pZ.home);
+	}
+	// menu
+	pZ.initMenu=function()
+	{
+		let menu,li;
+		menu=document.createElement('menu');
+		menu.classList.add("menu");
+		li=document.createElement('li');
+		menu.append(li);
+		pZ.initAccessibility(li);
+		li=document.createElement('li');
+		menu.append(li);
+		pZ.initPreferences(li);
+		li=document.createElement('li');
+		menu.append(li);
+		pZ.initResize(li);
+		li=document.createElement('li');
+		menu.append(li);
+		pZ.initRestart(li);
+		li=document.createElement('li');
+		menu.append(li);
+		pZ.initHome(li);
+		pZ.menu=menu;
+		pZ.board.before(menu);
+	}
+	// open using an image on user's device
+	pZ.setWHToSvg=function(svgAsTxt)
+	{
+		let figure=document.createElement("figure");
+		figure.innerHTML=svgAsTxt;
+		let svg=figure.querySelector("svg");
+		let w,h;
+		if(svg.viewBox)
+		{
+			let box=svg.viewBox.baseVal;
+			w=box.width;
+			h=box.height;
+		}
+		else
+		{
+			if((svg.width&&(svg.width+"").match(/^[0-9.]+(px)?$/))
+				&&(svg.height&&(svg.height+"").match(/^[0-9.]+(px)?$/)))
+			{
+				w=(svg.width+"").replace(/^([0-9.]+)(px)?$/,"$1");
+				h=(svg.height+"").replace(/^([0-9.]+)(px)?$/,"$1");
+			}
+			else
+			{
+				w=300;
+				h=150;
+			}
+		}
+		if(w<h)
+		{
+			svg.setAttribute("width",Math.floor(pZ.iwhMax*w/h));
+			svg.setAttribute("height",pZ.iwhMax);
+		}
+		else
+		{
+			svg.setAttribute("width",pZ.iwhMax);
+			svg.setAttribute("height",Math.floor(pZ.iwhMax*h/w));
+		}
+		let data=figure.innerHTML;
+		return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(data)}`;
+	}
+	pZ.doChangeFile=function(ev)
+	{
+		let f=ev.target.files[0];
+		pZ.showWait();
+		pZ.imgBmp=null;
+		if(!f.type.match(/^image/i))
+		{
+			pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, cannot open this file!"));
+			return;
+		}
+		if(pZ.imgUrlCreated) URL.revokeObjectURL(pZ.imgUrl);
+		else pZ.imgUrlCreated=1;
+		pZ.imgUrl=URL.createObjectURL(f);
+		let svgImgOn=f.type.match(/svg\+xml$/i)?1:0;
+		const reader = new FileReader();
+		reader.addEventListener("load",()=>
+		{
+			pZ.board.innerHTML="";
+			if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
+			else pZ.imgDataUrl=reader.result;
+			// localStorage.imgDataUrl=pZ.imgDataUrl; // too soon, do it after resizing if any
+			pZ.imgObj=new Image();
+			pZ.imgObj.addEventListener("load",()=>
+			{
+				pZ.initialLoading=0;
+				pZ.iw=pZ.imgObj.width;
+				pZ.ih=pZ.imgObj.height;
+				if(pZ.trace) console.log("iw and ih when opening",pZ.iw,pZ.ih);
+				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
+				pZ.computeWH();
+				if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
+				{
+					let w=pZ.iw,h=pZ.ih;
+					if(w<h){pZ.iw=pZ.iwhMax*w/h;pZ.ih=pZ.iwhMax;}
+					else{pZ.iw=pZ.iwhMax;pZ.ih=pZ.iwhMax*h/w;}
+					let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
+					pZ.iw=Math.floor(pZ.iw);
+					pZ.ih=Math.floor(pZ.ih);
+					createImageBitmap(pZ.imgObj,o)
+					.then((imgBmp)=>
+					{
+						if(pZ.trace) console.log("iw and ih after resizing when opening",pZ.iw,pZ.ih);
+						pZ.imgBmp=imgBmp;
+						pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
+						localStorage.imgDataUrl=pZ.imgDataUrl;
+						pZ.initFirst();
+					});
+				}
+				else
+				{
+					localStorage.imgDataUrl=pZ.imgDataUrl;
+					pZ.initFirst();
+				}
+			});
+			if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
+			else pZ.imgObj.src=pZ.imgUrl;
+		});
+		if(svgImgOn) reader.readAsText(f);
+		else reader.readAsDataURL(f);
+	}
+	// score
+	pZ.showHideScore=function()
+	{
+		if(pZ.showScore) pZ.score.classList.add("show");
+		else pZ.score.classList.remove("show");
+	}
+	pZ.updateScore=function()
+	{
+		let a=pZ.wh,l,s="";
+		if(pZ.figure&&!pZ.abortSignal)
+		{
+			if(!pZ.figure.firstChild) l=a;
+			let bzs=[];
+			for(i=0;i<pZ.w;i++)
+				for(j=0;j<pZ.h;j++)
+					if(!bzs.includes(pZ.map[i][j].z)) bzs.push(pZ.map[i][j].z);
+			l=bzs.length;
+		}
+		else l=0;
+		if(pZ.initialScore)
+		{
+			pZ.initialScore=0;
+			s=pZ.locale("Puzzle of ")+pZ.w+pZ.locale(" by ")+pZ.h+pZ.locale(" pieces. ");
+		}
+		if(l==0) ; // does nothing, just wait
+		else if(l==1) s+=pZ.locale("Well done! The puzzle is complete!");
+		else if(l<a)
+		{
+			s+=pZ.locale("Match found! ");
+			s+=pZ.locale("Still ")+l+pZ.locale(" elements to glue.");
+		}
+		else s+=pZ.locale("Still ")+l+pZ.locale(" elements to glue.");
+		pZ.score.setAttribute("aria-label",s);
+		s="<span aria-hidden=\"true\">"+l+" / "+a+"</span>";
+		pZ.score.innerHTML=s;
+	}
+	pZ.resetScore=function()
+	{
+		pZ.initialScore=1;
+		pZ.score.innerHTML="";
+	}
+	pZ.initScore=function()
+	{
+		pZ.score=document.createElement('output');
+		pZ.score.ariaLive="polite";
+		pZ.score.ariaAtomic="true";
+		pZ.score.classList.add("score");
+		pZ.showHideScore();
+		document.body.append(pZ.score);
+	}
+	// messenger
+	pZ.updateMessenger=function(s)
+	{
+		if(pZ.messenger.innerHTML==s)
+		{
+			pZ.messenger.remove();
+			pZ.initMessenger();
+		}
+		pZ.messenger.innerHTML=s;
+	}
+	pZ.initMessenger=function()
+	{
+		pZ.messenger=document.createElement('output');
+		pZ.messenger.ariaLive="polite";
+		pZ.messenger.classList.add("messenger");
+		document.body.append(pZ.messenger);
+	}
+	// stopwatch
+	pZ.showHideStopwatch=function()
+	{
+		if(pZ.showStopwatch) pZ.stopwatch.classList.add("show");
+		else pZ.stopwatch.classList.remove("show");
+	}
+	pZ.updateStopwatch=function()
+	{
+		let t=pZ.stopwatchTime,h,m,s;
+		s=t%60;
+		m=((t-s)/60)%60;
+		h=(t-s-m*60)/3600;
+		pZ.stopwatch.innerHTML=((h<10)?"0":"")+h+":"+((m<10)?"0":"")+m+":"+((s<10)?"0":"")+s;
+		localStorage.pZ_stopwatchTime=t;
+	}
+	pZ.pauseStopwatch=function()
+	{
+		if(pZ.intervalId) clearInterval(pZ.intervalId);
+	}
+	pZ.resetStopwatch=function()
+	{
+		pZ.pauseStopwatch();
+		pZ.stopwatchTime=0;
+		pZ.updateStopwatch();
+	}
+	pZ.incrementeStopwatch=function()
+	{
+		pZ.stopwatchTime++;
+		pZ.updateStopwatch();
+	}
+	pZ.startStopwatch=function()
+	{
+		pZ.intervalId=setInterval(pZ.incrementeStopwatch,1000);
+	}
+	pZ.initStopwatch=function()
+	{
+		pZ.stopwatchTime=localStorage.pZ_stopwatchTime?-(-localStorage.pZ_stopwatchTime):0;
+		pZ.stopwatch=document.createElement('time');
+		pZ.stopwatch.classList.add("stopwatch");
+		pZ.showHideStopwatch();
+		pZ.board.before(pZ.stopwatch);
+	}
+	// puzzle
+	pZ.getSvg=function(ev,cls)
+	{
+		let e=ev.target;
+		while(e&&e.tagName&&(e.tagName.toLowerCase()!="svg")) e=e.parentNode;
+		if(e&&e.classList&&e.classList.contains(cls)) return e;
+		return null;
+	}
+	pZ.clearRestoreData=function()
+	{
+		let whmax,pt,emb,th,ms,ric,showsw,showsc;
+		whmax=localStorage.pZ_whmax?localStorage.pZ_whmax:pZ.defaultParams.whmax;
+		pt=localStorage.pZ_pt?localStorage.pZ_pt:pZ.defaultParams.pt;
+		emb=localStorage.pZ_emb?localStorage.pZ_emb:pZ.defaultParams.emb;
+		th=localStorage.pZ_th?localStorage.pZ_th:pZ.defaultParams.th;
+		ms=localStorage.pZ_ms?localStorage.pZ_ms:pZ.defaultParams.ms;
+		ric=localStorage.pZ_ric?localStorage.pZ_ric:pZ.defaultParams.ric;
+		showsw=localStorage.pZ_showsw?localStorage.pZ_showsw:pZ.defaultParams.showsw;
+		showsc=localStorage.pZ_showsc?localStorage.pZ_showsc:pZ.defaultParams.showsc;
+		if(pZ.trace) console.log("localStorage length",JSON.stringify(localStorage).length);
+		localStorage.clear();
+		localStorage.pZ_whmax=whmax;
+		localStorage.pZ_pt=pt;
+		localStorage.pZ_emb=emb;
+		localStorage.pZ_th=th;
+		localStorage.pZ_ms=ms;
+		localStorage.pZ_ric=ric;
+		localStorage.pZ_showsw=showsw;
+		localStorage.pZ_showsc=showsc;
+	}
+	pZ.doGameOver=function()
+	{
+		let a=pZ.board.getBoundingClientRect();
+		let b=pZ.figcaption.getBoundingClientRect();
+		let dX=0,dY=0;
+		if(pZ.selectedArea) pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+		if(b.left<a.left) dX=a.left-b.left;
+		if(b.top<a.top) dY=a.top-b.top;
+		if(dX||dY)
+		{
+			pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
+			window.scroll(dX,dY);
+		}
+		pZ.figure.style.removeProperty("background-image");
+		pZ.figure.replaceChildren();
+		pZ.figure.append(pZ.figcaption);
+		pZ.pauseStopwatch();
+		pZ.clearRestoreData();
+	}
+	pZ.isPuzzleCompleted=function()
+	{
+		return (pZ.map[0][0].z.length==pZ.w*pZ.h);
+	}
+	pZ.sendAbove=function(e)
+	{
+		// do not send e to the end of pZ.figure otherwise multiple side effects
+		if(!(pZ.upperLayer&&(pZ.upperLayer==e)))
+		{
+			pZ.upperLayer=e;
+			e.style.setProperty("z-index",++pZ.zIndex);
+		}
+	}
+	pZ.doFocusIn=function(ev)
+	{
+		// do not always clear pZ.selectedArea here, since one needs it to move items
+		let e=pZ.getSvg(ev,"puzzleElement");
+		if(!e) return;
+		ev.preventDefault();
+		ev.stopPropagation();
+		if(pZ.noFocusEffect==2) return;
+		if(e==pZ.lastFocused) return;
+		if(pZ.lastFocused) pZ.lastFocused.classList.remove("lastFocused");
+		pZ.lastFocused=e;
+		e.classList.add("lastFocused");
+		pZ.sendAbove(e);
+		if(!pZ.noFocusEffect&&!pZ.selectedArea)
+		{
+			let r=1+(pZ.h/50)/(e.pZ.jmax-e.pZ.jmin+1),t=0.1;
+			//if(pZ.wh<100) e.style.setProperty("transition","transform "+t+"s"); // too slow
+			pZ.moveLocked=1;
+			e.style.setProperty("transform","scale("+r+")");
+			setTimeout(function(){e.style.removeProperty("transform");pZ.moveLocked=0;},t*1000);
+			//if(pZ.wh<100) setTimeout(function(){e.style.removeProperty("transition")},t*2000); // too slow
+		}
+		// e.scrollIntoView({block:"nearest",inline:"nearest"});
+	}
+	pZ.updateMinMax=function(left,top)
+	{
+		let xmin=pZ.xmin,ymin=pZ.ymin,xmax=pZ.xmax,ymax=pZ.ymax;
+		pZ.xmin=Math.min(pZ.xmin,left);
+		pZ.xmax=Math.max(pZ.xmax,left+pZ.esz2to);
+		pZ.ymin=Math.min(pZ.ymin,top);
+		pZ.ymax=Math.max(pZ.ymax,top+pZ.esz2to);
+		if((pZ.xmin<xmin)||(pZ.ymin<ymin)||(pZ.xmax>xmax)||(pZ.ymax>ymax))
+			pZ.minMaxChange=1;
+	}
+	pZ.saveElement=function(e)
+	{
+		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
+		function gY(m){return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);}
+		for(let m of e.pZ.m.z)
+		{
+			localStorage["l"+m.i+"_"+m.j]=Math.round(gX(m)*pZ.esz-pZ.to);
+			localStorage["t"+m.i+"_"+m.j]=Math.round(gY(m)*pZ.esz-pZ.to);
+		}
+		pZ.updatePuzzleElementLabel(e);
+	}
+	pZ.perimeter=function(first)
+	{
+		let next=first,
+			border=1,
+			d=first.ds.d1,
+			c=first.ds.c1;
+		let k=0,km=pZ.wh*4; // just to avoid infinite loop when coding error
+		do
+		{
+			let dd="",cc="";
+			k++;
+			if(border==1) // 214
+			{
+				if((next.i==(pZ.w-1))||(pZ.map[next.i+1][next.j].svg!=next.svg))
+				{
+					border=2;
+					dd=next.ds.d2;
+					cc=next.ds.c2;
+				}
+				else if ((next.j==0)||(pZ.map[next.i+1][next.j-1].svg!=pZ.map[next.i+1][next.j].svg))
+				{
+					next=pZ.map[next.i+1][next.j];
+					dd=next.ds.d1;
+					cc=next.ds.c1;
+				}
+				else
+				{
+					border=4;
+					next=pZ.map[next.i+1][next.j-1];
+					dd=next.ds.d4;
+					cc=next.ds.c4;
+				}
+			}
+			else if(border==2) // 321
+			{
+				if((next.j==(pZ.h-1))||(pZ.map[next.i][next.j+1].svg!=next.svg))
+				{
+					border=3;
+					dd=next.ds.d3;
+					cc=next.ds.c3;
+				}
+				else if ((next.i==(pZ.w-1))||(pZ.map[next.i+1][next.j+1].svg!=pZ.map[next.i][next.j+1].svg))
+				{
+					next=pZ.map[next.i][next.j+1];
+					dd=next.ds.d2;
+					cc=next.ds.c2;
+				}
+				else
+				{
+					border=1;
+					next=pZ.map[next.i+1][next.j+1];
+					dd=next.ds.d1;
+					cc=next.ds.c1;
+				}
+			}
+			else if(border==3) // 432
+			{
+				if((next.i==0)||(pZ.map[next.i-1][next.j].svg!=next.svg))
+				{
+					border=4;
+					dd=next.ds.d4;
+					cc=next.ds.c4;
+				}
+				else if ((next.j==(pZ.h-1))||(pZ.map[next.i-1][next.j+1].svg!=pZ.map[next.i-1][next.j].svg))
+				{
+					next=pZ.map[next.i-1][next.j];
+					dd=next.ds.d3;
+					cc=next.ds.c3;
+				}
+				else
+				{
+					border=2;
+					next=pZ.map[next.i-1][next.j+1];
+					dd=next.ds.d2;
+					cc=next.ds.c2;
+				}
+			}
+			else // 143
+			{
+				if((next.j==0)||(pZ.map[next.i][next.j-1].svg!=next.svg))
+				{
+					border=1;
+					dd=next.ds.d1;
+					cc=next.ds.c1;
+				}
+				else if ((next.i==0)||(pZ.map[next.i-1][next.j-1].svg!=pZ.map[next.i][next.j-1].svg))
+				{
+					next=pZ.map[next.i][next.j-1];
+					dd=next.ds.d4;
+					cc=next.ds.c4;
+				}
+				else
+				{
+					border=3;
+					next=pZ.map[next.i-1][next.j-1];
+					dd=next.ds.d3;
+					cc=next.ds.c3;
+				}
+			}
+			if(border==1) next.ds.bb|=16;
+			if((first==next)&&(border==1)) break; // definition completed
+			else {d+=dd;c+=pZ.locale(", ")+cc;}
+		} while (k<km);
+		return {d:d,c:c};
+	}
+	pZ.doGluing=function(a)
+	{
+		if(!(a.ds.bb&15)) return;
+		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
+		function gY(m){return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);}
+		function concatZ(a,b){let bz=b.z.concat(a.z);for(let m of bz) m.z=bz;}
+		let i=a.i,j=a.j,glued=0,o=null,ax=gX(a),ay=gY(a);
+		pZ.updateMinMax(ax*pZ.esz-pZ.to,ay*pZ.esz-pZ.to);
+		if((j>0)&&(a.ds.bb&1))
+		{
+			let b=pZ.map[i][j-1];
+			if((Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			{
+				concatZ(a,b);
+				o=b;
+			}
+		}
+		if((i<(pZ.w-1))&&(a.ds.bb&2))
+		{
+			let b=pZ.map[i+1][j];
+			if((Math.abs(ax-gX(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			{
+				concatZ(a,b);
+				o=b;
+			}
+		}
+		if((j<(pZ.h-1))&&(a.ds.bb&4))
+		{
+			let b=pZ.map[i][j+1];
+			if((Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			{
+				concatZ(a,b);
+				o=b;
+			}
+		}
+		if((i>0)&&(a.ds.bb&8))
+		{
+			let b=pZ.map[i-1][j];
+			if((Math.abs(ax-gX(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			{
+				concatZ(a,b);
+				o=b;
+			}
+		}
+		if(o)
+		{
+			let svgo=o.svg;
+			let imin=pZ.w,jmin=pZ.h,imax=0,jmax=0,svg=a.svg;
+			let xo=svgo.pZ.x,
+				yo=svgo.pZ.y,
+				imino=svgo.pZ.imin,
+				jmino=svgo.pZ.jmin;
+			for(let m of a.z)
+			{
+				imin=Math.min(imin,m.i);
+				jmin=Math.min(jmin,m.j);
+				imax=Math.max(imax,m.i);
+				jmax=Math.max(jmax,m.j);
+			}
+			svg.setAttributeNS(null,"viewBox","0 0 "+((imax-imin+1)*pZ.esz2to)+" "+((jmax-jmin+1)*pZ.esz2to)+"");
+			svg.setAttribute("width",(imax-imin+1)*pZ.esz2to);
+			svg.setAttribute("height",(jmax-jmin+1)*pZ.esz2to);
+			
+			let d="",c="";
+			let newX=xo+imin-imino;
+			let newY=yo+jmin-jmino;
+			svg.pZ.x=newX;
+			svg.pZ.y=newY;
+			svg.pZ.imin=imin;
+			svg.pZ.jmin=jmin;
+			svg.pZ.imax=imax;
+			svg.pZ.jmax=jmax;
+			svg.style.left=newX*pZ.esz-pZ.to+"px";
+			svg.style.top=newY*pZ.esz-pZ.to+"px";
+			if(pZ.internalBordersOn) for(let m of a.z)
+			{
+				m.img.setAttributeNS(null,"x",(m.i-imin)*pZ.esz);
+				m.img.setAttributeNS(null,"y",(m.j-jmin)*pZ.esz);
+				svg.append(m.img);
+			}
+			for(let m of a.z) if(m.svg!=svg){m.svg.remove();m.svg=svg;}
+			for(let m of a.z)
+			{
+				m.ds.bb=0;
+				if((m.j==0)||(pZ.map[m.i][m.j-1].svg!=m.svg)) m.ds.bb|=1;
+				if((m.i==(pZ.w-1))||(pZ.map[m.i+1][m.j].svg!=m.svg)) m.ds.bb|=2;
+				if((m.j==(pZ.h-1))||(pZ.map[m.i][m.j+1].svg!=m.svg)) m.ds.bb|=4;
+				if((m.i==0)||(pZ.map[m.i-1][m.j].svg!=m.svg)) m.ds.bb|=8;
+			}
+			for(let ki=imin;ki<=imax;ki++)
+				for(let kj=jmin;kj<=jmax;kj++)
+				{
+					let m=pZ.map[ki][kj];
+					if((svg==m.svg)&&!(m.ds.bb&16)&&(m.ds.bb&1))
+					// same svg as the glued svg, not checked yet, external top border
+					{
+						let xo,yo,pe=pZ.perimeter(m);
+						xo=parseFloat(m.ds.d10.replace(/^m([e0-9.-]+) [e0-9.-]+$/i,"$1"));
+						yo=parseFloat(m.ds.d10.replace(/^m[e0-9.-]+ ([e0-9.-]+)$/i,"$1"));
+						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo);
+						d+=pe.d;
+						d+="z";
+						c+=(c?pZ.locale(", "):"")+pe.c;
+						// must continue in case there are "holes" amid the elements
+					}
+				}
+			for(let kj=jmin;kj<=jmax;kj++)
+			{
+				if(pZ.map[imin][kj].svg==svg)
+				{
+					svg.pZ.m=pZ.map[imin][kj];
+					break;
+				}
+			}
+			let outline=svg.querySelector('path.outline');
+			svg.append(outline);
+			outline.setAttributeNS(null,"d",d);
+			svg.style.setProperty("clip-path","path('"+d+"')");
+			svg.pZ.content=c;
+			pZ.updatePuzzleElementLabel(svg);
+			if(!pZ.internalBordersOn)
+				svg.style.setProperty("background-position",(pZ.to-imin*pZ.esz)+"px "+(pZ.to-jmin*pZ.esz+pZ.ho)+"px");
+			pZ.saveElement(svg);
+		}
+		else pZ.saveElement(a.svg); // has to save even if no gluing
+	}
+	pZ.dragContinue=function(ev)
+	{
+		if(!ev.isPrimary) return;
+		if(pZ.movedPiece&&(pZ.movedPiece.hasPointerCapture(ev.pointerId)))
+		{
+			for(let e2 of pZ.selectedElements)
+			{
+				e2.pZ.movedPieceX=e2.pZ.movedPieceX-pZ.lastClientX+ev.clientX;
+				e2.pZ.movedPieceY=e2.pZ.movedPieceY-pZ.lastClientY+ev.clientY;
+			}
+			if(pZ.selectedArea)
+			{
+				pZ.selectedAreaX=pZ.selectedAreaX-pZ.lastClientX+ev.clientX;
+				pZ.selectedAreaY=pZ.selectedAreaY-pZ.lastClientY+ev.clientY;
+			}
+			pZ.lastClientX=ev.clientX;
+			pZ.lastClientY=ev.clientY;
+			for(let e2 of pZ.selectedElements)
+			{
+				let left=(e2.pZ.movedPieceX-pZ.figureX)/pZ.rf,
+					top=(e2.pZ.movedPieceY-pZ.figureY)/pZ.rf;
+				let x=(left+pZ.to)/pZ.esz;
+				let y=(top+pZ.to)/pZ.esz;
+				e2.pZ.x=x;
+				e2.pZ.y=y;
+				e2.style.left=left+"px";
+				e2.style.top=top+"px";
+			}
+			if(pZ.selectedArea)
+			{
+				pZ.selectedArea.style.left=(pZ.selectedAreaX-pZ.figureX)/pZ.rf+"px";
+				pZ.selectedArea.style.top=(pZ.selectedAreaY-pZ.figureY)/pZ.rf+"px";
+			}
+		}
+	}
+	pZ.dragStart=function(ev)
+	{
+		if(!ev.isPrimary) return;
+		let e=pZ.getSvg(ev,"puzzleElement");
+		if(!e)
+		{
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			return;
+		}
+		if(!pZ.selectedElements.includes(e))
+		{
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			pZ.selectedElements.push(e);
+		}
+		// some browsers (ios?) do not give the focus to the element when dragging starts
+		// thus one has to put the element on the upper layer manually
+		e.addEventListener('pointermove',pZ.dragContinue);
+		e.setPointerCapture(ev.pointerId);
+		pZ.movedPiece=e;
+		pZ.lastClientX=ev.clientX;
+		pZ.lastClientY=ev.clientY;
+		let bf=pZ.figure.getBoundingClientRect();
+		pZ.figureX=bf.x;
+		pZ.figureY=bf.y;
+		if(pZ.selectedArea)
+		{
+			let bs=pZ.selectedArea.getBoundingClientRect();
+			pZ.selectedAreaX=bs.x;
+			pZ.selectedAreaY=bs.y;
+		}
+		for(let e2 of pZ.selectedElements)
+		{
+			pZ.sendAbove(e2);
+			let be2=e2.getBoundingClientRect();
+				e2.pZ.movedPieceX=be2.x;
+				e2.pZ.movedPieceY=be2.y;
+		}
+		pZ.sendAbove(e);
+		if(pZ.selectedArea) pZ.selectedArea.style.setProperty("z-index",pZ.zIndex);
+	}
+	pZ.dragEnd=function(ev)
+	{
+		if(!ev.isPrimary) return;
+		let e=pZ.getSvg(ev,"puzzleElement");
+		if(!e) return;
+		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
+		else if(pZ.trace) console.log("Lost pointer capture: ("+e.pZ.m.i+","+e.pZ.m.j+") when dragEnd");
+		if(pZ.movedPiece&&(e==pZ.movedPiece))
+		{
+			pZ.minMaxChange=0;
+			// when e.pZ.m.z is changed in doGluing(), z is a new array
+			// so e.pZ.m.z in for(let m of e.pZ.m.z) continues to refer to the old z
+			for(let e2 of pZ.selectedElements)
+				for(let m of e2.pZ.m.z) pZ.doGluing(m);
+			pZ.updateScore();
+			if(pZ.isPuzzleCompleted()) {pZ.doGameOver();pZ.movedPiece=null;return;}
+			else if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea(1);
+		}
+		else
+		{
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			if(pZ.trace) console.log("Lost dragged element ("+e.pZ.m.i+","+e.pZ.m.j+") when dragEnd");
+		}
+		e.removeEventListener('pointermove',pZ.dragContinue);
+		pZ.movedPiece=null;
+	}
+	pZ.updatePuzzleElementLabel=function(e)
+	{
+		let s="",x,y,n;
+		x=pZ.r2d(e.pZ.x+1);
+		y=pZ.r2d(e.pZ.y+1);
+		s+=pZ.locale("puzzle element on")+pZ.locale(" ")+pZ.locale("(")+x+", "+y+pZ.locale(")");
+		n=e.pZ.m.z.length;
+		s+=pZ.locale(", ")+n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));
+		e.ariaLabel=pZ.ucFirst(s);
+	}
+
+	pZ.forceToReturnToDefault=function()
+	{
+		localStorage.pZ_whmax=pZ.whmax=pZ.defaultParams.whmax;
+		pZ.computeWH();
+		localStorage.pZ_pt=pZ.pt=pZ.defaultParams.pt;
+		localStorage.pZ_emb=pZ.emboss=pZ.defaultParams.emb;
+		pZ.internalBordersOn=pZ.emboss?1:0;
+		localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th;
+		localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
+		localStorage.pZ_ric=pZ.roundInitialCoordinates=pZ.defaultParams.ric;
+		localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
+		localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
+	}
+	
+	pZ.abort=function(t)
+	{
+		if(pZ.abortSignal) return;
+		pZ.abortSignal=1;
+		pZ.hideWait();
+		if(t)
+		{
+			if(pZ.trace) console.log("perf when abort()",t,"count creation",pZ.figure.pZ.countCreation);
+			if(pZ.initialLoading)
+				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please reduce the number of pieces via the \"Preferences\" button!"));
+			else 
+				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please choose a lighter image or reduce the number of pieces via the \"Preferences\" button!"));
+		}
+	}
+
+	pZ.terminateInitPuzzle=function()
+	{
+		let t1 = performance.now();
+		if(pZ.trace) console.log("perf beginning of terminateInitPuzzle()",t1-pZ.t0);
+		pZ.figcaption=document.createElement('figcaption');
+		pZ.figcaption.innerHTML=pZ.locale("Puzzle");
+		pZ.figure.append(pZ.figcaption);
+		// suffle puzzle pieces
+		// if not, when using tab and tab+shift, the pieces may be in the final order
+		// let svgs=Array.from(pZ.figure.querySelectorAll('svg'));
+		svgs=pZ.shuffleArray(pZ.svgs);
+		for(let svg of svgs) pZ.figure.append(svg);
+		pZ.board.append(pZ.figure);
+		pZ.hideWait();
+		pZ.resizeAndAdapt();
+		pZ.startStopwatch();
+		if(pZ.restoreOn)
+		{
+			// todo: should glue only what was glued before restoring
+			for(i=0;i<pZ.w;i++)
+				for(j=0;j<pZ.h;j++)
+					pZ.doGluing(pZ.map[i][j]);
+			pZ.restoreOn=0;
+		}
+		pZ.updateScore();
+		pZ.inInit=0;
+		t1 = performance.now();
+		if(pZ.trace) console.log("w:",pZ.w,"h:",pZ.h,"iw",pZ.iw,"ih",pZ.ih);
+		if(pZ.trace) console.log("perf end of terminateInitPuzzle()",t1-pZ.t0);
+	}
+
+	pZ.createCn=function(k,dw,dh)
+	{
+		// safari seems to need integer coordinates
+		let cn=document.createElement("canvas");
+		cn.width=Math.ceil(dw);
+		cn.height=Math.ceil(dh);
+		pZ["cn"+k]=cn;
+		pZ["cx"+k]=cn.getContext("2d");
+	}
+
+	pZ.base64Bmp=function(bmp,dw,dh)
+	{
+		// bmp is an object of the same kind as those created by createImageBitmap()
+		// assume dw and dh are integer
+		let cn=document.createElement("canvas"),cx;
+		cn.width=dw;
+		cn.height=dh;
+		cx=cn.getContext("2d");
+		cx.drawImage(bmp,0,0,dw,dh);
+		return cn.toDataURL("image/png");
+	}
+		
+	pZ.base64ImagePortion=function(pA)
+	{
+		// safari seems to need integer coordinates
+		if(pZ.abortSignal) return 0;
+		let w=pA.esz2to;
+		let h=pA.esz2to;
+		let r=pA.rif;
+		let sx=Math.floor((pA.i?(pA.i*pA.esz-pA.to):0)*r);
+		let sy=Math.floor((pA.j?(pA.j*pA.esz-pA.to-pA.ho):0)*r);
+		let sWidth=Math.floor((((pA.i==0)||(pA.i==(pA.w-1)))?w-pA.to:w)*r);
+		let sHeight=Math.floor((((pA.j==0)||(pA.j==(pA.h-1)))?h-pA.to-pA.ho:h)*r);
+		let dx=Math.floor(pA.i?0:pA.to*r);
+		let dy=Math.floor(pA.j?0:(pA.to+pA.ho)*r);
+		let dWidth=sWidth;
+		let dHeight=sHeight;
+		// do not clip in canvas because it pixelizes!
+		pZ.cx1.clearRect(0,0,pZ.cn1.width,pZ.cn1.height);
+		// add a background to avoid transparency problems
+		pZ.cx1.fillStyle= "#fff";
+		pZ.cx1.fillRect(0,0,pZ.cn1.width,pZ.cn1.height);
+		pZ.cx1.drawImage(pZ.imgBmp?pZ.imgBmp:pZ.imgObj,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight);
+		return pZ.cn1.toDataURL("image/png");
+	}
+
+	pZ.base64Image=function(img,dw,dh)
+	{
+		// img is an object of the same kind as those created by new Image()
+		// safari seems to need integer coordinates
+		// work randomly on safari without a setTimeout in pZ.buildImg()?
+		if(pZ.abortSignal) return 0;
+		pZ.cx2.clearRect(0,0,pZ.cn2.width,pZ.cn2.height);
+		pZ.cx2.drawImage(img,0,0,Math.floor(dw),Math.floor(dh));
+		return pZ.cn2.toDataURL("image/png");
+	}
+
+	pZ.buildImgHref=function(pA)
+	{
+		if(pZ.abortSignal) return 0;
+		let i=pA.i,j=pA.j,esz2to=pA.esz2to;
+		let svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+		svg.setAttributeNS(null,"viewBox","0 0 "+esz2to+" "+esz2to);
+		svg.setAttribute("width",esz2to);
+		svg.setAttribute("height",esz2to);
+		let g=document.createElementNS('http://www.w3.org/2000/svg','g');
+		let filterId="emboss"+i+"_"+j;
+		svg.innerHTML=pZ.embossFilterHtml.replace(/id="emboss"/,"id=\""+filterId+"\"");
+		let def,clipPath,clipPathId="clipPath"+i+"_"+j,p;
+		defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+		clipPath=document.createElementNS('http://www.w3.org/2000/svg','clipPath');
+		clipPath.id=clipPathId;
+		p=document.createElementNS('http://www.w3.org/2000/svg','path');
+		p.setAttributeNS(null,"d",pA.d);
+		clipPath.append(p);
+		defs.append(clipPath);
+		g.append(defs);
+		g.setAttribute("filter","url(#"+filterId+")");
+		let img=document.createElementNS('http://www.w3.org/2000/svg','image');
+		img.setAttribute("x",0);
+		img.setAttribute("y",0);
+		img.setAttribute("width",esz2to);
+		img.setAttribute("height",esz2to);
+		// has to use data image base64 below since one draws this svg on a canvas later
+		let t1=performance.now();
+		let imgHref=pZ.base64ImagePortion(pA);
+		if(!pA.i&&!pA.j) if(pZ.trace) console.log("perf base64ImagePortion()",performance.now()-t1);
+		if(!imgHref) return 0;
+		img.setAttributeNS(null,"href",imgHref);
+		img.setAttribute("clip-path","url(#"+clipPathId+")");
+		g.append(img);
+		svg.append(g);
+		let data=new XMLSerializer().serializeToString(svg);
+		return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(data)}`;
+	}
+	
+	pZ.buildImg=function(pA)
+	{
+		if(pZ.abortSignal) return 0;
+		const t1=performance.now()-pA.t0;
+		if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime)){pZ.abort(t1);return;}
+		let esz2to=pA.esz2to;
+		let elementImg=document.createElementNS('http://www.w3.org/2000/svg','image');
+		pZ.map[pA.i][pA.j].img=elementImg;
+		elementImg.setAttribute("x",0);
+		elementImg.setAttribute("y",0);
+		elementImg.setAttribute("width",esz2to);
+		elementImg.setAttribute("height",esz2to);
+		// transforming the embossed svg in a bitmap image is decisive for play speed
+		let img=new Image();
+		img.addEventListener("load",()=>
+		{
+			// safari seems to need a small delay
+			setTimeout(()=>
+			{
+				let t2=performance.now();
+				let imgDataUrl=pZ.base64Image(img,esz2to,esz2to);
+				if(!pA.i&&!pA.j) if(pZ.trace) console.log("perf base64Image()",performance.now()-t2);
+				if(!imgDataUrl) return 0;
+				elementImg.setAttributeNS(null,"href",imgDataUrl);
+				pA.svg.prepend(elementImg);
+				pZ.svgs.push(pA.svg);
+				pA.figure.pZ.countCreation++;
+				if(pA.figure.pZ.countCreation==pA.wh) pZ.terminateInitPuzzle();
+				else 
+				{
+					let i1=pA.i,j1=pA.j,i2,j2;
+					if(j1==(pZ.h-1)) {i2=i1+1;j2=0;}
+					else {i2=i1;j2=j1+1;}
+					pZ.initElement(i2,j2,pA.to,pA.ho,pA.hor,pA.a,pA.qt,pA.qa,pA.qx,pA.qy);
+				}
+			},Math.round(Math.max(1,pA.esz/30)));
+		});
+		let imgHref=pZ.buildImgHref(pA);
+		if(imgHref) img.src=imgHref;
+	}
+
+	pZ.pAlea=function(t=0)
+	{
+		let a=[],fx=pZ.fx,fy=pZ.fy,ft=pZ.ft,fa=pZ.fa;
+		for(let i=0;i<pZ.w;i++)
+		{
+			a[i]=[];
+			for(let j=0;j<pZ.h;j++)
+			{
+				let e=[];
+				if(j==0) // top
+				{
+					if(t=="qx"){if(i==0) e[0]=0; else e[0]=a[i-1][j][1];}
+					else e[0]=0;
+				}
+				else
+				{
+					if((t=="qx")||(t=="qy")) e[0]=a[i][j-1][3];
+					else e[0]=a[i][j-1][2];
+				}
+				if(i==(pZ.w-1)) // right
+				{
+					if(t=="qy"){if(j==0) e[1]=0; else e[1]=a[i][j-1][2];}
+					else e[1]=0;
+				}
+				else
+				{
+					if(t=="qx"){if(j==0) e[1]=pZ.alea(4)*fx-2*fx; else e[1]=a[i][j-1][2];}
+					else if(t=="qy"){if(j==0) e[1]=0; else e[1]=a[i][j-1][2];}
+					else if(t=="qt") e[1]=pZ.alea(2)*ft-ft;
+					else if(t=="qa") e[1]=pZ.alea(2)*fa-fa;
+					else e[1]=pZ.alea(1)?1:-1;
+				}
+				if(j==(pZ.h-1)) // bottom
+				{
+					if(t=="qx"){if(i==(pZ.w-1)) e[2]=0; else e[2]=pZ.alea(4)*fx-2*fx;}
+					else e[2]=0;
+				}
+				else
+				{
+					if(t=="qx"){if(i==(pZ.w-1)) e[2]=0; else e[2]=pZ.alea(4)*fx-2*fx;}
+					else if(t=="qy") e[2]=pZ.alea(4)*fy-2*fy;
+					else if(t=="qt") e[2]=pZ.alea(2)*ft-ft;
+					else if(t=="qa") e[2]=pZ.alea(2)*fa-fa;
+					else e[2]=pZ.alea(1)?1:-1;
+				}
+				if(i==0) // left
+				{
+					if(t=="qy") {if(j==(pZ.h-1)) e[3]=0; else e[3]=pZ.alea(4)*fy-2*fy;}
+					else e[3]=0;
+				}
+				else
+				{
+					if((t=="qx")||(t=="qy")) e[3]=a[i-1][j][2];
+					else e[3]=a[i-1][j][1];
+				}
+				a[i][j]=e;
+			}
+		}
+		return a;
+	};
+
+	pZ.initElement=function(i,j,to,ho,hor,a,qt,qa,qx,qy)
+	{
+		if(pZ.abortSignal) return;
+		let svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+		let d,d1,d2,d3,d4,d10,d20,d30,d40,left,top,x,y,c="",c1,c2,c3,c4;
+		pZ.map[i][j]={svg:svg,i:i,j:j};
+		pZ.map[i][j].z=[pZ.map[i][j]];
+		svg.pZ={m:pZ.map[i][j]};
+		svg.classList.add("puzzleElement");
+		svg.pZ.imin=svg.pZ.imax=i;
+		svg.pZ.jmin=svg.pZ.jmax=j;
+		svg.setAttributeNS(null,"viewBox","0 0 "+pZ.esz2to+" "+pZ.esz2to);
+		svg.setAttribute("width",pZ.esz2to);
+		svg.setAttribute("height",pZ.esz2to);
+		svg.setAttribute("tabindex","0");
+		let hoj0=((j==0)?ho:0);
+		let hojn=((j==(pZ.h-1))?ho:0);
+		let hoo=hoj0+hojn;
+		let bRef=6*pZ.esz00;
+		let qttRef=pZ.esz00;
+		let qxyRef=8*pZ.esz00;
+		let anRef=15*pZ.esz00;
+		let qaRef=pZ.esz00;
+		let adRef=50*pZ.esz00;
+		if((pZ.pt=="quirky")||(pZ.pt=="curvy"))
+		{
+			let kb,kt,kx1,ky1,kx2,ky2,ad,an,af,qtt,qxy1,qxy2,qaa;
+			let sl,px1,px2,px3,px4,py1,py2,py3,py4,aaa;
+			function buildTom(z,qt,a,qaa)
+			{
+				let s="";
+				if(a) s+=(pZ.pt=="curvy")?"":(qaa>0)?"big ":(qaa<0)?"small ":"";
+				s+=(a<0)?"mortise":(a>0)?"tenon":"straight";
+				s=pZ.locale(s);
+				if(pZ.pt=="curvy") return s;
+				switch(z)
+				{
+					case 0:
+						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset to the left");
+						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset to the right");
+						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
+						break;
+					case 1:
+						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset upwards");
+						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset downwards");
+						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
+						break;
+					case 2:
+						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset to the right");
+						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset to the left");
+						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
+						break;
+					case 3:
+						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset downwards");
+						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset upwards");
+						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
+						break;
+				}
+				return s;
+			}
+			function buildAo(z,x,y)
+			{
+				let s="";
+				switch(z)
+				{
+					case 0:s+=pZ.locale("top right corner");break;
+					case 1:s+=pZ.locale("bottom right corner");break;
+					case 2:s+=pZ.locale("bottom left corner");break;
+					case 3:s+=pZ.locale("top left corner");break;
+				}
+				s+=pZ.locale(", ");
+				switch(x)
+				{
+					case -2:s+=pZ.locale("very negative abscissa offset");break;
+					case -1:s+=pZ.locale("negative abscissa offset");break;
+					case 0:s+=pZ.locale("abscissa without offset");break;
+					case 1:s+=pZ.locale("positive abscissa offset");break;
+					case 2:s+=pZ.locale("very positive abscissa offset");break;
+				}
+				s+=pZ.locale(", ");
+				switch(y)
+				{
+					case -2:s+=pZ.locale("very negative ordinate offset");break;
+					case -1:s+=pZ.locale("negative ordinate offset");break;
+					case 0:s+=pZ.locale("ordinate without offset");break;
+					case 1:s+=pZ.locale("positive ordinate offset");break;
+					case 2:s+=pZ.locale("very positive ordinate offset");break;
+				}
+				return s;
+			}
+			// top
+			qtt=((j==1)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
+			qxy1=((j==0)||(j==1)||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
+			kx1=qxy1*qx[i][j][0];
+			ky1=qxy1*qy[i][j][0];
+			kx2=qxy1*qx[i][j][1];
+			if(a[i][j][0])
+			{
+				ky2=qxy1*qy[i][j][1];
+				kt=qtt*qt[i][j][0];
+				kb=a[i][j][0]*bRef;
+				qaa=qa[i][j][0]*qaRef;
+				an=anRef+qaa;
+				ad=adRef-an/2;
+				af=pZ.esz-2*ad;
+				ad=ad-(kx1-kx2)/2;
+				sl=(ky2-ky1)/(pZ.esz-kx1+kx2);
+				px1=(ad-kt)/2;
+				py1=px1*sl-kb;
+				px2=ad-kt;
+				py2=px2*sl-kb;
+				px3=af;
+				py3=px3*sl;
+				px4=(ad+kt)/2;
+				py4=px4*sl;
+				px5=ad+kt;
+				py5=px5*sl+kb;
+				aaa="a"+an+" "+an+((a[i][j][0]>0)?" 0 1 0 ":" 1 1 1 ");
+			}
+			d10="m"+(to+kx1)+" "+(to+hoj0+ky1);
+			d1="";
+			c1=pZ.locale("top edge")+pZ.locale(", ")+buildTom(0,-qt[i][j][0],-a[i][j][0],qaa);
+			if(pZ.pt=="quirky") c1+=(pZ.locale(", ")+buildAo(0,qx[i][j][1],qy[i][j][1]));
+			if(a[i][j][0]) d1+="q"+px1+" "+py1+" "+px2+" "+py2+aaa+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else d1+="h"+(pZ.esz-kx1+kx2);
+			
+			// right
+			qtt=((j==0)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
+			qxy1=((j==0)||(j==1)||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
+			qxy2=((j==0)||(j==(pZ.h-2))||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
+			kt=qtt*qt[i][j][1];
+			kx1=qxy1*qx[i][j][1];
+			ky1=qxy1*qy[i][j][1];
+			kx2=qxy2*qx[i][j][2];
+			ky2=qxy2*qy[i][j][2];
+			kb=a[i][j][1]*bRef;
+			qaa=qa[i][j][1]*qaRef;
+			an=anRef+qaa;
+			ad=adRef-an/2;
+			af=pZ.esz-2*ad;
+			ad=ad-(ky1-ky2)/2-hoo/2;
+			
+			sl=(kx2-kx1)/(pZ.esz-hoo-ky1+ky2);
+			py1=(ad-kt)/2;
+			px1=py1*sl+kb;
+			py2=ad-kt;
+			px2=py2*sl+kb;
+			py3=af;
+			px3=py3*sl;
+			py4=(ad+kt)/2;
+			px4=py4*sl;
+			py5=ad+kt;
+			px5=py5*sl-kb;
+			d20="m"+(to+pZ.esz+kx1)+" "+(to+hoj0+ky1);
+			d2="";
+			c2=pZ.locale("right edge")+pZ.locale(", ")+buildTom(1,-qt[i][j][1],-a[i][j][1],qaa);
+			if(pZ.pt=="quirky") c2+=(pZ.locale(", ")+buildAo(1,qx[i][j][2],qy[i][j][2]));
+			if(a[i][j][1]==-1) d2+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 1 1 1 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else if(a[i][j][1]==1) d2+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 0 1 0 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else d2+="v"+(pZ.esz-hoo-ky1+ky2);
+			
+			// bottom
+			qtt=((j==0)||(j==(pZ.h-2)))?hor*qttRef:qttRef;
+			qxy1=((j==0)||(j==(pZ.h-2))||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
+			kt=qtt*qt[i][j][2];
+			kx1=qxy1*qx[i][j][2];
+			ky1=qxy1*qy[i][j][2];
+			kx2=qxy1*qx[i][j][3];
+			ky2=qxy1*qy[i][j][3];
+			kb=a[i][j][2]*bRef;
+			qaa=qa[i][j][2]*qaRef;
+			an=anRef+qaa;
+			ad=adRef-an/2;
+			af=pZ.esz-2*ad;
+			ad=ad+(kx1-kx2)/2;
+			
+			sl=(ky2-ky1)/(-pZ.esz-kx1+kx2);
+			px1=(-ad-kt)/2;
+			py1=px1*sl-kb;
+			px2=-ad-kt;
+			py2=px2*sl-kb;
+			px3=-af;
+			py3=px3*sl;
+			px4=(-ad+kt)/2;
+			py4=px4*sl;
+			px5=-ad+kt;
+			py5=px5*sl+kb;
+			d30="m"+(to+pZ.esz+kx1)+" "+(to+hoj0+pZ.esz-hoo+ky1);
+			d3="";
+			c3=pZ.locale("bottom edge")+pZ.locale(", ")+buildTom(2,qt[i][j][2],a[i][j][2],qaa);
+			if(pZ.pt=="quirky") c3+=(pZ.locale(", ")+buildAo(2,qx[i][j][3],qy[i][j][3]));
+			if(a[i][j][2]==-1) d3+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 0 1 0 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else if(a[i][j][2]==1) d3+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 1 1 1 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else d3+="h"+(-pZ.esz-kx1+kx2);
+			
+			// left
+			qtt=((j==0)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
+			qxy1=((j==0)||(j==(pZ.h-2))||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
+			qxy2=((j==0)||(j==1)||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
+			kt=qtt*qt[i][j][3];
+			kx1=qxy1*qx[i][j][3];
+			ky1=qxy1*qy[i][j][3];
+			kx2=qxy2*qx[i][j][0];
+			ky2=qxy2*qy[i][j][0];
+			kb=a[i][j][3]*bRef;
+			qaa=qa[i][j][3]*qaRef;
+			an=anRef+qaa;
+			ad=adRef-an/2;
+			af=pZ.esz-2*ad;
+			ad=ad+(ky1-ky2)/2-hoo/2;
+			
+			sl=(kx2-kx1)/(-pZ.esz+hoo-ky1+ky2);
+			py1=(-ad-kt)/2;
+			px1=py1*sl+kb;
+			py2=-ad-kt;
+			px2=py2*sl+kb;
+			py3=-af;
+			px3=py3*sl;
+			py4=(-ad+kt)/2;
+			px4=py4*sl;
+			py5=-ad+kt;
+			px5=py5*sl-kb;
+			d40="m"+(to+kx1)+" "+(to+hoj0+pZ.esz-hoo+ky1);					
+			d4="";
+			c4=pZ.locale("left edge")+pZ.locale(", ")+buildTom(3,qt[i][j][3],a[i][j][3],qaa);
+			if(pZ.pt=="quirky") c4+=(pZ.locale(", ")+buildAo(3,qx[i][j][0],qy[i][j][0]));
+			if(a[i][j][3]==-1) d4+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 0 1 0 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else if(a[i][j][3]==1) d4+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 1 1 1 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			else d4+="v"+(-pZ.esz+hoo-ky1+ky2);
+		}
+		else // squared
+		{
+			let mesz=25*pZ.esz00,mesz2=(pZ.esz-mesz)/2;
+			d10="m"+to+" "+(to+hoj0);
+			d20="m"+(to+pZ.esz)+" "+(to+hoj0);
+			d30="m"+(to+pZ.esz)+" "+(to+hoj0+pZ.esz-hoo);
+			d40="m"+to+" "+(to+hoj0+pZ.esz-hoo);
+			d1="h"+mesz2+"v"+(mesz*a[i][j][0])+"h"+mesz+"v"+(-mesz*a[i][j][0])+"h"+mesz2;
+			c1=pZ.locale("top edge")+pZ.locale(" ");
+			c1+=(a[i][j][0]>0)?pZ.locale("tenon"):(a[i][j][0]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			d2="v"+(mesz2-hoo/2)+"h"+(mesz*a[i][j][1])+"v"+mesz+"h"+(-mesz*a[i][j][1])+"v"+(mesz2-hoo/2);
+			c2=pZ.locale("right edge")+pZ.locale(" ");
+			c2+=(a[i][j][1]>0)?pZ.locale("tenon"):(a[i][j][1]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			d3="h-"+mesz2+"v"+(mesz*a[i][j][2])+"h-"+mesz+"v"+(-mesz*a[i][j][2])+"h-"+mesz2;
+			c3=pZ.locale("bottom edge")+pZ.locale(" ");
+			c3+=(a[i][j][2]>0)?pZ.locale("tenon"):(a[i][j][2]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			d4="v"+(-(mesz2-hoo/2))+"h"+(mesz*a[i][j][3])+"v-"+mesz+"h"+(-mesz*a[i][j][3])+"v"+(-(mesz2-hoo/2));
+			c4=pZ.locale("left edge")+pZ.locale(" ");
+			c4+=(a[i][j][3]>0)?pZ.locale("tenon"):(a[i][j][3]<0)?pZ.locale("mortise"):pZ.locale("straight");
+		}
+		d=d10+d1+d2+d3+d4+"z";
+		c=c1+pZ.locale(", ")+c2+pZ.locale(", ")+c3+pZ.locale(", ")+c4;
+		if((pZ.restoreOn>0)&&(pZ.restoreOn<8)&&localStorage["l"+i+"_"+j]&&localStorage["t"+i+"_"+j])
+		{
+			left=-(-localStorage["l"+i+"_"+j]);
+			top=-(-localStorage["t"+i+"_"+j]);
+		}
+		else
+		{
+			if(pZ.roundInitialCoordinates)
+			{
+				left=Math.round(pZ.alea((pZ.w-1)*100)/pZ.moveStep)*pZ.moveStep*pZ.esz00-pZ.to;
+				top=Math.round(pZ.alea((pZ.h-1)*100)/pZ.moveStep)*pZ.moveStep*pZ.esz00-pZ.to;
+			}
+			else
+			{
+				left=pZ.alea((pZ.w-1)*pZ.esz)-pZ.to;
+				top=pZ.alea((pZ.h-1)*pZ.esz)-pZ.to;
+			}
+			localStorage["l"+i+"_"+j]=left;
+			localStorage["t"+i+"_"+j]=top;
+		}
+		x=(left+pZ.to)/pZ.esz;
+		y=(top+pZ.to)/pZ.esz;
+		svg.style.left=left+"px";
+		svg.style.top=top+"px";
+		svg.pZ.x=x;
+		svg.pZ.y=y;
+		if(!pZ.internalBordersOn)
+		{
+			svg.style.backgroundSize=(pZ.w*pZ.esz)+"px auto";
+			svg.style.backgroundPosition=(pZ.to-i*pZ.esz)+"px "+(pZ.to-j*pZ.esz+ho)+"px";
+			svg.style.backgroundRepeat="no-repeat";
+			// Safari seems to need a fake element covering all the svg to make clip working conveniently
+			// otherwise, coordinates of the clipping area are wrong
+			let rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+			rect.setAttributeNS(null,"width","100%");
+			rect.setAttributeNS(null,"height","100%");
+			rect.setAttributeNS(null,"fill","#0000");
+			svg.append(rect);
+		}
+		let outline=document.createElementNS('http://www.w3.org/2000/svg','path');
+		outline.setAttributeNS(null,"d",d);
+		outline.classList.add("outline");
+		svg.append(outline);
+		svg.style.setProperty("clip-path","path('"+d+"')");
+		svg.pZ.content=c;
+		pZ.map[i][j].ds={d:d,d10:d10,d20:d20,d30:d30,d40:d40,d1:d1,d2:d2,d3:d3,d4:d4,bb:15,c1:c1,c2:c2,c3:c3,c4:c4};
+		pZ.updateMinMax(left,top);
+		pZ.updatePuzzleElementLabel(svg);
+		if(pZ.internalBordersOn)
+		{
+			let pA={
+				figure:pZ.figure,svg:svg,
+				i:i,j:j,to:to,ho:ho,hor:hor,d:d,w:pZ.w,h:pZ.h,wh:pZ.wh,
+				iw:pZ.iw,ih:pZ.ih,iwhMax:pZ.iwhMax,rif:pZ.rif,
+				esz:pZ.esz,esz2to:pZ.esz2to,esz00:pZ.esz00,t0:pZ.t0,
+				a:a,qt:qt,qa:qa,qx:qx,qy:qy};
+			pZ.buildImg(pA);
+		}
+		else
+		{
+			const t1 = performance.now()-pZ.t0;
+			if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime/10)){pZ.abort(t1);return;}// 10 times less than when emboss?
+			svg.append(outline);
+			pZ.svgs.push(svg);
+			pZ.figure.pZ.countCreation++;
+			if(pZ.figure.pZ.countCreation==pZ.wh) pZ.terminateInitPuzzle();
+		}
+	}
+	
+	pZ.clearFigure=function()
+	{
+		pZ.inInit=1;
+		pZ.abortSignal=0;
+		if(pZ.figure)
+		{
+			pZ.upperLayer=null;
+			pZ.figure.remove();
+			pZ.figure=null;
+		}
+	}
+
+	pZ.initPuzzle=function()
+	{
+		pZ.t0=performance.now();
+		pZ.clearFigure();
+		pZ.lastFocused=null;
+		pZ.esz=pZ.computeEsz();
+		pZ.to=pZ.esz/2;
+		pZ.esz2to=pZ.esz+2*pZ.to;
+		pZ.esz00=pZ.esz/100;
+		document.body.style.setProperty("--esz00",pZ.esz00);
+		pZ.ho=pZ.esz*(pZ.h-pZ.w*pZ.ih/pZ.iw)/2;
+		pZ.initScrollArea();
+		pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+		pZ.zIndex=0;
+		let to=pZ.to; // magic offset to keep room for tenon and piece deformation
+		let ho=pZ.ho; // magic h offset when the image and puzzle ratio are not the same
+		let hor=(1-ho/pZ.esz)*(1-ho/pZ.esz);
+		pZ.fb=((pZ.pt=="curvy")||(pZ.pt=="quirky"))?1:0; // curve
+		pZ.ft=(pZ.pt=="quirky")?1:0; // tenon offset
+		pZ.fa=(pZ.pt=="quirky")?1:0; // tenon radius
+		pZ.fx=pZ.fy=(pZ.pt=="quirky")?1:0; // corner position
+		let a,qt,qa,qx,qy;
+		if((pZ.restoreOn>0)&&(pZ.restoreOn<4)
+			&&localStorage.a
+			&&localStorage.qt
+			&&localStorage.qa
+			&&localStorage.qx
+			&&localStorage.qy)
+		{
+			// when restore dialog appearing or when changing emboss
+			a=JSON.parse(localStorage.a);
+			qt=JSON.parse(localStorage.qt);
+			qa=JSON.parse(localStorage.qa);
+			qx=JSON.parse(localStorage.qx);
+			qy=JSON.parse(localStorage.qy);
+		}
+		else
+		{
+			a=pZ.pAlea("a"), // tenon or mortise
+			localStorage.a=JSON.stringify(a);
+			qt=pZ.pAlea("qt"), // tenon translation
+			localStorage.qt=JSON.stringify(qt);
+			qa=pZ.pAlea("qa"), // tenon radius
+			localStorage.qa=JSON.stringify(qa);
+			qx=pZ.pAlea("qx"), // corner offset x coordinate
+			localStorage.qx=JSON.stringify(qx);
+			qy=pZ.pAlea("qy"); // corner offset y coordinate
+			localStorage.qy=JSON.stringify(qy);
+		}
+		pZ.figure=document.createElement('figure');
+		pZ.figure.pZ={countCreation:0};
+		pZ.figure.classList.add('figure');
+		if(!pZ.internalBordersOn) pZ.figure.classList.add('noBorders');
+		pZ.figure.style.width=(pZ.esz*pZ.w)+"px";
+		pZ.figure.style.height=(pZ.esz*pZ.h)+"px";
+		pZ.figure.addEventListener('pointerdown',pZ.dragStart);
+		pZ.figure.addEventListener('pointerup',pZ.dragEnd);
+		pZ.figure.addEventListener('focusin',pZ.doFocusIn);
+		// use a linear gradient as background-image to handle the case of top and bottom lines with unusual height
+		pZ.figure.style.setProperty("background-image","linear-gradient(#0000 0 "+ho+"px,#0001 "+ho+"px "+(pZ.esz*pZ.h-ho)+"px,#0000 "+(pZ.esz*pZ.h-ho)+"px "+(pZ.esz*pZ.h)+"px)");
+		pZ.map=[];
+		for(let i=0;i<pZ.w;i++) pZ.map[i]=[];
+		pZ.svgs=[];
+		pZ.xmin=-to;
+		pZ.xmax=pZ.w*pZ.esz+to;
+		pZ.ymin=-to;
+		pZ.ymax=pZ.h*pZ.esz+to;
+		pZ.rif=pZ.iw/(pZ.esz*pZ.w);
+		if(pZ.trace) console.log("rif",pZ.rif);
+		// faster to create cn and cx only once instead of doing it for each element
+		// better for browser memory management?
+		pZ.createCn(1,pZ.esz2to*pZ.rif,pZ.esz2to*pZ.rif);
+		pZ.createCn(2,pZ.esz2to,pZ.esz2to);
+		if(pZ.internalBordersOn) pZ.initElement(0,0,to,ho,hor,a,qt,qa,qx,qy);
+		else for(let i=0;i<pZ.w;i++)
+			for(let j=0;j<pZ.h;j++)
+			{
+				if(pZ.abortSignal) return;
+				pZ.initElement(i,j,to,ho,hor,a,qt,qa,qx,qy);
+			}
+	}
+
+	// keydown
+	pZ.focus=function(e)
+	{
+		// if e is nearly in its final place, just center the figure
+		// else let the browser decides
+		if((Math.abs(e.pZ.x-e.pZ.imin)<1.05)&&(Math.abs(e.pZ.y-e.pZ.jmin)<1.05))
+		{
+			e.focus({preventScroll:true});
+			pZ.adaptScrollArea(1);
+		}
+		else
+		{
+			e.focus();
+			e.scrollIntoView({block:"nearest",inline:"nearest"});
+		}
+	}
+	pZ.focusOnFirst=function()
+	{
+		let list=pZ.figure.querySelectorAll('.puzzleElement');
+		if(list.length>0) pZ.focus(list[0]);
+	}
+	pZ.focusOnLast=function()
+	{
+		let list=pZ.figure.querySelectorAll('.puzzleElement');
+		if(list.length>0) pZ.focus(list[list.length-1]);
+	}
+	pZ.focusOnNextOrFirst=function()
+	{
+		let a=document.activeElement;
+		if(a.classList.contains("puzzleElement"))
+		{
+			let list=pZ.figure.querySelectorAll('.puzzleElement'),
+				k; // k must be declared here since it is used outside the loop
+			for(k=0;k<list.length;k++) if(list[k]==a) break;
+			if(k>=list.length-1) pZ.focusOnFirst();
+			else pZ.focus(list[k+1]);
+		}
+		else pZ.focusOnFirst();
+	}
+	pZ.focusOnPredOrLast=function()
+	{
+		let a=document.activeElement;
+		if(a.classList.contains("puzzleElement"))
+		{
+			let list=pZ.figure.querySelectorAll('.puzzleElement'),
+				k; // k must be declared here since it is used outside the loop
+			for(k=list.length-1;k>=0;k--) if(list[k]==a) break;
+			if(k<1) pZ.focusOnLast();
+			else pZ.focus(list[k-1]);
+		}
+		else pZ.focusOnLast();
+	}
+	pZ.match=function(e)
+	{
+		if(e&&e.classList&&e.classList.contains("puzzleElement"))
+		{
+			pZ.minMaxChange=0;
+			for(let m of e.pZ.m.z) pZ.doGluing(m);
+			pZ.updateScore();
+			if(pZ.isPuzzleCompleted()) pZ.doGameOver();
+			else
+			{
+				if(pZ.minMaxChange) pZ.adaptScrollArea(1);
+				// not very good to force this scroll into view
+				//e.scrollIntoView({block:"nearest",inline:"nearest"});
+			}
+		}
+	}
+	pZ.doBoard=function(ev)
+	{
+		pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+		let e=document.activeElement;
+		if(e?.classList?.contains("puzzleElement"))
+		{
+			if(ev.shiftKey) pZ.focusOnPredOrLast();
+			else pZ.focusOnNextOrFirst();
+		}
+		else if(pZ.lastFocused) pZ.focus(pZ.lastFocused);
+		else pZ.focusOnFirst();
+	}
+	pZ.doDescription=function(e)
+	{
+		if(pZ.selectedArea)
+		{
+			// describe the selected area
+			let s="";
+			let be=pZ.selectedArea.getBoundingClientRect();
+			let bf=pZ.figure.getBoundingClientRect();
+			s+=pZ.locale("Selection area at ");
+			s+=pZ.a2A((be.x-bf.x)/pZ.rf)+pZ.locale(", ")+pZ.a2A((be.y-bf.y)/pZ.rf)+pZ.locale(". ");
+			s+=pZ.locale("Width: ")+pZ.b2B(be.width/pZ.rf)+pZ.locale(". ");
+			s+=pZ.locale("Height: ")+pZ.b2B(be.height/pZ.rf)+pZ.locale(". ");
+			pZ.updateMessenger(s);
+		}
+		else if(pZ.figure)
+		{
+			let list=pZ.figure.querySelectorAll('.selected');
+			if(list&&list.length)
+			{
+				// describe selected elements
+				let s="",len=list.length;
+				if(len>1) s+=len+pZ.locale(" selected puzzle elements! ");
+				else s+=1+pZ.locale(" selected puzzle element! ");
+				for(let e of list)
+					s+=e.ariaLabel+pZ.locale(", ")+e.pZ.content+pZ.locale(". ");
+				pZ.updateMessenger(s);
+			}
+			else if(e?.classList?.contains("puzzleElement"))
+				pZ.updateMessenger(e.ariaLabel+pZ.locale(", ")+e.pZ.content);
+		}
+	}
+	pZ.placeOne=function(e)
+	{
+		// just for testing
+		if(e?.classList?.contains("puzzleElement"))
+		{
+			pZ.noFocusEffect=2;
+			let x=e.pZ.imin;
+			let y=e.pZ.jmin;
+			e.pZ.x=x;
+			e.pZ.y=y;
+			e.style.left=(x*pZ.esz-pZ.to)+"px";
+			e.style.top=(y*pZ.esz-pZ.to)+"px";
+			for(let m of e.pZ.m.z) pZ.doGluing(m);
+			pZ.sendAbove(e);
+			pZ.updateScore();
+			e.focus();
+			pZ.noFocusEffect=0;
+		}
+	}
+	pZ.placeSeveral=function(e,t)
+	{
+		// just for testing
+		if(e?.classList?.contains("puzzleElement"))
+		{
+			pZ.noFocusEffect=2;
+			if(t=="v")
+			{
+				let i=e.pZ.imin;
+				for(let j=0;j<pZ.h;j++)
+					pZ.placeOne(pZ.map[i][j].svg);
+			}
+			else
+			{
+				let j=e.pZ.jmin;
+				for(let i=0;i<pZ.w;i++)
+					pZ.placeOne(pZ.map[i][j].svg);
+			}
+			pZ.noFocusEffect=0;
+		}
+	}
+	pZ.placeAll=function()
+	{
+		// just for testing
+		pZ.noFocusEffect=2;
+		for(let e of pZ.figure.querySelectorAll('.puzzleElement'))
+		{
+			let x=e.pZ.imin;
+			let y=e.pZ.jmin;
+			e.pZ.x=x;
+			e.pZ.y=y;
+			e.style.left=(x*pZ.esz-pZ.to)+"px";
+			e.style.top=(y*pZ.esz-pZ.to)+"px";
+		}
+		for(let i=0;i<pZ.w;i++)
+			for(let j=0;j<pZ.h;j++)
+				pZ.doGluing(pZ.map[i][j]);
+		pZ.updateScore();
+		pZ.menu.querySelector("li:last-of-type").focus();
+		pZ.noFocusEffect=0;
+	}
+	
+	pZ.updateSelectedElements=function()
+	{
+		if(!pZ.selectedArea) return;
+		let b1=pZ.selectedArea.getBoundingClientRect();
+		pZ.selectedElements=[];
+		for(let e of pZ.figure.querySelectorAll(".puzzleElement"))
+		{
+			let b2=e.querySelector('.outline').getBoundingClientRect();
+			// on firefox, getBoundingClientRect() seems to need the path has a fill or stroke color not set to none
+			if((b2.left>=(b1.left-1))
+				&&(b2.top>=(b1.top-1))
+				&&(b2.bottom<=(b1.bottom+1))
+				&&(b2.right<=(b1.right+1)))
+				pZ.selectedElements.push(e);
+		}
+	}
+
+	pZ.doArrowMoveOneElement=function(ev,e)
+	{
+		let x1,y1,x2,y2,x3,y3,be,bf,i,j,d=pZ.moveStep*pZ.esz00,dl,dr,dt,db;
+		be=e.getBoundingClientRect();
+		bf=pZ.figure.getBoundingClientRect();
+		x1=Math.round((be.x-bf.x)/pZ.rf)+pZ.to;
+		y1=Math.round((be.y-bf.y)/pZ.rf)+pZ.to;
+		x3=Math.round(x1/d)*d;
+		y3=Math.round(y1/d)*d;
+		dl=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
+		dr=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
+		dt=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
+		db=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
+		switch(ev.key)
+		{
+			case "ArrowLeft":x2=x1-dl;y2=Math.round(y1/d)*d;break;
+			case "ArrowRight":x2=x1+dr;y2=Math.round(y1/d)*d;break;
+			case "ArrowUp":x2=Math.round(x1/d)*d;y2=y1-dt;break;
+			case "ArrowDown":x2=Math.round(x1/d)*d;y2=y1+db;break;
+		}
+		if(!pZ.nearlyEqual(x1,x2)||!pZ.nearlyEqual(y1,y2))
+		{
+			pZ.minMaxChange=0;
+			i=e.pZ.m.i;
+			j=e.pZ.m.j;
+			let x=x2/pZ.esz;
+			let y=y2/pZ.esz;
+			e.pZ.x=x;
+			e.pZ.y=y;
+			let left=x*pZ.esz-pZ.to,top=y*pZ.esz-pZ.to;
+			e.style.left=left+"px";
+			e.style.top=top+"px";
+			pZ.updateMinMax(left,top);
+			if(pZ.minMaxChange) pZ.adaptScrollArea(1);
+			pZ.saveElement(e);
+			pZ.updateMessenger(e.ariaLabel);
+			// is it appropriate to force this scroll?
+			e.scrollIntoView({block:"nearest",inline:"nearest"});
+		}
+	}
+		
+	pZ.doArrowWhenPuzzleElementOnFocus=function(ev)
+	{
+		// move all selected elements (but pZ.selectedElements no longer exists)
+		ev.preventDefault();
+		ev.stopPropagation();
+		if(pZ.moveLocked) return; // otherwise the element move can be strange
+		pZ.clearSelectedArea(); // require if an arrow key is pressed after moving the selection with the mouse
+		if(pZ.hasSomeSelectedByKeyboard)
+		{
+			let list=pZ.board.querySelectorAll('svg.selected');
+			for(let e of list) pZ.doArrowMoveOneElement(ev,e);
+		}
+		else
+		{
+			e=document.activeElement;
+			pZ.doArrowMoveOneElement(ev,e);
+		}
+	}
+		
+	pZ.doShiftArrow=function(ev)
+	{
+		// create pZ.selectedArea if not already created, or move it of one moveStep
+		let x1,y1,x2,y2,x3,y3,be,bf,i,j,d=pZ.moveStep*pZ.esz00,dl,dr,dt,db;
+		ev.preventDefault();
+		ev.stopPropagation();
+		if(pZ.moveLocked) return; // otherwise the element move can be strange
+		let a=document.activeElement;
+		a.blur();
+		if(!pZ.selectedArea)
+		{
+			// create selectedArea
+			let x,y;
+			if(a&&a.classList&&a.classList.contains("puzzleElement"))
+			{
+				let ba=a.getBoundingClientRect();
+				let bf=pZ.figure.getBoundingClientRect();
+				x=Math.round((ba.x-bf.x)/pZ.rf);
+				y=Math.round((ba.y-bf.y)/pZ.rf);
+			}
+			else
+			{
+				x=-pZ.to;
+				y=-pZ.to;
+			}
+			let w=pZ.esz2to,h=pZ.esz2to;
+			pZ.selectedArea=document.createElement("div");
+			pZ.selectedArea.classList.add("selectedArea");
+			pZ.selectedArea.style.setProperty("left",x+"px");
+			pZ.selectedArea.style.setProperty("top",y+"px");
+			pZ.selectedArea.style.setProperty("width",w+"px");
+			pZ.selectedArea.style.setProperty("height",h+"px");
+			pZ.selectedArea.style.setProperty("z-index",pZ.zIndex);
+			pZ.selectedArea.style.setProperty("tabindex","0");
+			pZ.figure.append(pZ.selectedArea);
+			pZ.selectedArea.focus();
+			let s;
+			s=pZ.locale("Selection area created at ");
+			s+=pZ.locale("(")+pZ.a2A(x)+pZ.locale(", ")+pZ.a2A(y)+pZ.locale(")")+pZ.locale(". ");
+			s+=pZ.locale("Width: ")+pZ.b2B(w)+pZ.locale(". ");
+			s+=pZ.locale("Height: ")+pZ.b2B(h)+pZ.locale(". ");
+			pZ.updateMessenger(s);
+		}
+		else
+		{
+			// enlarge selectedArea
+			let d=pZ.moveStep*pZ.esz00;
+			let e=pZ.selectedArea;
+			let be=e.getBoundingClientRect();
+			let bf=pZ.figure.getBoundingClientRect();
+			let w,h,xl,yt,xr,yb;
+			w=Math.max(Math.round(be.width/pZ.rf),pZ.esz2to);
+			h=Math.max(Math.round(be.height/pZ.rf),pZ.esz2to);
+			xl=Math.round((be.x-bf.x)/pZ.rf);
+			yt=Math.round((be.y-bf.y)/pZ.rf);
+			xr=xl+w;
+			yb=yt+h;
+			switch(ev.key)
+			{
+				case "ArrowLeft":xr-=d;xr=Math.max(xl+pZ.esz2to,xr);break;
+				case "ArrowRight":xr+=d;xr=Math.max(xl+pZ.esz2to,xr);break;
+				case "ArrowUp":yb-=d;yb=Math.max(yt+pZ.esz2to,yb);break;
+				case "ArrowDown":yb+=d;yb=Math.max(yt+pZ.esz2to,yb);break;
+			}
+			let newLeft=xl;
+			let newTop=yt;
+			let newW=Math.max(Math.round(Math.abs(xr-xl)),pZ.esz2to);
+			let newH=Math.max(Math.round(Math.abs(yb-yt)),pZ.esz2to);
+			pZ.selectedArea.style.setProperty("left",newLeft+"px");
+			pZ.selectedArea.style.setProperty("top",newTop+"px");
+			pZ.selectedArea.style.setProperty("width",newW+"px");
+			pZ.selectedArea.style.setProperty("height",newH+"px");
+			let s;
+			s=pZ.locale("Selection area modified at ");
+			s+=pZ.locale("(")+pZ.a2A(xl)+pZ.locale(", ")+pZ.a2A(yt)+pZ.locale(")")+pZ.locale(". ");
+			s+=pZ.locale("Width: ")+pZ.b2B(newW)+pZ.locale(". ");
+			s+=pZ.locale("Height: ")+pZ.b2B(newH)+pZ.locale(". ");
+			pZ.updateMessenger(s);
+		}
+		pZ.updateSelectedElements();
+		pZ.selectedArea.scrollIntoView({block:"nearest",inline:"nearest"});
+	}
+	
+	pZ.doArrowWhenSelectedArea=function(ev)
+	{
+		// assume pZ.selectedArea already exists
+		// move the selected Area without the selected puzzle elements
+		// then update selectedElements
+		let e=pZ.selectedArea,be,bf;
+		let x1,x2,x3,y1,y2,y3,d,dl,dt,dr,db,w,h;
+		ev.preventDefault();
+		ev.stopPropagation();
+		if(pZ.moveLocked) return; // otherwise the element move can be strange
+		d=pZ.moveStep*pZ.esz00;
+		be=e.getBoundingClientRect();
+		bf=pZ.figure.getBoundingClientRect();
+		w=Math.max(be.width/pZ.rf,pZ.esz2to);
+		h=Math.max(be.height/pZ.rf,pZ.esz2to);
+		x1=Math.round((be.x-bf.x)/pZ.rf)+pZ.to;
+		y1=Math.round((be.y-bf.y)/pZ.rf)+pZ.to;
+		x3=Math.round(x1/d)*d;
+		y3=Math.round(y1/d)*d;
+		dl=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
+		dr=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
+		dt=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
+		db=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
+		switch(ev.key)
+		{
+			case "ArrowLeft":x2=x1-dl;y2=Math.round(y1/d)*d;break;
+			case "ArrowRight":x2=x1+dr;y2=Math.round(y1/d)*d;break;
+			case "ArrowUp":x2=Math.round(x1/d)*d;y2=y1-dt;break;
+			case "ArrowDown":x2=Math.round(x1/d)*d;y2=y1+db;break;
+		}
+		let x=x2/pZ.esz;
+		let y=y2/pZ.esz;
+		let left=x*pZ.esz-pZ.to,top=y*pZ.esz-pZ.to;
+		e.style.left=left+"px";
+		e.style.top=top+"px";
+		e.style.width=w+"px";
+		e.style.height=h+"px";
+		pZ.updateSelectedElements();
+		let s;
+		s=pZ.locale("Selection area moved to ");
+		s+=pZ.locale("(")+pZ.a2A(left)+pZ.locale(", ")+pZ.a2A(top)+pZ.locale(")")+pZ.locale(". ");
+		s+=pZ.locale("Width: ")+pZ.b2B(w)+pZ.locale(". ");
+		s+=pZ.locale("Height: ")+pZ.b2B(h)+pZ.locale(". ");
+		pZ.updateMessenger(s);
+		pZ.selectedArea.scrollIntoView({block:"nearest",inline:"nearest"});
+	}
+
+	pZ.getZIndex=function(e)
+	{      
+		let z=getComputedStyle(e).getPropertyValue('z-index');
+		if (isNaN(z)) return 0;
+		return z; 
+	}
+
+	pZ.cancelAll=function()
+	{
+		pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+		document.activeElement.blur();
+		pZ.updateMessenger(pZ.locale("Nothing is selected or is in focus anymore."));
+	}
+	pZ.doKeydown=function(ev)
+	{
+		if(pZ.inDialog) return;
+		if(ev.key=="Tab")
+		{
+			// let the default scrolling happen here, in case the user wants it
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			return;
+		}
+		if(ev.altKey||ev.ctrlKey||ev.metaKey) return;
+		let a=document.activeElement;
+		
+		// to use the default scroll,
+		// the user can give focus to a button of the menu before scrolling
+		if(ev.shiftKey&&["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(ev.key))
+		{
+			// create or modify selection area
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			pZ.doShiftArrow(ev);
+			return;
+		}
+		if(a&&a.classList&&a.classList.contains("puzzleElement")
+			&&["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(ev.key))
+		{
+			// move selected elements
+			pZ.doArrowWhenPuzzleElementOnFocus(ev);
+			return;
+		}
+		if(pZ.selectedArea&&["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(ev.key))
+		{
+			// move the selected area without its content
+			pZ.doArrowWhenSelectedArea(ev);
+			return;
+		}
+		if(a&&a.classList&&a.classList.contains("puzzleElement")&&(ev.key==" "))
+		{
+			// check match
+			ev.preventDefault();
+			ev.stopPropagation();
+			if(pZ.hasSomeSelectedByKeyboard)
+			{
+				let list,ef=null,zm=0;
+				list=pZ.board.querySelectorAll('svg.selected');
+				for(let e of list) pZ.match(e);
+				// when several groups of elements match, the focus can be lost
+				// give again the focus to the top most element amid selected elements
+				// rebuild the list since they may be less elements than before matching
+				list=pZ.board.querySelectorAll('svg.selected');
+				for(let e of list)
+				{
+					let z=pZ.getZIndex(e);
+					if(z>=zm) {ef=e;zm=z;}
+				}
+				if(ef) ef.focus();
+			}
+			else pZ.match(a);
+			return;
+		}
+		if(pZ.selectedArea&&(ev.key==" "))
+		{
+			// give the focus to the top most element inside pZ.selectedElements
+			// if the Shift key is also pressed, mark as selected all elements inside pZ.selectedElements
+			// else mark as selected only the top most element
+			ev.preventDefault();
+			ev.stopPropagation();
+			let ef=null,zm=0;
+			for(let e of pZ.selectedElements)
+			{
+				let z=pZ.getZIndex(e);
+				if(z>=zm) {ef=e;zm=z;}
+			}
+			if(ef&&!ev.shiftKey) pZ.selectedElements=[ef];
+			if(pZ.selectedElements.length>1) pZ.updateMessenger(pZ.locale("Multiple elements selected!"));
+			for(let e of pZ.selectedElements)
+			{
+				e.classList.add("selected");
+				pZ.hasSomeSelectedByKeyboard=1;
+			}
+			for(let e of pZ.selectedElements) if(e!=ef) pZ.sendAbove(e);
+			if(ef)
+			{
+				if(ef!=document.activeElement) ef.focus();
+				pZ.sendAbove(ef);
+				// do not pZ.clearSelectedByKeyboard() here
+			}
+			pZ.clearSelectedArea();
+			return;
+		}
+		// manage shortcuts
+		let key=ev.key.toLowerCase();
+		if(key.match(/^[abdeghiprtuy]$/))
+		{
+			ev.preventDefault();
+			ev.stopPropagation();
+			switch(key)
+			{
+				case "a":pZ.doClickOnAccessibility(ev);break;
+				case "b":pZ.doBoard(ev);break;
+				case "d":pZ.doDescription(a);break;
+				case "e":pZ.resizeAndAdapt();break;
+				case "g":pZ.cancelAll();break;
+				case "h":
+					pZ.clearSelectedArea();
+					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+					pZ.home.focus();
+					break;
+				case "i":pZ.placeOne(a);break;
+				case "p":pZ.doClickOnPreferences(ev);break;
+				case "r":
+					pZ.clearSelectedArea();
+					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+					pZ.restart.focus();break;
+				case "t":pZ.placeAll();break;
+				case "u":pZ.placeSeveral(a,"h");break;
+				case "y":pZ.placeSeveral(a,"v");break;
+			}
+		}
+	}
+	
+	pZ.clearSelectedByKeyboard=function()
+	{
+		if(!pZ.figure) return;
+		let list=pZ.figure.querySelectorAll('.selected');
+		for(let e of list) e.classList.remove("selected");
+		pZ.hasSomeSelectedByKeyboard=0;
+	}
+	
+	pZ.clearSelectedArea=function()
+	{
+		if(pZ.selectedArea){pZ.selectedArea.remove();pZ.selectedArea=null;}
+		pZ.selectedElements=[];
+	}
+	
+	pZ.selectContinue=function(ev)
+	{
+		if(!ev.isPrimary) return;
+		// let some time for touch screen users to scroll
+		if((ev.timeStamp-pZ.selectStartTime)<500) return;
+		if(pZ.selectE&&(pZ.selectE.hasPointerCapture(ev.pointerId)))
+		{
+			if(!pZ.selectedArea)
+			{
+				pZ.selectedArea=document.createElement("div");
+				pZ.selectedArea.classList.add("selectedArea");
+				pZ.selectedArea.style.setProperty("z-index",pZ.zIndex);
+				pZ.selectedArea.style.setProperty("left",(pZ.selectX-pZ.figureX)/pZ.rf+"px");
+				pZ.selectedArea.style.setProperty("top",(pZ.selectY-pZ.figureY)/pZ.rf+"px");
+				pZ.selectedArea.style.setProperty("width","0");
+				pZ.selectedArea.style.setProperty("height","0");
+				pZ.selectedArea.style.setProperty("pointer-events","none");
+				pZ.figure.append(pZ.selectedArea);
+			}
+			else
+			{
+				let x=ev.clientX,y=ev.clientY;
+				pZ.selectedArea.style.setProperty("left",(Math.min(x,pZ.selectX)-pZ.figureX)/pZ.rf+"px");
+				pZ.selectedArea.style.setProperty("top",(Math.min(y,pZ.selectY)-pZ.figureY)/pZ.rf+"px");
+				pZ.selectedArea.style.setProperty("width",Math.abs(x-pZ.selectX)/pZ.rf+"px");
+				pZ.selectedArea.style.setProperty("height",Math.abs(y-pZ.selectY)/pZ.rf+"px");
+			}
+		}
+	}
+	
+	pZ.selectStart=function(ev)
+	{
+		if(!ev.isPrimary) return;
+		if(ev.altKey||ev.ctrlKey||ev.metaKey) return;
+		pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+		let e=pZ.getSvg(ev,"background");
+		if(!e) return;
+		e.addEventListener('pointermove',pZ.selectContinue);
+		e.setPointerCapture(ev.pointerId);
+		let bf=pZ.figure.getBoundingClientRect();
+		pZ.figureX=bf.x;
+		pZ.figureY=bf.y;
+		pZ.selectE=e;
+		pZ.selectX=ev.clientX;
+		pZ.selectY=ev.clientY;
+		pZ.selectStartTime=ev.timeStamp;
+	}
+	
+	pZ.selectEnd=function(ev)
+	{
+		if(!ev.isPrimary) return;
+		let e=pZ.getSvg(ev,"background");
+		if(!e) return;
+		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
+		else if(pZ.trace) console.log("Lost pointer capture when selectEnd");
+		if(pZ.selectE&&(e==pZ.selectE)&&pZ.selectedArea)
+		{
+			pZ.updateSelectedElements();
+		}
+		else
+		{
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			if(pZ.trace) console.log("Lost something when selectEnd");
+		}
+		e.removeEventListener('pointermove',pZ.selectContinue);
+		pZ.selectE=null;
+	}
+	
+	pZ.initBackground=function()
+	{
+		pZ.background=document.createElementNS('http://www.w3.org/2000/svg','svg');
+		pZ.background.classList.add("background");
+		pZ.background.innerHTML="<rect/>";
+		pZ.background.addEventListener("pointerdown",pZ.selectStart);
+		pZ.background.addEventListener("pointerup",pZ.selectEnd);
+		document.body.prepend(pZ.background);
+		pZ.selectedElements=[];
+	}
+	
+	pZ.initParameters=function()
+	{
+		if(localStorage.pZ_whmax===undefined) localStorage.pZ_whmax=pZ.whmax=pZ.defaultParams.whmax;
+		else pZ.whmax=-(-localStorage.pZ_whmax); // number of piece on the width of the puzzle
+		pZ.computeWH(); // number of piece on width and height of the puzzle
+		if(localStorage.pZ_pt===undefined) localStorage.pZ_pt=pZ.pt=pZ.defaultParams.pt;
+		else pZ.pt=localStorage.pZ_pt; // puzzle element type (squared, curvy, quirky)
+		if(localStorage.pZ_emb===undefined) localStorage.pZ_emb=pZ.emboss=pZ.defaultParams.emb;
+		else pZ.emboss=-(-localStorage.pZ_emb); // emboss effect, if 0 then no piece borders
+		pZ.internalBordersOn=pZ.emboss?1:0;
+		if(localStorage.pZ_th===undefined) localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th; // better if more than half moveStep below
+		else pZ.threshold=-(-localStorage.pZ_th); // threshold to stick a puzzle element in its place
+		if(localStorage.pZ_ms===undefined) localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
+		else pZ.moveStep=-(-localStorage.pZ_ms); // step when moving a puzzle element using the keyboard
+		if(localStorage.pZ_ric===undefined) localStorage.pZ_ric=pZ.roundInitialCoordinates=pZ.defaultParams.ric;
+		else pZ.roundInitialCoordinates=-(-localStorage.pZ_ric); // if 1, round initial coordinates of a puzzle element to a multiple of pZ.moveStep
+		if(localStorage.pZ_showsw===undefined) localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
+		else pZ.showStopwatch=-(-localStorage.pZ_showsw); // if 1, show the stopwatch
+		if(localStorage.pZ_showsc===undefined) localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
+		else pZ.showScore=-(-localStorage.pZ_showsc); // if 1, show the score
+	}
+	
+	pZ.initFirst=function()
+	{
+		pZ.board.classList.replace("initial","puzzle");
+		document.addEventListener("keydown",pZ.doKeydown);
+		pZ.initBackground();
+		// board
+		pZ.rf=1;
+		pZ.initParameters();
+		pZ.initMenu();
+		pZ.initStopwatch();
+		pZ.initScore();
+		pZ.initMessenger();
+		// observing the board cost too much, thus observe the menu
+		new ResizeObserver((es)=>
+		{
+			if(!pZ.resizeCounter) pZ.resizeCounter=1;
+			else pZ.resizeCounter++;
+			let currentCounter=pZ.resizeCounter;
+			if(pZ.trace) console.log("Resize fired",currentCounter);
+			setTimeout(function()
+			{
+				if(currentCounter>=pZ.resizeCounter)
+				{
+					if(pZ.trace) console.log("Resize did something",currentCounter);
+					pZ.adaptScrollArea(1);
+					pZ.resizeCounter=0;
+				}
+			},1000);
+		}).observe(pZ.menu);
+		setTimeout(()=>pZ.initPuzzle(),100);
+	}
+	
+	pZ.afterFetch=function(svgImgOn)
+	{
+		pZ.imgObj=new Image();
+		pZ.imgObj.crossOrigin="anonymous"
+		pZ.imgObj.addEventListener("load",()=>
+		{
+			pZ.iw=pZ.imgObj.width;
+			pZ.ih=pZ.imgObj.height;
+			if(pZ.restoreOn) if(pZ.trace) console.log("iw and ih at reload",pZ.iw,pZ.ih);
+			else if(pZ.trace) console.log("iw and ih at start",pZ.iw,pZ.ih);
+			if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
+			{
+				let iw=pZ.iw,ih=pZ.ih;
+				if(iw<ih){pZ.iw=pZ.iwhMax*iw/ih;pZ.ih=pZ.iwhMax;}
+				else{pZ.iw=pZ.iwhMax;pZ.ih=pZ.iwhMax*ih/iw;}
+				let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
+				pZ.iw=Math.floor(pZ.iw);
+				pZ.ih=Math.floor(pZ.ih);
+				createImageBitmap(pZ.imgObj,o)
+				.then((imgBmp)=>
+				{
+					if(pZ.trace) console.log("iw and ih after resizing",pZ.iw,pZ.ih);
+					pZ.imgBmp=imgBmp;
+					pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
+					localStorage.imgDataUrl=pZ.imgDataUrl;
+					pZ.initFirst();
+				});
+			}
+			else
+			{
+				localStorage.imgDataUrl=pZ.imgDataUrl;
+				pZ.initFirst();
+			}
+		});
+		if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
+		else pZ.imgObj.src=pZ.imgUrl;
+	}
+	
+	pZ.fetch=function()
+	{
+		pZ.showWait();
+		fetch(pZ.restoreOn?localStorage.imgDataUrl:pZ.imgUrl)
+		.then((r)=>r.blob())
+		.then((b)=>
+		{
+			if(pZ.restoreOn)
+			{
+				pZ.imgDataUrl=localStorage.imgDataUrl; // can be used in doPreferencesOK()
+				pZ.imgUrl=URL.createObjectURL(b);
+				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
+				setTimeout(()=>pZ.afterFetch(0),100);
+			}
+			else
+			{
+				const reader=new FileReader();
+				let svgImgOn=pZ.imgUrl.match(/\.svg$/i)?1:0;
+				reader.addEventListener("load",()=>
+				{
+					if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
+					else pZ.imgDataUrl=reader.result;
+					// localStorage.imgDataUrl=pZ.imgDataUrl; // too soon, do it after resizing if any
+					pZ.afterFetch(svgImgOn);
+				});
+				if(svgImgOn) reader.readAsText(b);
+				else reader.readAsDataURL(b);
+			}
+		});
+	}
+
+	pZ.makeInitialImgBtn=function(a)
+	{
+		let s="",title=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
+		s+="<li><button title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
+		s+="<img aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
+		s+="</button>";
+		if(a["owner"])
+		{
+			s+="<em>";
+			if(a["source"]&&a["source"].match(/^(http|_img)/))
+			{
+				s+="<a href=\""+a["source"]+"\" target=\"_blank\">";
+				s+=pZ.locale("Credits: ");
+				s+=a["owner"];
+				s+="</a>";
+			}
+			else s+=a["owner"];
+			s+="</em>";
+		}
+		else if(a["source"]&&(a["source"]!="?"))
+		{
+			if(a["source"]=="generated by an AI")
+			{
+				s+="<em>";
+				s+=pZ.ucFirst(pZ.locale("generated by an AI"));
+				s+="</em>";
+			}
+			else
+			{
+				s+="<em><a href=\""+a["source"]+"\" target=\"_blank\">";
+				s+=pZ.locale("Source");
+				s+="</a></em>";
+			}
+		}
+		s+="</li>";
+		return s;
+	}
+	pZ.doChooseContinue=function()
+	{
+		// choose an image on a server
+		let t=pZ.locale("Choose an image"),s="";
+		let categories=[];
+		if(pZ.lang.match(/^fr/))
+		{
+			categories.push({title:"Animals",type:"animal"});
+			categories.push({title:"Art",type:"art"});
+			categories.push({title:"Building",type:"building"});
+			categories.push({title:"Flags",type:"flag"});
+			categories.push({title:"Miscellaneous",type:"misc"});
+			categories.push({title:"Objects",type:"object"});
+			categories.push({title:"Landscapes",type:"landscape"});
+			categories.push({title:"Plants",type:"plant"});
+			categories.push({title:"Transport",type:"transport"});
+			categories.push({title:"Clothing",type:"clothing"});
+		}
+		else
+		{
+			categories.push({title:"Animals",type:"animal"});
+			categories.push({title:"Art",type:"art"});
+			categories.push({title:"Building",type:"building"});
+			categories.push({title:"Clothing",type:"clothing"});
+			categories.push({title:"Flags",type:"flag"});
+			categories.push({title:"Landscapes",type:"landscape"});
+			categories.push({title:"Miscellaneous",type:"misc"});
+			categories.push({title:"Objects",type:"object"});
+			categories.push({title:"Plants",type:"plant"});
+			categories.push({title:"Transport",type:"transport"});
+		}
+		s+="<h2>"+pZ.locale("Settings")+"</h2>";
+		s+="<button id=\"modify-settings\" class=\"standardBtn\" type=\"button\">"+pZ.locale("Modify")+"</button>";
+		s+="<h2>"+t+"</h2>"
+		s+="<h3>"+pZ.locale("Image stored on the user's device")+"</h3>";
+		s+="<label><span>"+pZ.locale("Upload an image:")+"</span><input type=\"file\"></label>";
+		s+="<h3>"+pZ.locale("Image stored on a server")+"</h3>";
+		s+="<p>"+pZ.locale("Click on one of the images below:")+"</p>";
+		if(pZ.all) for(let c of categories)
+		{
+			s+="<details><summary>"+pZ.locale(c.title)+"</summary>";
+			s+="<ul>";
+			if(pZ.all&&(c.type=="flag"))
+			{
+				let flagList=["abw23","afg12","ago23","alb57","and710","are12","arg58","arm12","atg23","aus12","aut23","aze12","bdi35","bel1315","ben23","bfa23","bgd35","bgr35","bhr35","bhs12","bih12","blr12","blz35","bol1522","bra710","brb23","brn12","btn23","bwa23","caf23","can12","che11","chl23","chn23","cmr23","cod34","cog23","cpv1017","cyp23","cze23","den1417","deu35","dza23","egy23","epo23","esp23","est711","eth12","fin1118","fra23","gbr12","grc23","hrv12","hun12","idn23","ind23","irl12","isl1825","isr811","ita23","jam12","jor12","jpn23","khm1625","kor23","lby12","ltu35","lux35","lva12","mar23","mco45","mex47","mlt23","mne12","mng12","nga12","nld23","nor1622","npl5041","pak23","pol58","prk12","prt23","rou23","rus23","sau23","sen23","sgp23","srb23","svk23","svn12","swe58","tcd23","tha23","tun23","tur23","tuv12","twn23","ukr23","usa1019","vnm23","yem23","zaf23","zmb23","zwe12"];
+				flagList.forEach(e=>
+					{
+						s+="<li><button type=\"button\" class=\"imgSelector\" value=\"_img/_flag/"+e+".svg\">";
+						s+="<img alt=\""+e+"\" src=\"_img/_flag/"+e+".svg\" loading=\"lazy\">";
+						s+="</button></li>";
+					}
+				);
+			}
+			else for(let a of pZ.originJson)
+				if((a.category==c.type)&&(a.visible=="1")) s+=pZ.makeInitialImgBtn(a);
+			s+="</ul>"
+			s+="</details>";
+		}
+		else
+		{
+			s+="<ul>";
+			for(let a of pZ.originJson) if(a.always=="1") s+=pZ.makeInitialImgBtn(a);
+			s+="</ul>"
+			s+="</details>";
+		}
+		let currentYear=new Date().getFullYear();
+		let year=2024+((currentYear==2024)?"":("-"+currentYear));
+		s+="<p class=\"copyright\">Copyright © "+year+" <a href=\"https://github.com/parsimonhi\">Parsimonhi</a></p>";
+		pZ.board.innerHTML=s;
+		let i=document.querySelector('input[type="file"]');
+		if(i) i.addEventListener("change",pZ.doChangeFile);
+		let bs=document.getElementById('modify-settings');
+		if(bs) bs.addEventListener("click",(ev)=>
+			{
+				pZ.initParameters();
+				pZ.doClickOnPreferences(ev);
+			});
+		let list=pZ.board.querySelectorAll('.board.initial button.imgSelector');
+		for(let b of list)
+		{
+			b.addEventListener('click',function()
+			{
+				pZ.imgUrl=b.value;
+				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
+				pZ.board.innerHTML="";
+				pZ.fetch();
+			});
+		}
+	}
+	
+	pZ.choose=function()
+	{
+		fetch("images.json",{cache:"no-store"})
+		.then(r=>r.json())
+		.then(j=>{pZ.originJson=pZ.shuffleArray(j);pZ.doChooseContinue();});
+	}
+
+	pZ.doRestoreContinue=function()
+	{
+		pZ.restoreOn=1;
+		pZ.fetch();
+	}
+	
+	pZ.doRestoreCancel=function()
+	{
+		// must be named "doRestoreCancel" to be also fired when the "esc" key is pressed
+		pZ.clearRestoreData();
+		pZ.choose();
+	}
+	
+	pZ.doRestoreDialog=function()
+	{
+		if(pZ.trace) console.log("imgDataUrl length",localStorage.imgDataUrl?localStorage.imgDataUrl.length:0);
+		//if(!ev.key)
+			pZ.noH2Outline=1;
+		let t=pZ.locale("Restore"),s,o=[{n:"Restore",a:"RestoreContinue"},{n:"Remove",l:"Do not restore",a:"RestoreCancel"}];
+		s="<p>"+pZ.locale("A puzzle has not been completed.")+"</p>";
+		pZ.doDialog("Restore",t,s,o);
+	}
+
+	pZ.start2=function()
+	{
+		pZ.initialLoading=1;
+		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1};
+		pZ.maxLoadingTime=50*pZ.iwhMax;
+		pZ.embossFilterHtml=pZ.makeEmbossFilter();
+		pZ.board=document.createElement('main');
+		pZ.board.classList.add("board","initial");
+		pZ.currentScript.after(pZ.board);
+		pZ.initWait();
+		if(localStorage.imgDataUrl) pZ.doRestoreDialog();
+		else pZ.choose();
+	}
+	
+	pZ.start=function()
+	{
+		if(pZ.lang.match(/^fr/))
+		{
+			fetch("_i18n/puzzle-i18n-fr.json")
+			.then(r=>r.json())
+			.then(j=>{pZ.i18n=j;pZ.start2();});
+		}
+		else pZ.start2();
+	}
+	
+	if(pZ.trace) console.log("Puzzle version 11");
+	pZ.search=window.location.search.replace(/[^?A-Za-z0-9=]/g,"");
+	pZ.all=((pZ.hashCode(pZ.search)+"")==="1908939687");
+	pZ.currentScript=document.currentScript;
+	pZ.lang=pZ.getLang();
+	document.documentElement.lang=pZ.lang;
+	// 2520: smallest number divisible by all integers from 1 to 10
+	// 1280: common width on Wikimedia Commons
+	// 1260: half of 2520
+	pZ.iwhMax=1280;
+	pZ.defaultImgUrl="_img/_animal/Mandarin-duck-Aix-galericulata.webp"; // default
+	pZ.imgUrl=pZ.defaultImgUrl;
+	window.addEventListener('load',pZ.start);
+})();
+</script>
+</body>
+</html>

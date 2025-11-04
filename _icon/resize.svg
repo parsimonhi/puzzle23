@@ -1,0 +1,29 @@
+<svg viewBox='-1260 -1260 2520 2520' xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="resize-arrow" refX="0" refY="1.5" orient="auto-start-reverse" markerUnits="strokeWidth">
+<path d="M0,0 L0,3 L2,1.5 z" fill="#000" />
+</marker>
+</defs>
+<g
+	stroke-linecap="round"
+	fill="none"
+	stroke="#000"
+	stroke-width="252">
+<path
+	marker-start="url(#resize-arrow)"
+	marker-end="url(#resize-arrow)"
+	d="M-504 -504L-756 -756"/>
+<path
+	marker-start="url(#resize-arrow)"
+	marker-end="url(#resize-arrow)"
+	d="M504 -504L756 -756"/>
+<path
+	marker-start="url(#resize-arrow)"
+	marker-end="url(#resize-arrow)"
+	d="M-504 504L-756 756"/>
+<path
+	marker-start="url(#resize-arrow)"
+	marker-end="url(#resize-arrow)"
+	d="M504 504L756 756"/>
+</g>
+</svg>

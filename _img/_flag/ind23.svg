@@ -1,0 +1,24 @@
+<svg viewBox="-225 -150 450 300" xmlns="http://www.w3.org/2000/svg">
+ <rect x="-225" y="-150" width="450" height="300" fill="#181"/>
+ <rect x="-225" y="-50" width="450" height="200" fill="#fff"/>
+ <rect x="-225" y="50" width="450" height="100" fill="#f93"/>
+ <g fill="#008">
+  <circle r="40"/>
+  <circle r="35" fill="#fff"/>
+  <circle r="7"/>
+  <g id="ind23a">
+   <g id="ind23b">
+    <path d="M0,35L1.2,14C1.2,14 0,4 0,4C0,4 -1.2,14 -1.2,14Z"/>
+    <circle cx="0" cy="35" r="1.75" transform="rotate(7.5)"/>
+   </g>
+   <use href="#ind23b" transform="rotate(15)"/>
+   <use href="#ind23b" transform="rotate(30)"/>
+   <use href="#ind23b" transform="rotate(45)"/>
+  </g>
+  <use href="#ind23a" transform="rotate(60)"/>
+  <use href="#ind23a" transform="rotate(120)"/>
+  <use href="#ind23a" transform="rotate(180)"/>
+  <use href="#ind23a" transform="rotate(240)"/>
+  <use href="#ind23a" transform="rotate(300)"/>
+ </g>
+</svg>

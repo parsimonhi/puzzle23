@@ -1,0 +1,25 @@
+<svg viewBox="0 0 1020 600" xmlns="http://www.w3.org/2000/svg">
+	<!-- Cabo Verde -->
+	<path fill="#003893" d="M0 0h1020v600H0z"/>
+	<path fill="#fff" d="M0 300h1020v150H0z"/>
+	<path fill="#cf2027" d="M0 350h1020v50H0z"/>
+	<g transform="matrix(2 0 0 2 382.5 375)" fill="#f7d116">
+		<g id="cpv1017-d">
+			<g id="cpv1017-c" transform="translate(0 -75)">
+				<g id="cpv1017-b">
+					<path id="cpv1017-a" d="M0-15V0h7.5" transform="rotate(18 0 -15)"/>
+					<use href="#cpv1017-a" transform="scale(-1 1)" width="100%" height="100%"/>
+				</g>
+				<use href="#cpv1017-b" transform="rotate(72)" width="100%" height="100%"/>
+				<use href="#cpv1017-b" transform="rotate(144)" width="100%" height="100%"/>
+				<use href="#cpv1017-b" transform="rotate(-144)" width="100%" height="100%"/>
+				<use href="#cpv1017-b" transform="rotate(-72)" width="100%" height="100%"/>
+			</g>
+			<use href="#cpv1017-c" y="150" width="100%" height="100%"/>
+		</g>
+		<use href="#cpv1017-d" transform="rotate(72)" width="100%" height="100%"/>
+		<use href="#cpv1017-d" transform="rotate(144)" width="100%" height="100%"/>
+		<use href="#cpv1017-d" transform="rotate(-144)" width="100%" height="100%"/>
+		<use href="#cpv1017-d" transform="rotate(-72)" width="100%" height="100%"/>
+	</g>
+</svg>

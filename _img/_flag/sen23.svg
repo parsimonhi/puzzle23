@@ -1,0 +1,7 @@
+<svg viewBox="0 0 9000 6000" xmlns="http://www.w3.org/2000/svg">
+	<rect width="9000" height="6000" fill="#00853f"/>
+	<rect x="3000" width="6000" height="6000" fill="#fdef42"/>
+	<rect x="6000" width="3000" height="6000" fill="#e31b23"/>
+	<path fill="#00853f" transform="translate(4500,3000)"
+		d="M0 -1000L588,809L-951,-309H951L-588,809Z"/>
+</svg>

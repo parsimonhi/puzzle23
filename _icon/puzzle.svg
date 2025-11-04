@@ -1,0 +1,44 @@
+<svg viewBox="0 0 220 220" fill="#0075ff" xmlns="http://www.w3.org/2000/svg">
+	<filter id="emboss" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+		<feGaussianBlur stdDeviation="2.2" in="SourceAlpha" result="G"></feGaussianBlur>
+		<feSpecularLighting surfaceScale="2.2" specularConstant="0.2" specularExponent="10" in="G" result="L11">
+			<fePointLight x="0" y="-10000" z="100"></fePointLight>
+		</feSpecularLighting>
+		<feComposite in="L11" in2="SourceAlpha" operator="in" result="R11"></feComposite>
+		<feSpecularLighting surfaceScale="2.2" specularConstant="2" specularExponent="10" in="G" result="L12">
+			<fePointLight x="0" y="10000" z="100"></fePointLight>
+		</feSpecularLighting>
+		<feComposite in="L12" in2="SourceAlpha" operator="in" result="R12"></feComposite>
+		<feSpecularLighting surfaceScale="2.2" specularConstant="0.2" specularExponent="10" in="G" result="L21">
+			<fePointLight x="10000" y="0" z="100"></fePointLight>
+		</feSpecularLighting>
+		<feComposite in="L21" in2="SourceAlpha" operator="in" result="R21"></feComposite>
+		<feSpecularLighting surfaceScale="2.2" specularConstant="2" specularExponent="10" in="G" result="L22">
+			<fePointLight x="-10000" y="0" z="100"></fePointLight>
+		</feSpecularLighting>
+		<feComposite in="L22" in2="SourceAlpha" operator="in" result="R22"></feComposite>
+		<feSpecularLighting surfaceScale="2.2" specularConstant="0.2" specularExponent="10" in="G" result="L31">
+			<fePointLight x="7000" y="-7000" z="100"></fePointLight>
+		</feSpecularLighting>
+		<feComposite in="L31" in2="SourceAlpha" operator="in" result="R31"></feComposite>
+		<feSpecularLighting surfaceScale="2.2" specularConstant="2" specularExponent="10" in="G" result="L32">
+			<fePointLight x="-7000" y="7000" z="100"></fePointLight>
+		</feSpecularLighting>
+		<feComposite in="L32" in2="SourceAlpha" operator="in" result="R32"></feComposite>
+		<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R12" result="R13"></feColorMatrix>
+		<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R11" in2="R13" operator="arithmetic" result="C1"></feComposite>
+		<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R22" result="R23"></feColorMatrix>
+		<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R21" in2="R23" operator="arithmetic" result="C2"></feComposite>
+		<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R32" result="R33"></feColorMatrix>
+		<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R31" in2="R33" operator="arithmetic" result="C3"></feComposite>
+		<feMerge>
+			<feMergeNode in="SourceGraphic"></feMergeNode>
+			<feMergeNode in="C1"></feMergeNode>
+			<feMergeNode in="C2"></feMergeNode>
+			<feMergeNode in="C3"></feMergeNode>
+		</feMerge>
+	</filter>
+	<g filter="url(#emboss)">
+		<path d="m55 55q23.1 8.8 46.2 8.8a17.6 17.6 1 1 1 17.6 0q23.1 0 46.2 -8.8q8.8 23.1 8.8 46.2a17.6 17.6 0 1 0 0 17.6q0 23.1 -8.8 46.2q-23.1 -8.8 -46.2 -8.8a17.6 17.6 1 1 1 -17.6 0q-23.1 0 -46.2 8.8q-8.8 -23.1 -8.8 -46.2a17.6 17.6 0 1 0 0 -17.6q0 -23.1 8.8 -46.2z" class="outline"></path>
+	</g>
+</svg>

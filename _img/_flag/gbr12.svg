@@ -1,0 +1,11 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+	<clipPath id="gbr12a"><path id="gbr12aa" d="M0 0H1200V600H0Z"/></clipPath>
+	<clipPath id="gbr12b"><path d="M0 0V300H1200V600ZM1200 0H600V600H0Z"/></clipPath>
+	<g clip-path="url(#gbr12a)">
+		<use href="#gbr12aa" fill="rgb(0,36,125)"/>
+		<path fill="none" stroke="#fff" stroke-width="120" d="M0 0L1200 600M1200 0L0 600"/>
+		<path clip-path="url(#gbr12b)" fill="none" stroke="rgb(207,20,43)" stroke-width="80" d="M0 0L1200 600M1200 0L0 600"/>
+		<path fill="none" stroke="#fff" stroke-width="200" d="M0 300H1200M600 0V600"/>
+		<path fill="none" stroke="rgb(207,20,43)" stroke-width="120" d="M0 300H1200M600 0V600"/>
+	</g>
+</svg>

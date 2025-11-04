@@ -1,0 +1,25 @@
+<svg viewBox="0 0 10080 5040" xmlns="http://www.w3.org/2000/svg">
+	<path d="M0 0H10080V5040H0" fill="#00008b"/>
+	<g transform="scale(4.2)">
+		<clipPath id="aus12a"><path d="M0 0H1200V600H0Z"/></clipPath>
+		<clipPath id="aus12b"><path d="M0 0V300H1200V600ZM1200 0H600V600H0Z"/></clipPath>
+		<g clip-path="url(#aus12a)">
+			<path fill="none" stroke="#fff" stroke-width="120" d="M0 0L1200 600M1200 0L0 600"/>
+			<path clip-path="url(#aus12b)" fill="none" stroke="#f00" stroke-width="80" d="M0 0L1200 600M1200 0L0 600"/>
+			<path fill="none" stroke="#fff" stroke-width="200" d="M0 300H1200M600 0V600"/>
+			<path fill="none" stroke="#f00" stroke-width="120" d="M0 300H1200M600 0V600"/>
+		</g>
+	</g>
+	<defs>
+		<path id="aus12Star7" d="M0,-360 69.421398,-144.155019 281.459334,-224.456329 155.988466,-35.603349 350.974048,80.107536 125.093037,99.758368 156.198146,324.348792 0,160 -156.198146,324.348792 -125.093037,99.758368 -350.974048,80.107536 -155.988466,-35.603349 -281.459334,-224.456329 -69.421398,-144.155019z"/>
+		<path id="aus12Star5" d="M0,-210 54.859957,-75.508253 199.721868,-64.893569 88.765275,28.841586 123.434903,169.893569 0,93.333333 -123.434903,169.893569 -88.765275,28.841586 -199.721868,-64.893569 -54.859957,-75.508253z"/>
+	</defs>
+	<g fill="#fff">
+		<use id="aus12Comwlth" href="#aus12Star7" transform="translate(2520, 3780) scale(2.1)"/>
+		<use id="aus12αCrucis" href="#aus12Star7" x="7560" y="4200"/>
+		<use id="aus12βCrucis" href="#aus12Star7" x="6300" y="2205"/>
+		<use id="aus12γCrucis" href="#aus12Star7" x="7560" y="840"/>
+		<use id="aus12δCrucis" href="#aus12Star7" x="8680" y="1869"/>
+		<use id="aus12εCrucis" href="#aus12Star5" x="8064" y="2730"/>
+	</g>
+</svg>
