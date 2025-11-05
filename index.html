@@ -1643,7 +1643,11 @@ dialog button:hover
 						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo);
 						d+=pe.d;
 						d+="z";
-						c+=(c?pZ.locale(", internal perimeter "):pZ.locale("external perimeter "))+pe.c;
+						c+=(c?pZ.locale(", internal perimeter starting at "):pZ.locale("external perimeter starting at "));
+						let xp=pZ.r2d(svg.pZ.x+ki-imin+1);
+						let yp=pZ.r2d(svg.pZ.y+kj-jmin+1);
+						c+=pZ.locale("(")+xp+", "+yp+pZ.locale("), ");
+						c+=pe.c;
 						// must continue in case there are "holes" amid the elements
 					}
 				}
@@ -1776,9 +1780,6 @@ dialog button:hover
 		let s="",x,y,n;
 		x=pZ.r2d(e.pZ.x+1);
 		y=pZ.r2d(e.pZ.y+1);
-		//s+=pZ.locale("puzzle element on")+pZ.locale(" ")+pZ.locale("(")+x+", "+y+pZ.locale(")");
-		//n=e.pZ.m.z.length;
-		//s+=pZ.locale(", ")+n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));
 		n=e.pZ.m.z.length;
 		s+=pZ.locale("element of ");
 		s+=n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));

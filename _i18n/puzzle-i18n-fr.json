@@ -169,7 +169,7 @@
 		"Public domain":"Domaine public",
 		"About this image":"À propos de cette image",
 		"To launch the puzzle, click on the image!":"Pour lancer le puzzle, cliquez sur l'image !",
-		"external perimeter ":"périmètre externe ",
-		", internal perimeter ":", périmètre interne "
+		"external perimeter starting at ":"périmètre externe commençant en ",
+		", internal perimeter starting at ":", périmètre interne commençant en "
 	}
 }
