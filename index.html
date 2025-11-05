@@ -1776,9 +1776,13 @@ dialog button:hover
 		let s="",x,y,n;
 		x=pZ.r2d(e.pZ.x+1);
 		y=pZ.r2d(e.pZ.y+1);
-		s+=pZ.locale("puzzle element on")+pZ.locale(" ")+pZ.locale("(")+x+", "+y+pZ.locale(")");
+		//s+=pZ.locale("puzzle element on")+pZ.locale(" ")+pZ.locale("(")+x+", "+y+pZ.locale(")");
+		//n=e.pZ.m.z.length;
+		//s+=pZ.locale(", ")+n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));
 		n=e.pZ.m.z.length;
-		s+=pZ.locale(", ")+n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));
+		s+=pZ.locale("element of ");
+		s+=n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));
+		s+=pZ.locale(" on ")+pZ.locale("(")+x+", "+y+pZ.locale(")");
 		e.ariaLabel=pZ.ucFirst(s);
 	}
 

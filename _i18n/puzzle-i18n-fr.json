@@ -71,6 +71,8 @@
 		" ":" ",
 		"puzzle element":"élément du puzzle",
 		"puzzle element on":"élément du puzzle en",
+		"element of ":"élément de ",
+		" on ":" en ",
 		"top edge":"bord du haut",
 		"right edge":"bord de droite",
 		"bottom edge":"bord du bas",
