@@ -772,11 +772,11 @@ dialog button:hover
 		s+="<h3>"+pZ.locale("Gluing")+"</h3>";
 		s+="<p>"+pZ.locale("Finally, use the Space bar to glue together the selected puzzle elements to its neighbors if they match.")+"</p>";
 		s+="</section>";
+		pZ.noH2Outline=1;
 		pZ.doAlert(pZ.locale("Accessibility"),s);
 	}
 	pZ.doClickOnAccessibility=function(ev)
 	{
-		pZ.noH2Outline=1;
 		ev.stopPropagation();
 		pZ.doAccessibilityAlert();
 	}
@@ -986,11 +986,11 @@ dialog button:hover
 		s+=makeCheckbox("showsw",pZ.showStopwatch,"Show the stopwatch");
 		s+=makeCheckbox("showsc",pZ.showScore,"Show the score");
 		let o=[{n:"OK",a:"PreferencesOK"},{n:"Cancel"},{n:"Reset",l:"Default values",a:"PreferencesReset",t:"button"}];
+		pZ.noH2Outline=1;
 		pZ.doDialog("Preferences",t,s,o);
 	}
 	pZ.doClickOnPreferences=function(ev)
 	{
-		pZ.noH2Outline=1;
 		ev.stopPropagation();
 		if(pZ.inInit) pZ.abort(0);
 		pZ.doPreferencesDialog();
@@ -1051,6 +1051,7 @@ dialog button:hover
 		s+=pZ.locale("Do you still want to restart it?");
 		s+="</p>";
 		let o=[{n:"Yes",a:"RestartOK"},{n:"No"}];
+		pZ.noH2Outline=1;
 		pZ.doDialog("Restart",t,s,o);
 	}
 	pZ.doClickOnRestart=function(ev)
@@ -1164,6 +1165,7 @@ dialog button:hover
 		pZ.imgBmp=null;
 		if(!f.type.match(/^image/i))
 		{
+			pZ.noH2Outline=1;
 			pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, cannot open this file!"));
 			return;
 		}
@@ -1802,6 +1804,7 @@ dialog button:hover
 		if(t)
 		{
 			if(pZ.trace) console.log("perf when abort()",t,"count creation",pZ.figure.pZ.countCreation);
+			pZ.noH2Outline=1;
 			if(pZ.initialLoading)
 				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please reduce the number of pieces via the \"Preferences\" button!"));
 			else 
@@ -3369,9 +3372,9 @@ dialog button:hover
 	pZ.doRestoreDialog=function()
 	{
 		if(pZ.trace) console.log("imgDataUrl length",localStorage.imgDataUrl?localStorage.imgDataUrl.length:0);
-		pZ.noH2Outline=1;
 		let t=pZ.locale("Restore"),s,o=[{n:"Restore",a:"RestoreContinue"},{n:"Remove",l:"Do not restore",a:"RestoreCancel"}];
 		s="<p>"+pZ.locale("A puzzle has not been completed.")+"</p>";
+		pZ.noH2Outline=1;
 		pZ.doDialog("Restore",t,s,o);
 	}
 
