@@ -14,7 +14,9 @@ body
 	--rf:1;
 	--esz00:1;
 	--btnSize:min(1.5cm,17vmin);
-	--bk:#fff;
+	--bk-initial:#f3f3f3;
+	--bk-puzzle:#f3f3f3;
+	--text-color:#000;
 	/* avoid to use vmin, vmax, vw or vh as font-size units */
 	/* because some browsers will zoom these units and some others will not */
 	margin:0;
@@ -22,6 +24,10 @@ body
 	min-width:10rem;
 	-webkit-user-select:none; /* Safari */
 	user-select:none;
+}
+body:has(.board.initial)
+{
+	background:var(--bk-initial);
 }
 body:has(dialog[open])
 {
@@ -38,7 +44,7 @@ body:has(dialog[open])
 }
 .background rect
 {
-	fill:var(--bk);
+	fill:var(--bk-puzzle);
 	width:100%;
 	height:100%;
 }
@@ -435,19 +441,13 @@ body:has(.board.initial) .background
 	padding:0;
 	cursor:pointer;
 }
-.board.initial button.imgSelector img.flag
-{
-	box-sizing:border-box;
-	border:1px solid #000;
-	margin:0 0 0.5rem 0;
-}
 .board.initial em,
 .board.initial em a
 {
 	display:inline-block;
 	width:100%;
 	font-size:min(1rem,10vw);
-	color:#444;
+	color:var(--text-color);
 	font-style:italic;
 }
 .board.initial em a
@@ -461,7 +461,7 @@ body:has(.board.initial) .background
 }
 .board.initial .copyright a
 {
-	color:#000;
+	color:var(--text-color);
 }
 button.standardBtn,
 input[type="file"],
@@ -3182,7 +3182,8 @@ dialog button:hover
 	pZ.makeInitialImgBtn=function(a)
 	{
 		let s="",title=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
-		s+="<li><button title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
+		s+="<li>";
+		s+="<button title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
 		s+="<img aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
 		s+="</button>";
 		if(a["owner"])
@@ -3212,6 +3213,12 @@ dialog button:hover
 				s+=pZ.locale("Source");
 				s+="</a></em>";
 			}
+		}
+		else if(a["license"]&&(a["license"]=="Public-domain"))
+		{
+			s+="<em>";
+			s+=pZ.locale("Public domain");
+			s+="</em>";
 		}
 		s+="</li>";
 		return s;
@@ -3350,7 +3357,6 @@ dialog button:hover
 		else pZ.start2();
 	}
 	
-	if(pZ.trace) console.log("Puzzle version 11");
 	pZ.search=window.location.search.replace(/[^?A-Za-z0-9=]/g,"");
 	pZ.all=((pZ.hashCode(pZ.search)+"")==="1908939687");
 	pZ.currentScript=document.currentScript;

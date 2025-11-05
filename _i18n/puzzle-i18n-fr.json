@@ -160,6 +160,7 @@
 		"Multiple elements selected!":"Sélection multiple !",
 		" selected puzzle elements! ":" éléments du puzzle sélectionnés ! ",
 		" selected puzzle element! ":" élément du puzzle sélectionné ! ",
-		"Nothing is selected or is in focus anymore.":"Plus rien n'est sélectionné ni n'a le focus."
+		"Nothing is selected or is in focus anymore.":"Plus rien n'est sélectionné ni n'a le focus.",
+		"Public domain":"Domaine public"
 	}
 }

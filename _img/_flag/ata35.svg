@@ -1,0 +1,7 @@
+<svg viewBox="-1485 -891 2971 1782" xmlns="http://www.w3.org/2000/svg">
+	<!-- Antartica -->
+	<rect fill="#1b2f4c" height="891" width="2970" x="-1485" y="-891"/>
+	<rect fill="#fff" height="891" width="2970" x="-1485" y="0"/>
+	<polygon fill="#1b2f4c" points="0,199 500,0 0,808 -500,0"/>
+	<polygon fill="#fff" points="500,0 0,200 -500,0 0,-808"/>
+</svg>
