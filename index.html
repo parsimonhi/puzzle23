@@ -3258,18 +3258,7 @@ dialog button:hover
 		{
 			s+="<details><summary>"+pZ.locale(c.title)+"</summary>";
 			s+="<ul>";
-			if(pZ.all&&(c.type=="flag"))
-			{
-				let flagList=["abw23","afg12","ago23","alb57","and710","are12","arg58","arm12","atg23","aus12","aut23","aze12","bdi35","bel1315","ben23","bfa23","bgd35","bgr35","bhr35","bhs12","bih12","blr12","blz35","bol1522","bra710","brb23","brn12","btn23","bwa23","caf23","can12","che11","chl23","chn23","cmr23","cod34","cog23","cpv1017","cyp23","cze23","den1417","deu35","dza23","egy23","epo23","esp23","est711","eth12","fin1118","fra23","gbr12","grc23","hrv12","hun12","idn23","ind23","irl12","isl1825","isr811","ita23","jam12","jor12","jpn23","khm1625","kor23","lby12","ltu35","lux35","lva12","mar23","mco45","mex47","mlt23","mne12","mng12","nga12","nld23","nor1622","npl5041","pak23","pol58","prk12","prt23","rou23","rus23","sau23","sen23","sgp23","srb23","svk23","svn12","swe58","tcd23","tha23","tun23","tur23","tuv12","twn23","ukr23","usa1019","vnm23","yem23","zaf23","zmb23","zwe12"];
-				flagList.forEach(e=>
-					{
-						s+="<li><button type=\"button\" class=\"imgSelector\" value=\"_img/_flag/"+e+".svg\">";
-						s+="<img alt=\""+e+"\" src=\"_img/_flag/"+e+".svg\" loading=\"lazy\">";
-						s+="</button></li>";
-					}
-				);
-			}
-			else for(let a of pZ.originJson)
+			for(let a of pZ.originJson)
 				if((a.category==c.type)&&(a.visible=="1")) s+=pZ.makeInitialImgBtn(a);
 			s+="</ul>"
 			s+="</details>";

@@ -1,8 +1,0 @@
-<svg viewBox="-1260 -840 2520 1680" xmlns="http://www.w3.org/2000/svg">
- <rect x="-1260" y="-840" width="2520" height="1680" fill="#e11"/>
- <rect x="-1260" y="-840" width="1260" height="840" fill="#03c"/>
- <path id="twn23r" fill="#fff" d="M -630,-735 -546,-420 -630,-105 -714,-420 M -945,-420 -630,-336 -315,-420 -630,-504"/>
- <use transform="rotate(30,-630,-420)" href="#twn23r"/>
- <use transform="rotate(60,-630,-420)" href="#twn23r"/>
- <circle cx="-630" cy="-420" r="170" stroke-width="20" stroke="#03c" fill="#fff"/>
-</svg>
