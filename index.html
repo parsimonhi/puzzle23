@@ -645,6 +645,7 @@ dialog button:hover
 		let h2=dialog.querySelector('h2');
 		if(pZ.noH2Outline) h2.classList.add("noOutline");
 		else h2.classList.remove("noOutline");
+		if(name=="Alert") h2.innerHTML=title;
 		pZ.noH2Outline=0;
 		dialog.querySelector('[data-dialog-content]').innerHTML=content;
 		dialog.showModal();
@@ -3311,7 +3312,7 @@ dialog button:hover
 		}
 		let currentYear=new Date().getFullYear();
 		let year=2024+((currentYear==2024)?"":("-"+currentYear));
-		s+="<p class=\"copyright\">Copyright © "+year+" <a href=\"https://github.com/parsimonhi\">Parsimonhi</a></p>";
+		s+="<p class=\"copyright\">Copyright © "+year+" <a href=\"https://github.com/parsimonhi/puzzle23\">Parsimonhi</a></p>";
 		pZ.board.innerHTML=s;
 		let i=document.querySelector('input[type="file"]');
 		if(i) i.addEventListener("change",pZ.doChangeFile);
