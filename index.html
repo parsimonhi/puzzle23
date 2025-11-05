@@ -3192,7 +3192,7 @@ dialog button:hover
 		s+="<img aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
 		s+="</button>";
 		s+="<button title=\""+pZ.locale("About this image")+"\" data-k=\""+k+"\" type=\"button\" class=\"imgAlert\">";
-		s+=title;
+		s+="<span aria-hidden=\"true\">"+title+"</span>";
 		s+="</button>";
 		s+="</li>";
 		return s;
