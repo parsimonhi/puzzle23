@@ -166,6 +166,8 @@
 		"Nothing is selected or is in focus anymore.":"Plus rien n'est sélectionné ni n'a le focus.",
 		"Public domain":"Domaine public",
 		"About this image":"À propos de cette image",
-		"To launch the puzzle, click on the image!":"Pour lancer le puzzle, cliquez sur l'image !"
+		"To launch the puzzle, click on the image!":"Pour lancer le puzzle, cliquez sur l'image !",
+		"external perimeter ":"périmètre externe ",
+		", internal perimeter ":", périmètre interne "
 	}
 }

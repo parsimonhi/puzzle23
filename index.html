@@ -1643,7 +1643,7 @@ dialog button:hover
 						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo);
 						d+=pe.d;
 						d+="z";
-						c+=(c?pZ.locale(", "):"")+pe.c;
+						c+=(c?pZ.locale(", internal perimeter "):pZ.locale("external perimeter "))+pe.c;
 						// must continue in case there are "holes" amid the elements
 					}
 				}
