@@ -1604,7 +1604,7 @@ dialog button:hover
 			svg.setAttribute("width",(imax-imin+1)*pZ.esz2to);
 			svg.setAttribute("height",(jmax-jmin+1)*pZ.esz2to);
 			
-			let d="",c="";
+			let d="",c=[];
 			let newX=xo+imin-imino;
 			let newY=yo+jmin-jmino;
 			svg.pZ.x=newX;
@@ -1630,24 +1630,31 @@ dialog button:hover
 				if((m.j==(pZ.h-1))||(pZ.map[m.i][m.j+1].svg!=m.svg)) m.ds.bb|=4;
 				if((m.i==0)||(pZ.map[m.i-1][m.j].svg!=m.svg)) m.ds.bb|=8;
 			}
+			let cc=[];
 			for(let ki=imin;ki<=imax;ki++)
 				for(let kj=jmin;kj<=jmax;kj++)
 				{
 					let m=pZ.map[ki][kj];
 					if((svg==m.svg)&&!(m.ds.bb&16)&&(m.ds.bb&1))
-					// same svg as the glued svg, not checked yet, external top border
+					// same svg as the glued svg, not checked yet
+					// start at the first piece on the external top border
 					{
 						let xo,yo,pe=pZ.perimeter(m);
+						let cc={};
 						xo=parseFloat(m.ds.d10.replace(/^m([e0-9.-]+) [e0-9.-]+$/i,"$1"));
 						yo=parseFloat(m.ds.d10.replace(/^m[e0-9.-]+ ([e0-9.-]+)$/i,"$1"));
 						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo);
 						d+=pe.d;
 						d+="z";
-						c+=(c?pZ.locale(", internal perimeter starting at "):pZ.locale("external perimeter starting at "));
-						let xp=pZ.r2d(svg.pZ.x+ki-imin+1);
-						let yp=pZ.r2d(svg.pZ.y+kj-jmin+1);
-						c+=pZ.locale("(")+xp+", "+yp+pZ.locale("), ");
-						c+=pe.c;
+						//c+=(c?pZ.locale(", internal perimeter starting at "):pZ.locale("external perimeter starting at "));
+						//let xp=pZ.r2d(svg.pZ.x+ki-imin+1);
+						//let yp=pZ.r2d(svg.pZ.y+kj-jmin+1);
+						//c+=pZ.locale("(")+xp+", "+yp+pZ.locale("), ");
+						//c+=pe.c;
+						cc.c=pe.c;
+						cc.ip=ki-imin;
+						cc.jp=kj-jmin;
+						c.push(cc);
 						// must continue in case there are "holes" amid the elements
 					}
 				}
@@ -2342,7 +2349,7 @@ dialog button:hover
 		outline.classList.add("outline");
 		svg.append(outline);
 		svg.style.setProperty("clip-path","path('"+d+"')");
-		svg.pZ.content=c;
+		svg.pZ.content=[{ip:0,jp:0,c:c}];// only an external perimeter start at (0,0)
 		pZ.map[i][j].ds={d:d,d10:d10,d20:d20,d30:d30,d40:d40,d1:d1,d2:d2,d3:d3,d4:d4,bb:15,c1:c1,c2:c2,c3:c3,c4:c4};
 		pZ.updateMinMax(left,top);
 		pZ.updatePuzzleElementLabel(svg);
@@ -2543,6 +2550,24 @@ dialog button:hover
 		else if(pZ.lastFocused) pZ.focus(pZ.lastFocused);
 		else pZ.focusOnFirst();
 	}
+	pZ.doContent=function(e)
+	{
+		let c=e.pZ.content,s="";
+		for(let k=0;k<c.length;k++)
+		{
+			if(c.length>1)
+			{
+				if(k==0) s+=pZ.locale("external perimeter starting at ");
+				else s+=pZ.locale(", internal perimeter starting at ");
+				let xp=pZ.r2d(e.pZ.x+1+c[k].ip);
+				let yp=pZ.r2d(e.pZ.y+1+c[k].jp);
+				s+=pZ.locale("(")+xp+", "+yp+pZ.locale("), ");
+
+			}
+			s+=c[k].c;
+		}
+		return s;
+	}
 	pZ.doDescription=function(e)
 	{
 		if(pZ.selectedArea)
@@ -2566,12 +2591,12 @@ dialog button:hover
 				let s="",len=list.length;
 				if(len>1) s+=len+pZ.locale(" selected puzzle elements! ");
 				else s+=1+pZ.locale(" selected puzzle element! ");
-				for(let e of list)
-					s+=e.ariaLabel+pZ.locale(", ")+e.pZ.content+pZ.locale(". ");
+				for(let ee of list)
+					s+=ee.ariaLabel+pZ.locale(", ")+pZ.doContent(ee)+pZ.locale(". ");
 				pZ.updateMessenger(s);
 			}
 			else if(e?.classList?.contains("puzzleElement"))
-				pZ.updateMessenger(e.ariaLabel+pZ.locale(", ")+e.pZ.content);
+				pZ.updateMessenger(e.ariaLabel+pZ.locale(", ")+pZ.doContent(e));
 		}
 	}
 	pZ.placeOne=function(e)
