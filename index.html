@@ -246,6 +246,10 @@ dialog input[type="range"]
 {
 	width:min(100%,11rem);
 }
+dialog a
+{
+	color:var(--text-color);
+}
 .figure
 {
 	position:absolute;
@@ -441,18 +445,21 @@ body:has(.board.initial) .background
 	padding:0;
 	cursor:pointer;
 }
-.board.initial em,
-.board.initial em a
+.board.initial button.imgAlert
 {
 	display:inline-block;
-	width:100%;
 	font-size:min(1rem,10vw);
 	color:var(--text-color);
 	font-style:italic;
-}
-.board.initial em a
-{
 	min-height:1.5rem;
+	line-height:1.5rem;
+	border:0;
+	border-radius:0.125rem;
+	background:0;
+	margin:0;
+	padding:0.25rem;
+	width:100%;
+	
 }
 .board.initial input[type="file"]
 {
@@ -767,8 +774,7 @@ dialog button:hover
 	}
 	pZ.doClickOnAccessibility=function(ev)
 	{
-		//if(!ev.key)
-			pZ.noH2Outline=1;
+		pZ.noH2Outline=1;
 		ev.stopPropagation();
 		pZ.doAccessibilityAlert();
 	}
@@ -982,8 +988,7 @@ dialog button:hover
 	}
 	pZ.doClickOnPreferences=function(ev)
 	{
-		//if(!ev.key)
-			pZ.noH2Outline=1;
+		pZ.noH2Outline=1;
 		ev.stopPropagation();
 		if(pZ.inInit) pZ.abort(0);
 		pZ.doPreferencesDialog();
@@ -3179,20 +3184,33 @@ dialog button:hover
 		});
 	}
 
-	pZ.makeInitialImgBtn=function(a)
+	pZ.makeInitialImgBtn=function(a,k)
 	{
 		let s="",title=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
 		s+="<li>";
-		s+="<button title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
+		s+="<button data-k=\""+k+"\" title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
 		s+="<img aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
 		s+="</button>";
+		s+="<button title=\""+pZ.locale("About this image")+"\" data-k=\""+k+"\" type=\"button\" class=\"imgAlert\">";
+		s+=title;
+		s+="</button>";
+		s+="</li>";
+		return s;
+	}
+	pZ.doAlertImageData=function(a)
+	{
+		let s="";
+		s+="<p>";
+		s+=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
+		s+="</p>";
+		s+="<p>";
 		if(a["owner"])
 		{
 			s+="<em>";
 			if(a["source"]&&a["source"].match(/^(http|_img)/))
 			{
-				s+="<a href=\""+a["source"]+"\" target=\"_blank\">";
 				s+=pZ.locale("Credits: ");
+				s+="<a href=\""+a["source"]+"\" target=\"_blank\">";
 				s+=a["owner"];
 				s+="</a>";
 			}
@@ -3220,7 +3238,10 @@ dialog button:hover
 			s+=pZ.locale("Public domain");
 			s+="</em>";
 		}
-		s+="</li>";
+		s+="</p>";
+		s+="<p>";
+		s+=pZ.locale("To launch the puzzle, click on the image!");
+		s+="</p>";
 		return s;
 	}
 	pZ.doChooseContinue=function()
@@ -3261,19 +3282,30 @@ dialog button:hover
 		s+="<label><span>"+pZ.locale("Upload an image:")+"</span><input type=\"file\"></label>";
 		s+="<h3>"+pZ.locale("Image stored on a server")+"</h3>";
 		s+="<p>"+pZ.locale("Click on one of the images below:")+"</p>";
+		let listOfImages=[],k=0;
 		if(pZ.all) for(let c of categories)
 		{
 			s+="<details><summary>"+pZ.locale(c.title)+"</summary>";
 			s+="<ul>";
 			for(let a of pZ.originJson)
-				if((a.category==c.type)&&(a.visible=="1")) s+=pZ.makeInitialImgBtn(a);
+				if((a.category==c.type)&&(a.visible=="1"))
+				{
+					k++;
+					listOfImages[k]=a;
+					s+=pZ.makeInitialImgBtn(a,k);
+				}
 			s+="</ul>"
 			s+="</details>";
 		}
 		else
 		{
 			s+="<ul>";
-			for(let a of pZ.originJson) if(a.always=="1") s+=pZ.makeInitialImgBtn(a);
+			for(let a of pZ.originJson) if(a.always=="1")
+			{
+				k++;
+				listOfImages[k]=a;
+				s+=pZ.makeInitialImgBtn(a,k);
+			}
 			s+="</ul>"
 			s+="</details>";
 		}
@@ -3298,6 +3330,16 @@ dialog button:hover
 				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
 				pZ.board.innerHTML="";
 				pZ.fetch();
+			});
+		}
+		let list2=pZ.board.querySelectorAll('.board.initial button.imgAlert');
+		for(let b2 of list2)
+		{
+			let k=-(-b2.getAttribute("data-k"));
+			b2.addEventListener('click',function()
+			{
+				pZ.noH2Outline=1;
+				pZ.doAlert(pZ.locale("About this image"),pZ.doAlertImageData(listOfImages[k]));
 			});
 		}
 	}
@@ -3325,8 +3367,7 @@ dialog button:hover
 	pZ.doRestoreDialog=function()
 	{
 		if(pZ.trace) console.log("imgDataUrl length",localStorage.imgDataUrl?localStorage.imgDataUrl.length:0);
-		//if(!ev.key)
-			pZ.noH2Outline=1;
+		pZ.noH2Outline=1;
 		let t=pZ.locale("Restore"),s,o=[{n:"Restore",a:"RestoreContinue"},{n:"Remove",l:"Do not restore",a:"RestoreCancel"}];
 		s="<p>"+pZ.locale("A puzzle has not been completed.")+"</p>";
 		pZ.doDialog("Restore",t,s,o);
