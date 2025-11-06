@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="description" content="Puzzle">
+<meta name="description" content="Puzzle online">
 <style>
 *
 {
@@ -46,6 +46,7 @@ body:has(dialog[open])
 }
 .background
 {
+	z-index:-2;
 	display:block;
 	position:fixed;
 	top:0;
@@ -95,8 +96,7 @@ body:has(.board.puzzle) h1,
 	position:fixed;
 	left:0;
 	right:0;
-	top:0;
-	bottom:initial;
+	bottom:0;
 	display:flex;
 	flex-flow:row;
 	justify-content:center;
@@ -142,7 +142,7 @@ body:has(.board.puzzle) h1,
 	position:fixed;
 	left:0;
 	right:0;
-	top:calc(var(--btnSize) + 2vmin);
+	top:0;
 	height:1.25em;
 	padding-top:0.25em;
 	opacity:0;
@@ -157,7 +157,7 @@ body:has(.board.puzzle) h1,
 	position:fixed;
 	left:0;
 	right:0;
-	bottom:0;
+	bottom:calc(var(--btnSize) + 4vmin);
 	height:1.25em;
 	padding-bottom:0.25em;
 	opacity:0;
@@ -345,19 +345,6 @@ dialog a
 	visibility:hidden; /* faster than display:none, no reflow, just repaint */
 	animation:none;
 }
-@media (min-aspect-ratio:9/10)
-{
-	.menu
-	{
-		flex-flow:column;
-		bottom:0;
-		right:initial;
-	}
-	.stopwatch
-	{
-		top:0;
-	}
-}
 
 .board.initial
 {
@@ -505,6 +492,34 @@ dialog button:hover
 {
 	color:var(--color-focus-btn);
 	background:var(--bk-focus-btn);
+}
+.ghost
+{
+	display:none;
+	position:fixed;
+	z-index:-1;
+	top:0;
+	right:0;
+	width:25vmin;
+	height:auto;
+}
+.ghost.show
+{
+	display:block;
+}
+@media (min-aspect-ratio:9/10)
+{
+	.menu
+	{
+		flex-flow:column;
+		top:0;
+		bottom:0;
+		right:initial;
+	}
+	.score
+	{
+		bottom:0;
+	}
 }
 </style>
 <title>Puzzle</title>
@@ -821,6 +836,8 @@ dialog button:hover
 		e.checked=pZ.defaultParams.showsw?true:false;
 		e=document.querySelector('[name="showsc"]');
 		e.checked=pZ.defaultParams.showsc?true:false;
+		e=document.querySelector('[name="showgh"]');
+		e.checked=pZ.defaultParams.showgh?true:false;
 	}
 	pZ.makeEmbossFilter=function()
 	{
@@ -936,6 +953,12 @@ dialog button:hover
 			localStorage.pZ_showsc=pZ.showScore=e.checked?1:0;
 			if(pZ.score) pZ.showHideScore();
 		}
+		e=document.querySelector('[name="showgh"]');
+		if(e)
+		{
+			localStorage.pZ_showgh=pZ.showGhost=e.checked?1:0;
+			if(pZ.ghost) pZ.showHideGhost();
+		}
 		if(pZ.abortSignal) changeStatus|=16;
 		if(pZ.board.querySelector('.figure svg')&&changeStatus)
 		{
@@ -994,6 +1017,7 @@ dialog button:hover
 		s+=makeCheckbox("ric",pZ.roundInitialCoordinates,"Round initial coordinates");
 		s+=makeCheckbox("showsw",pZ.showStopwatch,"Show the stopwatch");
 		s+=makeCheckbox("showsc",pZ.showScore,"Show the score");
+		s+=makeCheckbox("showgh",pZ.showGhost,"Show the model");
 		let o=[{n:"OK",a:"PreferencesOK"},{n:"Cancel"},{n:"Reset",l:"Default values",a:"PreferencesReset",t:"button"}];
 		pZ.noH2Outline=1;
 		pZ.doDialog("Preferences",t,s,o);
@@ -1337,6 +1361,20 @@ dialog button:hover
 		pZ.showHideStopwatch();
 		pZ.board.before(pZ.stopwatch);
 	}
+	// ghost
+	pZ.showHideGhost=function()
+	{
+		if(pZ.showGhost) pZ.ghost.classList.add("show");
+		else pZ.ghost.classList.remove("show");
+	}
+	pZ.initGhost=function()
+	{
+		pZ.ghost=document.createElement('img');
+		pZ.ghost.classList.add("ghost");
+		pZ.ghost.src=localStorage.imgDataUrl;
+		pZ.showHideGhost();
+		pZ.board.after(pZ.ghost);
+	}
 	// puzzle
 	pZ.getSvg=function(ev,cls)
 	{
@@ -1347,7 +1385,7 @@ dialog button:hover
 	}
 	pZ.clearRestoreData=function()
 	{
-		let whmax,pt,emb,th,ms,ric,showsw,showsc;
+		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh;
 		whmax=localStorage.pZ_whmax?localStorage.pZ_whmax:pZ.defaultParams.whmax;
 		pt=localStorage.pZ_pt?localStorage.pZ_pt:pZ.defaultParams.pt;
 		emb=localStorage.pZ_emb?localStorage.pZ_emb:pZ.defaultParams.emb;
@@ -1356,6 +1394,7 @@ dialog button:hover
 		ric=localStorage.pZ_ric?localStorage.pZ_ric:pZ.defaultParams.ric;
 		showsw=localStorage.pZ_showsw?localStorage.pZ_showsw:pZ.defaultParams.showsw;
 		showsc=localStorage.pZ_showsc?localStorage.pZ_showsc:pZ.defaultParams.showsc;
+		showgh=localStorage.pZ_showgh?localStorage.pZ_showgh:pZ.defaultParams.showgh;
 		if(pZ.trace) console.log("localStorage length",JSON.stringify(localStorage).length);
 		localStorage.clear();
 		localStorage.pZ_whmax=whmax;
@@ -1366,6 +1405,7 @@ dialog button:hover
 		localStorage.pZ_ric=ric;
 		localStorage.pZ_showsw=showsw;
 		localStorage.pZ_showsc=showsc;
+		localStorage.pZ_showgh=showgh;
 	}
 	pZ.doGameOver=function()
 	{
@@ -1815,6 +1855,7 @@ dialog button:hover
 		localStorage.pZ_ric=pZ.roundInitialCoordinates=pZ.defaultParams.ric;
 		localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
 		localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
+		localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
 	}
 	
 	pZ.abort=function(t)
@@ -2455,6 +2496,7 @@ dialog button:hover
 		pZ.figure.addEventListener('pointerup',pZ.dragEnd);
 		pZ.figure.addEventListener('focusin',pZ.doFocusIn);
 		// use a linear gradient as background-image to handle the case of top and bottom lines with unusual height
+		// this background is the grey rectangle that fits to the puzzle size
 		pZ.figure.style.setProperty("background-image","linear-gradient(#0000 0 "+ho+"px,#0001 "+ho+"px "+(pZ.esz*pZ.h-ho)+"px,#0000 "+(pZ.esz*pZ.h-ho)+"px "+(pZ.esz*pZ.h)+"px)");
 		pZ.map=[];
 		for(let i=0;i<pZ.w;i++) pZ.map[i]=[];
@@ -3126,6 +3168,8 @@ dialog button:hover
 		else pZ.showStopwatch=-(-localStorage.pZ_showsw); // if 1, show the stopwatch
 		if(localStorage.pZ_showsc===undefined) localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
 		else pZ.showScore=-(-localStorage.pZ_showsc); // if 1, show the score
+		if(localStorage.pZ_showgh===undefined) localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
+		else pZ.showGhost=-(-localStorage.pZ_showgh); // if 1, show the ghost
 	}
 	
 	pZ.initFirst=function()
@@ -3139,6 +3183,7 @@ dialog button:hover
 		pZ.initMenu();
 		pZ.initStopwatch();
 		pZ.initScore();
+		pZ.initGhost();
 		pZ.initMessenger();
 		// observing the board cost too much, thus observe the menu
 		new ResizeObserver((es)=>
@@ -3419,7 +3464,7 @@ dialog button:hover
 	pZ.start2=function()
 	{
 		pZ.initialLoading=1;
-		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1};
+		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1,showgh:1};
 		pZ.maxLoadingTime=50*pZ.iwhMax;
 		pZ.embossFilterHtml=pZ.makeEmbossFilter();
 		pZ.board=document.createElement('main');

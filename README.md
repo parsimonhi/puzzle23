@@ -9,6 +9,11 @@ What is new?
 
 2025/11/05
 
+- add a parameter to show/hide the model
+- various minor updates
+
+2025/11/05
+
 - various updates on images
 
 2025/11/04
