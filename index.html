@@ -16,12 +16,23 @@ body
 	--btnSize:min(1.5cm,17vmin);
 	--bk-initial:#f3f3f3;
 	--bk-puzzle:#f3f3f3;
-	--text-color:#000;
+	--bk-h1:#002;
+	--bk-btn:#002;/*#0075ff*/
+	--bk-focus-btn:#ff8a00;/*#ff8a00*//*#ffa033*/
+	--bk-dlg:#fff;
+	--color:#002;
+	--color-h1:#fff;
+	--color-btn:#fff;
+	--color-focus-btn:#fff;
+	--color-dlg:#002;
+	--outline-stroke:#0075ff;/*#0075ff*/
+	--logo-filter:grayscale(1);
 	/* avoid to use vmin, vmax, vw or vh as font-size units */
 	/* because some browsers will zoom these units and some others will not */
 	margin:0;
 	padding:0;
 	min-width:10rem;
+	color:var(--color);
 	-webkit-user-select:none; /* Safari */
 	user-select:none;
 }
@@ -172,6 +183,8 @@ dialog
 	font-size:1rem;
 	hyphens:auto;
 	max-width:90%;
+	color:var(--color-dlg);
+	background:var(--bk-dlg);
 }
 dialog::backdrop
 {
@@ -249,7 +262,7 @@ dialog input[type="range"]
 }
 dialog a
 {
-	color:var(--text-color);
+	color:var(--color-dlg);
 }
 .figure
 {
@@ -297,7 +310,7 @@ dialog a
 .puzzleElement:focus-visible path,
 .puzzleElement.selected path
 {
-	stroke:#0075ff;
+	stroke:var(--outline-stroke);
 	stroke-width:calc(10px * var(--esz00));
 }
 .figure.noBorders .puzzleElement,
@@ -361,8 +374,8 @@ body:has(.board.initial) h1
 	font-size:min(2rem,20vw);
 	margin:0;
 	padding:0 min(1rem,10vw) 0 0;
-	color:#fff;
-	background:#000;
+	color:var(--color-h1);
+	background:var(--bk-h1);
 	text-shadow:0.0625em 0.0625em 0.0625em #0007;
 }
 body:has(.board.initial) h1:before
@@ -371,7 +384,7 @@ body:has(.board.initial) h1:before
 	display:inline-block;
 	width:min(4rem,40vw);
 	height:min(4rem,40vw);
-	filter:grayscale(1);
+	filter:var(--logo-filter);
 }
 body:has(.board.initial) .background
 {
@@ -450,7 +463,7 @@ body:has(.board.initial) .background
 {
 	display:inline-block;
 	font-size:min(1rem,10vw);
-	color:var(--text-color);
+	color:var(--color);
 	font-style:italic;
 	min-height:1.5rem;
 	line-height:1.5rem;
@@ -469,14 +482,14 @@ body:has(.board.initial) .background
 }
 .board.initial .copyright a
 {
-	color:var(--text-color);
+	color:var(--color);
 }
 button.standardBtn,
 input[type="file"],
 input::file-selector-button,
 dialog button
 {
-	font-size:1rem;
+	/*font-size:1rem;*/
 	cursor:pointer;
 	outline-offset:0.25rem;
 }
@@ -484,25 +497,26 @@ button.standardBtn,
 input::file-selector-button,
 dialog button
 {
-	color:#fff;
-	background:#000;
+	color:var(--color-btn);
+	background:var(--bk-btn);
 	border:0;
-	border-radius:0.125em;
-	line-height:2rem;
+	border-radius:0.25em;
+	line-height:1.5rem;
 	font-weight:bold;
 }
 button.standardBtn:hover,
 input::file-selector-button:hover,
 dialog button:hover
 {
-	background:#ff8a00;
+	color:var(--color-focus-btn);
+	background:var(--bk-focus-btn);
 }
 </style>
 <title>Puzzle</title>
 <link rel="icon" type="image/svg+xml" href="_icon/puzzle.svg">
 </head>
 <body>
-<h1>Puzzle 23</h1>
+<h1>Puzzle23</h1>
 <script>
 (async function()
 {
@@ -2714,6 +2728,7 @@ dialog button:hover
 			pZ.saveElement(e);
 			pZ.updateMessenger(e.ariaLabel);
 			// is it appropriate to force this scroll?
+			// seems not well working on chrome and safari for large puzzle elements
 			e.scrollIntoView({block:"nearest",inline:"nearest"});
 		}
 	}
