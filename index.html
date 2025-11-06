@@ -396,19 +396,14 @@ body:has(.board.initial) .background
 	margin:min(1rem,10vw) 0;
 	padding:0;
 }
-.board.initial>h3
-{
-	font-size:min(1.25rem,12.5vw);
-	margin:min(1rem,10vw) 0;
-}
-.board.initial>h3:nth-of-type(2)+p
-{
-	margin-bottom:0.75rem;
-}
-.board.initial>h3+label span
+.board.initial>label span
 {
 	display:block;
 	margin:min(1rem,10vw) 0;
+}
+.board.initial input[type="file"]
+{
+	margin-bottom:min(1rem,10vw);
 }
 .board.initial>details
 {
@@ -3328,10 +3323,8 @@ dialog button:hover
 		s+="<h2>"+pZ.locale("Settings")+"</h2>";
 		s+="<button id=\"modify-settings\" class=\"standardBtn\" type=\"button\">"+pZ.locale("Modify")+"</button>";
 		s+="<h2>"+t+"</h2>"
-		s+="<h3>"+pZ.locale("Image stored on the user's device")+"</h3>";
-		s+="<label><span>"+pZ.locale("Upload an image:")+"</span><input type=\"file\"></label>";
-		s+="<h3>"+pZ.locale("Image stored on a server")+"</h3>";
-		s+="<p>"+pZ.locale("Click on one of the images below:")+"</p>";
+		s+="<label><span>"+pZ.locale("Select one of your images:")+"</span><input type=\"file\"></label>";
+		s+="<p>"+pZ.locale("Select one of the images below:")+"</p>";
 		let listOfImages=[],k=0;
 		if(pZ.all) for(let c of categories)
 		{
