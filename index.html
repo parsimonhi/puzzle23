@@ -632,7 +632,7 @@ dialog button:hover
 	}
 	pZ.centerFigure=function()
 	{
-		if(!pZ.figure) return;
+		if(!pZ.figure||!pZ.figcaption) return;
 		window.scroll(pZ.dX,pZ.dY);
 	}
 	pZ.doDialog=function(name,title,content,btns)
@@ -1453,20 +1453,18 @@ dialog button:hover
 	}
 	pZ.doGameOver=function()
 	{
+		if(pZ.selectedArea) pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		let a=pZ.board.getBoundingClientRect();
 		let b=pZ.figcaption.getBoundingClientRect();
 		let dX=0,dY=0;
-		if(pZ.selectedArea) pZ.clearSelectedArea();
-		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		if(b.left<a.left) dX=a.left-b.left;
 		if(b.top<a.top) dY=a.top-b.top;
-		if(dX||dY)
-		{
-			pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
-			pZ.dX=dX;
-			pZ.dY=dY;
-			window.scroll(dX,dY);
-		}
+		if(dX||dY) pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
+		else pZ.board.style.removeProperty("transform");
+		pZ.dX=dX;
+		pZ.dY=dY;
+		pZ.centerFigure();
 		pZ.figure.style.removeProperty("background-image");
 		pZ.figure.replaceChildren();
 		pZ.figure.append(pZ.figcaption);
