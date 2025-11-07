@@ -500,12 +500,21 @@ dialog button:hover
 	z-index:-1;
 	top:0;
 	right:0;
-	width:25vmin;
-	height:auto;
+	height:25vmin;
+	overflow:hidden;
+	margin:0;
+	resize:vertical;
+	outline-offset:0.25rem;
 }
 .ghost.show
 {
+	display:flex;
+}
+.ghost img
+{
 	display:block;
+	height:100%;
+	width:auto;
 }
 @media (min-aspect-ratio:9/10)
 {
@@ -734,7 +743,7 @@ dialog button:hover
 		let n=z/pZ.esz;
 		return pZ.r2d(n-2*pZ.to/pZ.esz);
 	}
-
+	
 	// accessibility
 	pZ.doAccessibilityAlert=function()
 	{
@@ -771,7 +780,7 @@ dialog button:hover
 		s+="</ul>";
 		s+="</li>";
 		s+="<li><p>d"+pZ.locale(": ")+pZ.locale("if a screen reader is activated, describe the selection area if any or the selected puzzle elements if any or the puzzle element in focus")+"</p></li>";
-		s+="<li><p>e"+pZ.locale(": ")+pZ.locale("resize the puzzle to fit the window and center it")+"</p></li>";
+		s+="<li><p>e"+pZ.locale(": ")+pZ.locale("reframe the puzzle to fit the window")+"</p></li>";
 		s+="<li><p>g"+pZ.locale(": ")+pZ.locale("cancel the selection and blur focus (useful when one then wants to scroll the window content)")+"</p></li>";
 		s+="<li><p>h"+pZ.locale(": ")+pZ.locale("focus on the Home button")+"</p></li>";
 		s+="<li><p>p"+pZ.locale(": ")+pZ.locale("open the Preferences dialog")+"</p></li>";
@@ -1025,8 +1034,12 @@ dialog button:hover
 	pZ.doClickOnPreferences=function(ev)
 	{
 		ev.stopPropagation();
-		if(pZ.inInit) pZ.abort(0);
-		pZ.doPreferencesDialog();
+		if(pZ.inInit)
+		{
+			let s=pZ.locale("Impossible to change the settings while a puzzle is being built!");
+			pZ.doAlert(pZ.locale("Alert"),s);
+		}
+		else pZ.doPreferencesDialog();
 	}
 	pZ.initPreferences=function(container)
 	{
@@ -1041,30 +1054,30 @@ dialog button:hover
 		pZ.preferences.addEventListener("click",pZ.doClickOnPreferences);
 		container.append(pZ.preferences);
 	}
-	// resize
-	pZ.resizeAndAdapt=function()
+	// reframe
+	pZ.reframe=function()
 	{
 		pZ.resize();
 		pZ.adaptScrollArea(3);
 	}
-	pZ.doClickOnResize=function(ev)
+	pZ.doClickOnReframe=function(ev)
 	{
 		ev.stopPropagation();
-		if(pZ.abortSignal) return;
-		pZ.resizeAndAdapt();
+		if(pZ.abortSignal||pZ.inInit) return;
+		pZ.reframe();
 	}
-	pZ.initResize=function(container)
+	pZ.initReframe=function(container)
 	{
 		let e=document.createElement('img');
-		e.src="_icon/resize.svg";
+		e.src="_icon/reframe.svg";
 		e.ariaHidden="true";
 		e.draggable=false;
-		pZ.resizeBtn=document.createElement('button');
-		pZ.resizeBtn.classList.add("resize");
-		pZ.resizeBtn.append(e);
-		pZ.resizeBtn.title=pZ.locale("Resize and center");
-		pZ.resizeBtn.addEventListener("click",pZ.doClickOnResize);
-		container.append(pZ.resizeBtn);
+		pZ.reframeBtn=document.createElement('button');
+		pZ.reframeBtn.classList.add("reframe");
+		pZ.reframeBtn.append(e);
+		pZ.reframeBtn.title=pZ.locale("Reframe");
+		pZ.reframeBtn.addEventListener("click",pZ.doClickOnReframe);
+		container.append(pZ.reframeBtn);
 	}
 	// restart
 	pZ.doRestartOK=function()
@@ -1091,7 +1104,12 @@ dialog button:hover
 	{
 		ev.stopPropagation();
 		if(pZ.abortSignal) return;
-		if(localStorage.imgDataUrl) pZ.doRestartDialog();
+		if(pZ.inInit)
+		{
+			let s=pZ.locale("Impossible to restart while a puzzle is being built!");
+			pZ.doAlert(pZ.locale("Alert"),s);
+		}
+		else if(localStorage.imgDataUrl) pZ.doRestartDialog();
 		else pZ.doRestartOK();
 	}
 	pZ.initRestart=function(container)
@@ -1141,7 +1159,7 @@ dialog button:hover
 		pZ.initPreferences(li);
 		li=document.createElement('li');
 		menu.append(li);
-		pZ.initResize(li);
+		pZ.initReframe(li);
 		li=document.createElement('li');
 		menu.append(li);
 		pZ.initRestart(li);
@@ -1362,6 +1380,23 @@ dialog button:hover
 		pZ.board.before(pZ.stopwatch);
 	}
 	// ghost
+    pZ.resizeGhost=function(ev)
+    {
+    	let e=ev.target;
+		switch (ev.key)
+		{
+			case 'ArrowUp':
+			case 'ArrowRight':
+				e.style.height=(e.offsetHeight-10)+"px";
+				ev.preventDefault();
+				break;
+			case 'ArrowDown':
+			case 'ArrowLeft':
+				e.style.height=(e.offsetHeight+10)+"px";
+				ev.preventDefault();
+				break;
+		}
+    }
 	pZ.showHideGhost=function()
 	{
 		if(pZ.showGhost) pZ.ghost.classList.add("show");
@@ -1369,11 +1404,15 @@ dialog button:hover
 	}
 	pZ.initGhost=function()
 	{
-		pZ.ghost=document.createElement('img');
+		pZ.ghost=document.createElement('figure');
+		pZ.ghost.setAttribute("title",pZ.locale("Model"));
+		pZ.ghost.setAttribute("tabindex","0");
+		pZ.ghost.append(document.createElement('img'));
 		pZ.ghost.classList.add("ghost");
-		pZ.ghost.src=localStorage.imgDataUrl;
+		pZ.ghost.firstChild.src=localStorage.imgDataUrl;
 		pZ.showHideGhost();
 		pZ.board.after(pZ.ghost);
+		pZ.ghost.addEventListener('keydown',pZ.resizeGhost);
 	}
 	// puzzle
 	pZ.getSvg=function(ev,cls)
@@ -1888,7 +1927,7 @@ dialog button:hover
 		for(let svg of svgs) pZ.figure.append(svg);
 		pZ.board.append(pZ.figure);
 		pZ.hideWait();
-		pZ.resizeAndAdapt();
+		pZ.reframe();
 		pZ.startStopwatch();
 		if(pZ.restoreOn)
 		{
@@ -3033,7 +3072,7 @@ dialog button:hover
 				case "a":pZ.doClickOnAccessibility(ev);break;
 				case "b":pZ.doBoard(ev);break;
 				case "d":pZ.doDescription(a);break;
-				case "e":pZ.resizeAndAdapt();break;
+				case "e":pZ.reframe();break;
 				case "g":pZ.cancelAll();break;
 				case "h":
 					pZ.clearSelectedArea();
