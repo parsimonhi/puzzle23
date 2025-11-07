@@ -504,7 +504,9 @@ dialog button:hover
 	overflow:hidden;
 	margin:0;
 	resize:vertical;
+	direction:rtl;
 	outline-offset:0.25rem;
+	background:red;
 }
 .ghost.show
 {
@@ -592,44 +594,40 @@ dialog button:hover
 		pZ.h=Math.ceil(pZ.w*pZ.ih/pZ.iw);
 		pZ.wh=pZ.w*pZ.h;
 	}
+	pZ.resize=function()
+	{
+		pZ.rf=pZ.computeRf();
+		document.body.style.setProperty("--rf",pZ.rf);
+	}
 	pZ.initScrollArea=function()
 	{
 		pZ.board.style.removeProperty("transform");
 		window.scroll(0,0);
+		pZ.dX=0;
+		pZ.dY=0;
 	}
-	pZ.adaptScrollArea=function(s=0)
+	pZ.adaptScrollArea=function()
 	{
 		if(pZ.trace) console.log("adaptScrollArea");
 		if(!pZ.figure||!pZ.figcaption||pZ.abortSignal) return;
 		let a=pZ.board.getBoundingClientRect(),b=pZ.figcaption.getBoundingClientRect();
-		if(s&1)
-		{
-			// adapt
-			pZ.figcaption.style.left=(pZ.xmin-pZ.to)+"px";
-			pZ.figcaption.style.top=(pZ.ymin-pZ.to)+"px";
-			pZ.figcaption.style.width=(pZ.xmax-pZ.xmin+2*pZ.to)+"px";
-			pZ.figcaption.style.height=(pZ.ymax-pZ.ymin+2*pZ.to)+"px";
-			let c=pZ.board.getBoundingClientRect(),d=pZ.figcaption.getBoundingClientRect();
-			let dX=0,dY=0;
-			if(d.left<c.left) dX=c.left-d.left;
-			if(d.top<c.top) dY=c.top-d.top;
-			if(dX||dY) pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
-		}
-		if(s&2)
-		{
-			// center the figure
-			let e=pZ.board.getBoundingClientRect();
-			let scrollX=window.scrollX,scrollY=window.scrollY;
-			window.scroll(e.left-a.left+scrollX,e.top-a.top+scrollY);
-			let f=pZ.board.getBoundingClientRect();
-			window.scroll(e.left-a.left+scrollX+f.x,e.top-a.top+scrollY+f.y);
-		}
+		// adapt
+		pZ.figcaption.style.left=(pZ.xmin-pZ.to)+"px";
+		pZ.figcaption.style.top=(pZ.ymin-pZ.to)+"px";
+		pZ.figcaption.style.width=(pZ.xmax-pZ.xmin+2*pZ.to)+"px";
+		pZ.figcaption.style.height=(pZ.ymax-pZ.ymin+2*pZ.to)+"px";
+		let c=pZ.board.getBoundingClientRect(),d=pZ.figcaption.getBoundingClientRect();
+		let dX=0,dY=0;
+		if(d.left<c.left) dX=c.left-d.left;
+		if(d.top<c.top) dY=c.top-d.top;
+		if(dX||dY) pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
+		pZ.dX=dX;
+		pZ.dY=dY;
 	}
-	pZ.resize=function()
+	pZ.centerFigure=function()
 	{
-		if(pZ.abortSignal) return;
-		pZ.rf=pZ.computeRf();
-		document.body.style.setProperty("--rf",pZ.rf);
+		let w=pZ.iw*pZ.rf,h=pZ.ih*pZ.rf;
+		window.scroll((window.innerWidth-w)/2+pZ.dX,(window.innerHeight-h)/2+pZ.dY);
 	}
 	pZ.doDialog=function(name,title,content,btns)
 	{
@@ -1059,6 +1057,7 @@ dialog button:hover
 	{
 		pZ.resize();
 		pZ.adaptScrollArea(3);
+		pZ.centerFigure();
 	}
 	pZ.doClickOnReframe=function(ev)
 	{
@@ -1405,11 +1404,11 @@ dialog button:hover
 	pZ.initGhost=function()
 	{
 		pZ.ghost=document.createElement('figure');
-		pZ.ghost.setAttribute("title",pZ.locale("Model"));
 		pZ.ghost.setAttribute("tabindex","0");
 		pZ.ghost.append(document.createElement('img'));
 		pZ.ghost.classList.add("ghost");
 		pZ.ghost.firstChild.src=localStorage.imgDataUrl;
+		pZ.ghost.firstChild.setAttribute("alt",pZ.locale("Model"));
 		pZ.showHideGhost();
 		pZ.board.after(pZ.ghost);
 		pZ.ghost.addEventListener('keydown',pZ.resizeGhost);
@@ -1458,6 +1457,8 @@ dialog button:hover
 		if(dX||dY)
 		{
 			pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
+			pZ.dX=dX;
+			pZ.dY=dY;
 			window.scroll(dX,dY);
 		}
 		pZ.figure.style.removeProperty("background-image");
@@ -3072,7 +3073,7 @@ dialog button:hover
 				case "a":pZ.doClickOnAccessibility(ev);break;
 				case "b":pZ.doBoard(ev);break;
 				case "d":pZ.doDescription(a);break;
-				case "e":pZ.reframe();break;
+				case "e":pZ.doClickOnReframe(ev);break;
 				case "g":pZ.cancelAll();break;
 				case "h":
 					pZ.clearSelectedArea();
@@ -3236,7 +3237,12 @@ dialog button:hover
 				if(currentCounter>=pZ.resizeCounter)
 				{
 					if(pZ.trace) console.log("Resize did something",currentCounter);
-					pZ.adaptScrollArea(1);
+					let bfc1=pZ.figureCaption.getBoundingClientRect();
+					pZ.adaptScrollArea();
+					let bfc2=pZ.figureCaption.getBoundingClientRect();
+					pZ.dX+=bfc2.x-bfc1.x;
+					pZ.dY+=bfc2.y-bfc1.y;
+					window.scroll(pZ.dX,pZ.dY);
 					pZ.resizeCounter=0;
 				}
 			},1000);
