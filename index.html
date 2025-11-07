@@ -626,6 +626,7 @@ dialog button:hover
 		if(d.left<c.left) dX=c.left-d.left;
 		if(d.top<c.top) dY=c.top-d.top;
 		if(dX||dY) pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
+		else pZ.board.style.removeProperty("transform");
 		pZ.dX=dX;
 		pZ.dY=dY;
 		window.scroll(exdScrollX+dX-exdX,exdScrollY+dY-exdY);
