@@ -1945,6 +1945,7 @@ dialog button:hover
 		}
 		pZ.updateScore();
 		pZ.inInit=0;
+		pZ.tabTofirst=1;
 		t1 = performance.now();
 		if(pZ.trace) console.log("w:",pZ.w,"h:",pZ.h,"iw",pZ.iw,"ih",pZ.ih);
 		if(pZ.trace) console.log("perf end of terminateInitPuzzle()",t1-pZ.t0);
@@ -2985,6 +2986,14 @@ dialog button:hover
 			// let the default scrolling happen here, in case the user wants it
 			pZ.clearSelectedArea();
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			if(pZ.tabTofirst)
+			{
+				// force to tab on accessibility button when the first tab occurs
+				// otherwise the focused element could be something else
+				pZ.tabTofirst=0;
+				pZ.accessibility.focus();
+				ev.preventDefault();
+			}
 			return;
 		}
 		if(ev.altKey||ev.ctrlKey||ev.metaKey) return;
