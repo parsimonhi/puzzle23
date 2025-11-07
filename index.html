@@ -506,7 +506,6 @@ dialog button:hover
 	resize:vertical;
 	direction:rtl;
 	outline-offset:0.25rem;
-	background:red;
 }
 .ghost.show
 {
@@ -1411,11 +1410,14 @@ dialog button:hover
 	pZ.initGhost=function()
 	{
 		pZ.ghost=document.createElement('figure');
-		pZ.ghost.setAttribute("tabindex","0");
-		pZ.ghost.append(document.createElement('img'));
 		pZ.ghost.classList.add("ghost");
+		pZ.ghost.setAttribute("aria-label",pZ.locale("Model"));
+		pZ.ghost.setAttribute("role","img");
+		pZ.ghost.setAttribute("tabindex","0");
+		// hide the image to screen readers to shorten what they say
+		pZ.ghost.append(document.createElement('img'));
+		pZ.ghost.firstChild.setAttribute("aria-hidden","true");
 		pZ.ghost.firstChild.src=localStorage.imgDataUrl;
-		pZ.ghost.firstChild.setAttribute("alt",pZ.locale("Model"));
 		pZ.showHideGhost();
 		pZ.board.after(pZ.ghost);
 		pZ.ghost.addEventListener('keydown',pZ.resizeGhost);
@@ -2978,6 +2980,7 @@ dialog button:hover
 		document.activeElement.blur();
 		pZ.updateMessenger(pZ.locale("Nothing is selected or is in focus anymore."));
 	}
+	
 	pZ.doKeydown=function(ev)
 	{
 		if(pZ.inDialog) return;
