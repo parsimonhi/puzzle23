@@ -610,7 +610,12 @@ dialog button:hover
 	{
 		if(pZ.trace) console.log("adaptScrollArea");
 		if(!pZ.figure||!pZ.figcaption||pZ.abortSignal) return;
-		let a=pZ.board.getBoundingClientRect(),b=pZ.figcaption.getBoundingClientRect();
+		let a=pZ.board.getBoundingClientRect();
+		let b=pZ.figcaption.getBoundingClientRect();
+		let exdX=pZ.dX;
+		let exdY=pZ.dY;
+		let exdScrollX=window.scrollX;
+		let exdScrollY=window.scrollY;
 		// adapt
 		pZ.figcaption.style.left=(pZ.xmin-pZ.to)+"px";
 		pZ.figcaption.style.top=(pZ.ymin-pZ.to)+"px";
@@ -623,11 +628,12 @@ dialog button:hover
 		if(dX||dY) pZ.board.style.transform="translate("+dX+"px,"+dY+"px)";
 		pZ.dX=dX;
 		pZ.dY=dY;
+		window.scroll(exdScrollX+dX-exdX,exdScrollY+dY-exdY);
 	}
 	pZ.centerFigure=function()
 	{
-		let w=pZ.iw*pZ.rf,h=pZ.ih*pZ.rf;
-		window.scroll((window.innerWidth-w)/2+pZ.dX,(window.innerHeight-h)/2+pZ.dY);
+		if(!pZ.figure) return;
+		window.scroll(pZ.dX,pZ.dY);
 	}
 	pZ.doDialog=function(name,title,content,btns)
 	{
@@ -1056,7 +1062,7 @@ dialog button:hover
 	pZ.reframe=function()
 	{
 		pZ.resize();
-		pZ.adaptScrollArea(3);
+		pZ.adaptScrollArea();
 		pZ.centerFigure();
 	}
 	pZ.doClickOnReframe=function(ev)
@@ -2568,7 +2574,7 @@ dialog button:hover
 		if((Math.abs(e.pZ.x-e.pZ.imin)<1.05)&&(Math.abs(e.pZ.y-e.pZ.jmin)<1.05))
 		{
 			e.focus({preventScroll:true});
-			pZ.adaptScrollArea(1);
+			pZ.centerFigure();
 		}
 		else
 		{
@@ -2622,7 +2628,7 @@ dialog button:hover
 			if(pZ.isPuzzleCompleted()) pZ.doGameOver();
 			else
 			{
-				if(pZ.minMaxChange) pZ.adaptScrollArea(1);
+				if(pZ.minMaxChange) pZ.adaptScrollArea();
 				// not very good to force this scroll into view
 				//e.scrollIntoView({block:"nearest",inline:"nearest"});
 			}
@@ -2801,7 +2807,7 @@ dialog button:hover
 			e.style.left=left+"px";
 			e.style.top=top+"px";
 			pZ.updateMinMax(left,top);
-			if(pZ.minMaxChange) pZ.adaptScrollArea(1);
+			if(pZ.minMaxChange) pZ.adaptScrollArea();
 			pZ.saveElement(e);
 			pZ.updateMessenger(e.ariaLabel);
 			// is it appropriate to force this scroll?
@@ -3237,12 +3243,7 @@ dialog button:hover
 				if(currentCounter>=pZ.resizeCounter)
 				{
 					if(pZ.trace) console.log("Resize did something",currentCounter);
-					let bfc1=pZ.figureCaption.getBoundingClientRect();
 					pZ.adaptScrollArea();
-					let bfc2=pZ.figureCaption.getBoundingClientRect();
-					pZ.dX+=bfc2.x-bfc1.x;
-					pZ.dY+=bfc2.y-bfc1.y;
-					window.scroll(pZ.dX,pZ.dY);
 					pZ.resizeCounter=0;
 				}
 			},1000);
