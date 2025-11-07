@@ -3445,7 +3445,7 @@ dialog button:hover
 		}
 		let currentYear=new Date().getFullYear();
 		let year=2024+((currentYear==2024)?"":("-"+currentYear));
-		s+="<p class=\"copyright\">Copyright © "+year+" <a href=\"https://github.com/parsimonhi/puzzle23\">Parsimonhi</a></p>";
+		s+="<p class=\"copyright\"><a href=\"https://github.com/parsimonhi/puzzle23\">Puzzle23</a> Copyright © "+year+" <a href=\"https://github.com/parsimonhi\">Parsimonhi</a></p>";
 		pZ.board.innerHTML=s;
 		let i=document.querySelector('input[type="file"]');
 		if(i) i.addEventListener("change",pZ.doChangeFile);
