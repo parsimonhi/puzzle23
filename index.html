@@ -312,12 +312,6 @@ dialog a
 	/* #0000 instead of none, otherwise firefox does not return a correct bounding rect */
 	fill:#0000;
 }
-.puzzleElement:focus-visible path,
-.puzzleElement.selected path
-{
-	stroke:var(--outline-stroke);
-	stroke-width:calc(10px * var(--esz00));
-}
 .figure.noBorders .puzzleElement,
 .figure:not(:has(svg))
 {
@@ -328,6 +322,14 @@ dialog a
 {
 	stroke:var(--no-borders-stroke);
 	stroke-width:calc(5px * var(--esz00));
+}
+.puzzleElement:focus-visible path,
+.puzzleElement.selected path,
+.figure.noBorders .puzzleElement:focus-visible path,
+.figure.noBorders .puzzleElement.selected path
+{
+	stroke:var(--outline-stroke);
+	stroke-width:calc(10px * var(--esz00));
 }
 .wait
 {
