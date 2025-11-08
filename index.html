@@ -2763,13 +2763,13 @@ dialog button:hover
 			{
 				let i=e.pZ.imin;
 				for(let j=0;j<pZ.h;j++)
-					pZ.placeOne(pZ.map[i][j].svg);
+					if(!pZ.map[i][j].englued) pZ.placeOne(pZ.map[i][j].svg);
 			}
 			else
 			{
 				let j=e.pZ.jmin;
 				for(let i=0;i<pZ.w;i++)
-					pZ.placeOne(pZ.map[i][j].svg);
+					if(!pZ.map[i][j].englued) pZ.placeOne(pZ.map[i][j].svg);
 			}
 			pZ.noFocusEffect=0;
 		}
@@ -2789,7 +2789,7 @@ dialog button:hover
 		}
 		for(let i=0;i<pZ.w;i++)
 			for(let j=0;j<pZ.h;j++)
-				pZ.doGluing(pZ.map[i][j]);
+				if(!pZ.map[i][j].englued) pZ.doGluing(pZ.map[i][j]);
 		pZ.updateScore();
 		pZ.menu.querySelector("li:last-of-type").focus();
 		pZ.noFocusEffect=0;
