@@ -1524,6 +1524,9 @@ dialog button:hover
 		pZ.lastFocused=e;
 		e.classList.add("lastFocused");
 		pZ.sendAbove(e);
+		return;
+		// the following costs too much
+		/*
 		if(!pZ.noFocusEffect&&!pZ.selectedArea)
 		{
 			let r=1+(pZ.h/50)/(e.pZ.jmax-e.pZ.jmin+1),t=0.1;
@@ -1533,6 +1536,7 @@ dialog button:hover
 			setTimeout(function(){e.style.removeProperty("transform");pZ.moveLocked=0;},t*1000);
 			//if(pZ.wh<100) setTimeout(function(){e.style.removeProperty("transition")},t*2000); // too slow
 		}
+		*/
 		// e.scrollIntoView({block:"nearest",inline:"nearest"});
 	}
 	pZ.updateMinMax=function(left,top)
