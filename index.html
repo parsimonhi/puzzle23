@@ -1545,6 +1545,22 @@ dialog button:hover
 		if((pZ.xmin<xmin)||(pZ.ymin<ymin)||(pZ.xmax>xmax)||(pZ.ymax>ymax))
 			pZ.minMaxChange=1;
 	}
+	pZ.updateEnglued=function(e)
+	{
+		let bz=e.pZ.m.z;
+		for(let m of bz)
+		{
+			if(!m.englued)
+			{
+				let c=0;
+				if((m.i==0)||bz.includes(pZ.map[m.i-1][m.j])) c|=1;
+				if((m.j==0)||bz.includes(pZ.map[m.i][m.j-1])) c|=2;
+				if((m.i==(pZ.w-1))||bz.includes(pZ.map[m.i+1][m.j])) c|=4;
+				if((m.j==(pZ.h-1))||bz.includes(pZ.map[m.i][m.j+1])) c|=8;
+				if(c==15) m.englued=1;
+			}
+		}
+	}
 	pZ.saveElement=function(e)
 	{
 		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
@@ -1663,16 +1679,16 @@ dialog button:hover
 	}
 	pZ.doGluing=function(a)
 	{
-		if(!(a.ds.bb&15)) return;
+		if(!(a.ds.bb&15)||a.englued) return;
 		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
 		function gY(m){return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);}
 		function concatZ(a,b){let bz=b.z.concat(a.z);for(let m of bz) m.z=bz;}
-		let i=a.i,j=a.j,glued=0,o=null,ax=gX(a),ay=gY(a);
+		let i=a.i,j=a.j,o=null,ax=gX(a),ay=gY(a);
 		pZ.updateMinMax(ax*pZ.esz-pZ.to,ay*pZ.esz-pZ.to);
 		if((j>0)&&(a.ds.bb&1))
 		{
 			let b=pZ.map[i][j-1];
-			if((Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -1681,7 +1697,7 @@ dialog button:hover
 		if((i<(pZ.w-1))&&(a.ds.bb&2))
 		{
 			let b=pZ.map[i+1][j];
-			if((Math.abs(ax-gX(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued&&(Math.abs(ax-gX(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -1690,7 +1706,7 @@ dialog button:hover
 		if((j<(pZ.h-1))&&(a.ds.bb&4))
 		{
 			let b=pZ.map[i][j+1];
-			if((Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -1699,7 +1715,7 @@ dialog button:hover
 		if((i>0)&&(a.ds.bb&8))
 		{
 			let b=pZ.map[i-1][j];
-			if((Math.abs(ax-gX(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued&&(Math.abs(ax-gX(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -1766,11 +1782,6 @@ dialog button:hover
 						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo);
 						d+=pe.d;
 						d+="z";
-						//c+=(c?pZ.locale(", internal perimeter starting at "):pZ.locale("external perimeter starting at "));
-						//let xp=pZ.r2d(svg.pZ.x+ki-imin+1);
-						//let yp=pZ.r2d(svg.pZ.y+kj-jmin+1);
-						//c+=pZ.locale("(")+xp+", "+yp+pZ.locale("), ");
-						//c+=pe.c;
 						cc.c=pe.c;
 						cc.ip=ki-imin;
 						cc.jp=kj-jmin;
@@ -1794,6 +1805,7 @@ dialog button:hover
 			pZ.updatePuzzleElementLabel(svg);
 			if(!pZ.internalBordersOn)
 				svg.style.setProperty("background-position",(pZ.to-imin*pZ.esz)+"px "+(pZ.to-jmin*pZ.esz+pZ.ho)+"px");
+			pZ.updateEnglued(svg);
 			pZ.saveElement(svg);
 		}
 		else pZ.saveElement(a.svg); // has to save even if no gluing
