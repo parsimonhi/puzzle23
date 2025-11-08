@@ -401,14 +401,17 @@ body:has(.board.initial) .background
 	margin:min(1rem,10vw) 0;
 	padding:0;
 }
+.board.initial>label
+{
+	display:block;
+	width:min(max-content,100%);
+	border:1px solid var(--color);
+	padding:min(0.5rem,5vw);
+}
 .board.initial>label span
 {
 	display:block;
-	margin:min(1rem,10vw) 0;
-}
-.board.initial input[type="file"]
-{
-	margin-bottom:min(0.5rem,5vw);
+	padding-bottom:min(0.5rem,5vw);
 }
 .board.initial>details
 {
@@ -1243,9 +1246,8 @@ dialog button:hover
 		let data=figure.innerHTML;
 		return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(data)}`;
 	}
-	pZ.doChangeFile=function(ev)
+	pZ.doReadFile=function(f)
 	{
-		let f=ev.target.files[0];
 		pZ.showWait();
 		pZ.imgBmp=null;
 		if(!f.type.match(/^image/i))
@@ -1303,6 +1305,10 @@ dialog button:hover
 		});
 		if(svgImgOn) reader.readAsText(f);
 		else reader.readAsDataURL(f);
+	}
+	pZ.doChangeFile=function(ev)
+	{
+		pZ.doReadFile(ev.target.files[0]);
 	}
 	// score
 	pZ.showHideScore=function()
@@ -1761,7 +1767,6 @@ dialog button:hover
 				if((m.j==(pZ.h-1))||(pZ.map[m.i][m.j+1].svg!=m.svg)) m.ds.bb|=4;
 				if((m.i==0)||(pZ.map[m.i-1][m.j].svg!=m.svg)) m.ds.bb|=8;
 			}
-			let cc=[];
 			for(let ki=imin;ki<=imax;ki++)
 				for(let kj=jmin;kj<=jmax;kj++)
 				{
@@ -1771,16 +1776,10 @@ dialog button:hover
 					// start at the first piece on the external top border
 					{
 						let xo,yo,pe=pZ.perimeter(m);
-						let cc={};
 						xo=parseFloat(m.ds.d10.replace(/^m([e0-9.-]+) [e0-9.-]+$/i,"$1"));
 						yo=parseFloat(m.ds.d10.replace(/^m[e0-9.-]+ ([e0-9.-]+)$/i,"$1"));
-						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo);
-						d+=pe.d;
-						d+="z";
-						cc.c=pe.c;
-						cc.ip=ki-imin;
-						cc.jp=kj-jmin;
-						c.push(cc);
+						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo)+pe.d+"z";
+						c.push({c:pe.c,ip:ki-imin,jp:kj-jmin});
 						// must continue in case there are "holes" amid the elements
 					}
 				}
@@ -1805,37 +1804,29 @@ dialog button:hover
 	}
 	pZ.dragContinue=function(ev)
 	{
-		if(!ev.isPrimary) return;
-		if(pZ.movedPiece&&(pZ.movedPiece.hasPointerCapture(ev.pointerId)))
+		if(ev.isPrimary&&pZ.movedPiece&&pZ.movedPiece.hasPointerCapture(ev.pointerId))
 		{
-			for(let e2 of pZ.selectedElements)
+			for(let e of pZ.selectedElements)
 			{
-				e2.pZ.movedPieceX=e2.pZ.movedPieceX-pZ.lastClientX+ev.clientX;
-				e2.pZ.movedPieceY=e2.pZ.movedPieceY-pZ.lastClientY+ev.clientY;
+				let left,top;
+				e.pZ.movedPieceX=e.pZ.movedPieceX-pZ.lastClientX+ev.clientX;
+				e.pZ.movedPieceY=e.pZ.movedPieceY-pZ.lastClientY+ev.clientY;
+				left=(e.pZ.movedPieceX-pZ.figureX)/pZ.rf,
+				top=(e.pZ.movedPieceY-pZ.figureY)/pZ.rf;
+				e.pZ.x=(left+pZ.to)/pZ.esz;
+				e.pZ.y=(top+pZ.to)/pZ.esz;
+				e.style.left=left+"px";
+				e.style.top=top+"px";
 			}
 			if(pZ.selectedArea)
 			{
 				pZ.selectedAreaX=pZ.selectedAreaX-pZ.lastClientX+ev.clientX;
 				pZ.selectedAreaY=pZ.selectedAreaY-pZ.lastClientY+ev.clientY;
-			}
-			pZ.lastClientX=ev.clientX;
-			pZ.lastClientY=ev.clientY;
-			for(let e2 of pZ.selectedElements)
-			{
-				let left=(e2.pZ.movedPieceX-pZ.figureX)/pZ.rf,
-					top=(e2.pZ.movedPieceY-pZ.figureY)/pZ.rf;
-				let x=(left+pZ.to)/pZ.esz;
-				let y=(top+pZ.to)/pZ.esz;
-				e2.pZ.x=x;
-				e2.pZ.y=y;
-				e2.style.left=left+"px";
-				e2.style.top=top+"px";
-			}
-			if(pZ.selectedArea)
-			{
 				pZ.selectedArea.style.left=(pZ.selectedAreaX-pZ.figureX)/pZ.rf+"px";
 				pZ.selectedArea.style.top=(pZ.selectedAreaY-pZ.figureY)/pZ.rf+"px";
 			}
+			pZ.lastClientX=ev.clientX;
+			pZ.lastClientY=ev.clientY;
 		}
 	}
 	pZ.dragStart=function(ev)
@@ -3443,6 +3434,48 @@ dialog button:hover
 		s+="</p>";
 		return s;
 	}
+	
+	pZ.dragOverHandler=function(e)
+	{
+	  const fileItems = [...e.dataTransfer.items].filter(
+		(item) => item.kind === "file",
+	  );
+	  if (fileItems.length > 0) {
+		e.preventDefault();
+		if (fileItems.some((item) => item.type.startsWith("image/"))) {
+		  e.dataTransfer.dropEffect = "copy";
+		} else {
+		  e.dataTransfer.dropEffect = "none";
+		}
+	  }
+	}
+	window.addEventListener("dragover", (e) => {
+	  const fileItems = [...e.dataTransfer.items].filter(
+		(item) => item.kind === "file",
+	  );
+	  if (fileItems.length > 0) {
+		e.preventDefault();
+		if (!dropZone.contains(e.target)) {
+		  e.dataTransfer.dropEffect = "none";
+		}
+	  }
+	});
+	pZ.dropHandler=function(ev)
+	{
+		ev.preventDefault();
+		const files = [...ev.dataTransfer.items]
+		.map((item) => item.getAsFile())
+		.filter((file) => file);
+		pZ.doReadFile(files[0]);
+	}
+	window.addEventListener("drop",(e)=>
+	{
+	  if ([...e.dataTransfer.items].some((item) => item.kind === "file"))
+	  {
+		e.preventDefault();
+	  }
+	});
+	
 	pZ.doChooseContinue=function()
 	{
 		// choose an image on a server
@@ -3477,7 +3510,11 @@ dialog button:hover
 		s+="<h2>"+pZ.locale("Settings")+"</h2>";
 		s+="<button id=\"modify-settings\" class=\"standardBtn\" type=\"button\">"+pZ.locale("Modify")+"</button>";
 		s+="<h2>"+t+"</h2>"
-		s+="<label><span>"+pZ.locale("Select one of your images:")+"</span><input type=\"file\"></label>";
+		s+="<label id=\"drop-zone\">";
+		s+="<span>"+pZ.locale("Drag and drop one of your images here or select one by clicking the button below:")+"</span>";
+		s+="<input type=\"file\" accept=\"image/*\">";
+		s+="</label>";
+		s+="<figure id=\"preview\"></figure>";
 		s+="<p>"+pZ.locale("Select one of the images below:")+"</p>";
 		let listOfImages=[],k=0;
 		if(pZ.all) for(let c of categories)
@@ -3539,6 +3576,9 @@ dialog button:hover
 				pZ.doAlert(pZ.locale("About this image"),pZ.doAlertImageData(listOfImages[k]));
 			});
 		}
+		pZ.dropZone=document.getElementById("drop-zone");
+		pZ.dropZone.addEventListener("drop",pZ.dropHandler);
+		pZ.dropZone.addEventListener("dragover",pZ.dragOverHandler);
 	}
 	
 	pZ.choose=function()

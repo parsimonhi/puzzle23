@@ -13,6 +13,7 @@ What is new?
 - modification of how the borders of the puzzle pieces are displayed when the embossing effect is set to 0
 - improve gluing speed
 - change of the "focus in" effect
+- add the ability to drag and drop an image file to select it
 - various minor updates
 
 2025/11/07
