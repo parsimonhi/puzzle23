@@ -302,6 +302,11 @@ dialog a
 	transform:translateZ(0);
 	-webkit-tap-highlight-color:transparent;
 	touch-action:none;
+	transition:filter 0.05s;
+}
+.puzzleElement.focusInEffect
+{
+	filter:invert(0.23);
 }
 .puzzleElement:hover
 {
@@ -1522,22 +1527,9 @@ dialog button:hover
 		if(e==pZ.lastFocused) return;
 		if(pZ.lastFocused) pZ.lastFocused.classList.remove("lastFocused");
 		pZ.lastFocused=e;
-		e.classList.add("lastFocused");
+		e.classList.add("lastFocused","focusInEffect");
 		pZ.sendAbove(e);
-		return;
-		// the following costs too much
-		/*
-		if(!pZ.noFocusEffect&&!pZ.selectedArea)
-		{
-			let r=1+(pZ.h/50)/(e.pZ.jmax-e.pZ.jmin+1),t=0.1;
-			//if(pZ.wh<100) e.style.setProperty("transition","transform "+t+"s"); // too slow
-			pZ.moveLocked=1;
-			e.style.setProperty("transform","scale("+r+")");
-			setTimeout(function(){e.style.removeProperty("transform");pZ.moveLocked=0;},t*1000);
-			//if(pZ.wh<100) setTimeout(function(){e.style.removeProperty("transition")},t*2000); // too slow
-		}
-		*/
-		// e.scrollIntoView({block:"nearest",inline:"nearest"});
+		setTimeout(function(){e.classList.remove("focusInEffect");},100)
 	}
 	pZ.updateMinMax=function(left,top)
 	{
@@ -1565,16 +1557,15 @@ dialog button:hover
 			}
 		}
 	}
-	pZ.saveElement=function(e)
+	pZ.saveElement=function(svg)
 	{
 		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
 		function gY(m){return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);}
-		for(let m of e.pZ.m.z)
+		for(let m of svg.pZ.m.z)
 		{
 			localStorage["l"+m.i+"_"+m.j]=Math.round(gX(m)*pZ.esz-pZ.to);
 			localStorage["t"+m.i+"_"+m.j]=Math.round(gY(m)*pZ.esz-pZ.to);
 		}
-		pZ.updatePuzzleElementLabel(e);
 	}
 	pZ.perimeter=function(first)
 	{
@@ -1810,9 +1801,7 @@ dialog button:hover
 			if(!pZ.internalBordersOn)
 				svg.style.setProperty("background-position",(pZ.to-imin*pZ.esz)+"px "+(pZ.to-jmin*pZ.esz+pZ.ho)+"px");
 			pZ.updateEnglued(svg);
-			pZ.saveElement(svg);
 		}
-		else pZ.saveElement(a.svg); // has to save even if no gluing
 	}
 	pZ.dragContinue=function(ev)
 	{
@@ -1904,7 +1893,12 @@ dialog button:hover
 			// when e.pZ.m.z is changed in doGluing(), z is a new array
 			// so e.pZ.m.z in for(let m of e.pZ.m.z) continues to refer to the old z
 			for(let e2 of pZ.selectedElements)
+			{
+				let mo=e2.pZ.m.z[0];
 				for(let m of e2.pZ.m.z) pZ.doGluing(m);
+				pZ.saveElement(mo.svg);
+				pZ.updatePuzzleElementLabel(mo.svg);
+			}
 			pZ.updateScore();
 			if(pZ.isPuzzleCompleted()) {pZ.doGameOver();pZ.movedPiece=null;return;}
 			else if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea(1);
@@ -1982,7 +1976,13 @@ dialog button:hover
 			// todo: should glue only what was glued before restoring
 			for(i=0;i<pZ.w;i++)
 				for(j=0;j<pZ.h;j++)
-					if(!pZ.map[i][j].englued) pZ.doGluing(pZ.map[i][j]);
+					pZ.doGluing(pZ.map[i][j]);
+			let svgs2=pZ.figure.querySelectorAll('.puzzleElement');
+			for(let svg2 of svgs2)
+			{
+				// no need to save the element here since it is already in the local storage
+				pZ.updatePuzzleElementLabel(svg2);
+			}
 			pZ.restoreOn=0;
 		}
 		pZ.updateScore();
@@ -2665,7 +2665,10 @@ dialog button:hover
 		if(e&&e.classList&&e.classList.contains("puzzleElement"))
 		{
 			pZ.minMaxChange=0;
+			let mo=e.pZ.m.z[0];
 			for(let m of e.pZ.m.z) pZ.doGluing(m);
+			pZ.saveElement(mo.svg);
+			pZ.updatePuzzleElementLabel(mo.svg);
 			pZ.updateScore();
 			if(pZ.isPuzzleCompleted()) pZ.doGameOver();
 			else
@@ -2750,7 +2753,10 @@ dialog button:hover
 			e.pZ.y=y;
 			e.style.left=(x*pZ.esz-pZ.to)+"px";
 			e.style.top=(y*pZ.esz-pZ.to)+"px";
-			for(let m of e.pZ.m.z) if(!m.englued) pZ.doGluing(m);
+			let mo=e.pZ.m.z[0];
+			for(let m of e.pZ.m.z) pZ.doGluing(m);
+			pZ.saveElement(mo.svg);
+			pZ.updatePuzzleElementLabel(mo.svg);
 			pZ.sendAbove(e);
 			pZ.updateScore();
 			e.focus();
@@ -2793,7 +2799,13 @@ dialog button:hover
 		}
 		for(let i=0;i<pZ.w;i++)
 			for(let j=0;j<pZ.h;j++)
-				if(!pZ.map[i][j].englued) pZ.doGluing(pZ.map[i][j]);
+				pZ.doGluing(pZ.map[i][j]);
+		let svgs=pZ.figure.querySelectorAll('.puzzleElement');
+		for(let svg of svgs)
+		{
+			pZ.saveElement(svg);
+			pZ.updatePuzzleElementLabel(svg);
+		}
 		pZ.updateScore();
 		pZ.menu.querySelector("li:last-of-type").focus();
 		pZ.noFocusEffect=0;
@@ -2851,6 +2863,7 @@ dialog button:hover
 			pZ.updateMinMax(left,top);
 			if(pZ.minMaxChange) pZ.adaptScrollArea();
 			pZ.saveElement(e);
+			pZ.updatePuzzleElementLabel(e);
 			pZ.updateMessenger(e.ariaLabel);
 			// is it appropriate to force this scroll?
 			// seems not well working on chrome and safari for large puzzle elements
