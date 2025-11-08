@@ -17,15 +17,16 @@ body
 	--bk-initial:#f3f3f3;
 	--bk-puzzle:#f3f3f3;
 	--bk-h1:#002;
-	--bk-btn:#002;/*#0075ff*/
-	--bk-focus-btn:#ff8a00;/*#ff8a00*//*#ffa033*/
+	--bk-btn:#002;
+	--bk-focus-btn:#ff8a00;
 	--bk-dlg:#fff;
 	--color:#002;
 	--color-h1:#fff;
 	--color-btn:#fff;
 	--color-focus-btn:#fff;
 	--color-dlg:#002;
-	--outline-stroke:#0075ff;/*#0075ff*/
+	--outline-stroke:#0075ff;
+	--no-borders-stroke:#7777;
 	--logo-filter:grayscale(1);
 	/* avoid to use vmin, vmax, vw or vh as font-size units */
 	/* because some browsers will zoom these units and some others will not */
@@ -317,6 +318,12 @@ dialog a
 .figure:not(:has(svg))
 {
 	background-image:var(--img);
+}
+.figure.noBorders .puzzleElement:not(:focus-visible) path,
+.figure.noBorders .puzzleElement:not(.selected) path
+{
+	stroke:var(--no-borders-stroke);
+	stroke-width:calc(1px * var(--esz00));
 }
 .wait
 {
@@ -852,6 +859,10 @@ dialog button:hover
 		e=document.querySelector('[name="showgh"]');
 		e.checked=pZ.defaultParams.showgh?true:false;
 	}
+	pZ.afterEmbossSettings=function()
+	{
+		pZ.internalBordersOn=pZ.emboss?1:0;
+	}
 	pZ.makeEmbossFilter=function()
 	{
 		let s='<filter id="emboss" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">';
@@ -939,7 +950,7 @@ dialog button:hover
 			if(emb!=pZ.emboss)
 			{
 				localStorage.pZ_emb=pZ.emboss=emb;
-				pZ.internalBordersOn=emb?1:0;
+				pZ.afterEmbossSettings();
 				changeStatus|=2;
 			}
 		}
@@ -1901,7 +1912,7 @@ dialog button:hover
 		pZ.computeWH();
 		localStorage.pZ_pt=pZ.pt=pZ.defaultParams.pt;
 		localStorage.pZ_emb=pZ.emboss=pZ.defaultParams.emb;
-		pZ.internalBordersOn=pZ.emboss?1:0;
+		pZ.afterEmbossSettings();
 		localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th;
 		localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
 		localStorage.pZ_ric=pZ.roundInitialCoordinates=pZ.defaultParams.ric;
@@ -3218,7 +3229,7 @@ dialog button:hover
 		else pZ.pt=localStorage.pZ_pt; // puzzle element type (squared, curvy, quirky)
 		if(localStorage.pZ_emb===undefined) localStorage.pZ_emb=pZ.emboss=pZ.defaultParams.emb;
 		else pZ.emboss=-(-localStorage.pZ_emb); // emboss effect, if 0 then no piece borders
-		pZ.internalBordersOn=pZ.emboss?1:0;
+		pZ.afterEmbossSettings();
 		if(localStorage.pZ_th===undefined) localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th; // better if more than half moveStep below
 		else pZ.threshold=-(-localStorage.pZ_th); // threshold to stick a puzzle element in its place
 		if(localStorage.pZ_ms===undefined) localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
