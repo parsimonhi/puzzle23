@@ -1337,7 +1337,7 @@ dialog button:hover
 		}
 		else s+=pZ.locale("Still ")+l+pZ.locale(" elements to glue.");
 		pZ.score.setAttribute("aria-label",s);
-		s="<span aria-hidden=\"true\">"+l+" / "+a+"</span>";
+		s="<span aria-hidden=\"true\">"+((l==1)?0:l)+" / "+a+"</span>";
 		pZ.score.innerHTML=s;
 	}
 	pZ.resetScore=function()
