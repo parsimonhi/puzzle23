@@ -9,7 +9,8 @@ What is new?
 
 2025/11/07
 
-- Fixed a bug that occurred when the image was an SVG file with a viewBox attribute whose origin was different from (0,0)
+- fixed a bug that occurred when the image was an SVG file with a viewBox attribute whose origin was different from (0,0)
+- modification of how the borders of the puzzle pieces are displayed when the embossing effect is set to 0
 - various minor updates
 
 2025/11/07
