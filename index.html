@@ -1978,7 +1978,7 @@ dialog button:hover
 			// todo: should glue only what was glued before restoring
 			for(i=0;i<pZ.w;i++)
 				for(j=0;j<pZ.h;j++)
-					pZ.doGluing(pZ.map[i][j]);
+					if(!pZ.map[i][j].englued) pZ.doGluing(pZ.map[i][j]);
 			pZ.restoreOn=0;
 		}
 		pZ.updateScore();
@@ -2746,7 +2746,7 @@ dialog button:hover
 			e.pZ.y=y;
 			e.style.left=(x*pZ.esz-pZ.to)+"px";
 			e.style.top=(y*pZ.esz-pZ.to)+"px";
-			for(let m of e.pZ.m.z) pZ.doGluing(m);
+			for(let m of e.pZ.m.z) if(!m.englued) pZ.doGluing(m);
 			pZ.sendAbove(e);
 			pZ.updateScore();
 			e.focus();
