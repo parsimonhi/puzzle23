@@ -9,6 +9,11 @@ What is new?
 
 2025/11/07
 
+- Fixed a bug that occurred when the image was an SVG file with a viewBox attribute whose origin was different from (0,0)
+- various minor updates
+
+2025/11/07
+
 - add the possibility to resize the model
 - prevent to restart or to change the settings while a puzzle is being built
 - various minor updates

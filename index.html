@@ -1191,10 +1191,12 @@ dialog button:hover
 		let figure=document.createElement("figure");
 		figure.innerHTML=svgAsTxt;
 		let svg=figure.querySelector("svg");
-		let w=0,h=0;
+		let x=0,y=0,w=0,h=0;
 		if(svg.viewBox)
 		{
 			let box=svg.viewBox.baseVal;
+			x=box.x;
+			y=box.y;
 			w=box.width;
 			h=box.height;
 		}
@@ -1216,7 +1218,7 @@ dialog button:hover
 			w=300;
 			h=150;
 		}
-		svg.setAttribute("viewBox","0 0 "+w+" "+h);
+		svg.setAttribute("viewBox",x+" "+y+" "+w+" "+h);
 		if(w<h)
 		{
 			svg.setAttribute("width",Math.floor(pZ.iwhMax*w/h));
