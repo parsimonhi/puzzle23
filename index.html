@@ -391,10 +391,6 @@ body:has(.board.initial) h1:before
 	height:min(4rem,40vw);
 	filter:var(--logo-filter);
 }
-body:has(.board.initial) .background
-{
-	display:none;
-}
 .board.initial>h2
 {
 	font-size:min(1.5rem,15vw);
@@ -562,16 +558,25 @@ dialog button:hover
 (async function()
 {
 	let pZ={};
+	// to add a new lang, add its code in the array below
+	// and add a translation file in the _i18n folder
+	pZ.langs=["en","fr"];
 	// common
+	pZ.makeLangRegex=function()
+	{
+		let s="";
+		for(let lang of pZ.langs) s+=(s?"|":"")+lang;
+		return new RegExp("^("+s+")");
+	}
 	pZ.getNavigatorLang=function()
 	{
-		// test if en or fr are one of the preferred languages of the navigator
+		let re=pZ.makeLangRegex();
 		if(navigator.languages)
 		{
 			for(let e of navigator.languages)
-				if(e.match(/^(fr|en)/)) return e.replace(/^(..).*$/,"$1");
+				if(e.match(re)) return e.replace(/^(..).*$/,"$1");
 		}
-		if(navigator.language&&navigator.language.match(/^(fr|en)/))
+		if(navigator.language&&navigator.language.match(es))
 			return navigator.language.replace(/^(..).*$/,"$1");
 		return "en";
 	}
@@ -580,9 +585,10 @@ dialog button:hover
 		// test if there is a lang attribute for this script element or one of its parents
 		// return the lang if found or return the navigator preferred language
 		// if the lang is not en or fr, return en
+		let re=pZ.makeLangRegex();
 		let e=pZ.currentScript;
 		while(e&&!e.lang) e=e.parentNode;
-		return (e&&e.lang.match(/^(fr|en)/))?e.lang:pZ.getNavigatorLang();
+		return (e&&e.lang.match(re))?e.lang:pZ.getNavigatorLang();
 	}
 	pZ.locale=function(s)
 	{
@@ -699,7 +705,7 @@ dialog button:hover
 					e.addEventListener("click",pZ[`do${a.a}`]);
 				}
 			}
-			pZ.board.after(dialog);
+			pZ.wait.before(dialog);
 		}
 		let h2=dialog.querySelector('h2');
 		if(pZ.noH2Outline) h2.classList.add("noOutline");
@@ -1358,7 +1364,7 @@ dialog button:hover
 		pZ.score.ariaAtomic="true";
 		pZ.score.classList.add("score");
 		pZ.showHideScore();
-		document.body.append(pZ.score);
+		pZ.wait.before(pZ.score);
 	}
 	// messenger
 	pZ.updateMessenger=function(s)
@@ -1375,7 +1381,7 @@ dialog button:hover
 		pZ.messenger=document.createElement('output');
 		pZ.messenger.ariaLive="polite";
 		pZ.messenger.classList.add("messenger");
-		document.body.append(pZ.messenger);
+		pZ.wait.before(pZ.messenger);
 	}
 	// stopwatch
 	pZ.showHideStopwatch=function()
@@ -3244,7 +3250,7 @@ dialog button:hover
 		pZ.background.innerHTML="<rect/>";
 		pZ.background.addEventListener("pointerdown",pZ.selectStart);
 		pZ.background.addEventListener("pointerup",pZ.selectEnd);
-		document.body.prepend(pZ.background);
+		pZ.currentScript.after(pZ.background);
 		pZ.selectedElements=[];
 	}
 	

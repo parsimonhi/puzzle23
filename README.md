@@ -7,7 +7,11 @@ License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 What is new?
 
-2025/11/07
+2025/11/09
+
+- various minor updates
+
+2025/11/08
 
 - fixed a bug that occurred when the image was an SVG file with a viewBox attribute whose origin was different from (0,0)
 - modification of how the borders of the puzzle pieces are displayed when the embossing effect is set to 0
