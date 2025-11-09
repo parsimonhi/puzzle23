@@ -5,14 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="description" content="Puzzle online">
 <style>
-*
+:root
 {
-	font-family:sans-serif;
-}
-body
-{
-	--rf:1;
-	--esz00:1;
 	--btnSize:min(1.5cm,17vmin);
 	--bk-initial:#f3f3f3;
 	--bk-puzzle:#f3f3f3;
@@ -28,6 +22,15 @@ body
 	--outline-stroke:#0075ff;
 	--no-borders-stroke:#7777;
 	--logo-filter:grayscale(1);
+}
+*
+{
+	font-family:sans-serif;
+}
+body
+{
+	--rf:1;
+	--esz00:1;
 	/* avoid to use vmin, vmax, vw or vh as font-size units */
 	/* because some browsers will zoom these units and some others will not */
 	margin:0;
@@ -145,9 +148,13 @@ body:has(.board.puzzle) h1,
 	right:0;
 	top:0;
 	height:1.25em;
-	padding-top:0.25em;
+	padding:0.25em 0.25em 0 0.5em;
 	opacity:0;
 	pointer-events:none;
+}
+body:has(.ghost.show) .stopwatch
+{
+	justify-content:start;
 }
 .score
 {
@@ -517,7 +524,7 @@ dialog button:hover
 	z-index:-1;
 	top:0;
 	right:0;
-	height:25vmin;
+	width:25vmin;
 	overflow:hidden;
 	margin:0;
 	resize:vertical;
@@ -531,8 +538,8 @@ dialog button:hover
 .ghost img
 {
 	display:block;
-	height:100%;
-	width:auto;
+	width:100%;
+	height:auto;
 }
 @media (min-aspect-ratio:9/10)
 {
@@ -542,6 +549,11 @@ dialog button:hover
 		top:0;
 		bottom:0;
 		right:initial;
+	}
+	body:has(.ghost.show) .stopwatch
+
+	{
+		justify-content:center;
 	}
 	.score
 	{
@@ -1433,12 +1445,12 @@ dialog button:hover
 		{
 			case 'ArrowUp':
 			case 'ArrowRight':
-				e.style.height=(e.offsetHeight-10)+"px";
+				e.style.width=(e.offsetWidth-10)+"px";
 				ev.preventDefault();
 				break;
 			case 'ArrowDown':
 			case 'ArrowLeft':
-				e.style.height=(e.offsetHeight+10)+"px";
+				e.style.width=(e.offsetWidth+10)+"px";
 				ev.preventDefault();
 				break;
 		}
