@@ -979,27 +979,23 @@ dialog button:hover
 			// ignore transparency
 			if (color.match(/^rgb/))
 			{
-				console.log("rgb");
 				color=color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
 				if(!color) color=[255,255,255];
 				else color=color.slice(1);
   			} 
 			else if(color.match(/^#/))
 			{
-				console.log("hex");
 				color=hex2Rgb(color);
 			}
 			else return 0; // if failed to convert the color, assume it is not a dark color
 			r=color[0];
 			g=color[1];
 			b=color[2];
-			console.log(r,g,b);
 			// HSP equation from http://alienryderflex.com/hsp.html
 			hsp=Math.sqrt(0.299*(r*r)+0.587*(g*g)+0.114*(b*b));
 			// Using the HSP value, determine whether the color is light or dark
 			return (hsp<127.5);
 		}
-		console.log(pZ.bkColor);
 		document.documentElement.style.setProperty('--bk-puzzle',pZ.bkColor);
 		if(isDark(pZ.bkColor)) document.documentElement.style.setProperty('--magic-filter',"invert(1)");
 		else document.documentElement.style.setProperty('--magic-filter',"none");
