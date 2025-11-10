@@ -9,19 +9,20 @@
 {
 	--btnSize:min(1.5cm,17vmin);
 	--bk-initial:#f3f3f3;
-	--bk-puzzle:#f3f3f3;
-	--bk-h1:#002;
-	--bk-btn:#002;
+	--bk-puzzle:#f3f3f3; /* must be the same as pZ.defaultParams.bkc */
+	--bk-h1:#0c0c0c;
+	--bk-btn:#0c0c0c;
 	--bk-focus-btn:#ff8a00;
 	--bk-dlg:#fff;
-	--color:#002;
-	--color-h1:#fff;
-	--color-btn:#fff;
-	--color-focus-btn:#fff;
-	--color-dlg:#002;
+	--color:#0c0c0c;
+	--color-h1:#f3f3f3;
+	--color-btn:#f3f3f3;
+	--color-focus-btn:#f3f3f3;
+	--color-dlg:#000;
 	--outline-stroke:#0075ff;
 	--no-borders-stroke:#7777;
 	--logo-filter:grayscale(1);
+	--magic-filter:none; /* none or invert(1) */
 }
 *
 {
@@ -129,6 +130,7 @@ body:has(.board.puzzle) h1,
 	border-radius:0;
     cursor:pointer;
 	pointer-events:auto;
+	filter:var(--magic-filter);
 }
 .menu button img,
 .board.initial button.imgSelector img
@@ -151,6 +153,7 @@ body:has(.board.puzzle) h1,
 	padding:0.25em 0.25em 0 0.5em;
 	opacity:0;
 	pointer-events:none;
+	filter:var(--magic-filter);
 }
 body:has(.ghost.show) .stopwatch
 {
@@ -169,6 +172,7 @@ body:has(.ghost.show) .stopwatch
 	height:1.25em;
 	padding-bottom:0.25em;
 	opacity:0;
+	filter:var(--magic-filter);
 	pointer-events:none;
 }
 .score img
@@ -253,6 +257,7 @@ dialog label
 	flex-wrap:wrap;
 	align-items:center;
 	margin:0.25rem 0;
+	max-width:max-content;
 }
 dialog label input, dialog label select
 {
@@ -354,6 +359,7 @@ dialog a
 	width:20vmin;
 	height:20vmin;
 	pointer-events:none;
+	filter:var(--magic-filter);
 }
 @keyframes spin
 {
@@ -890,6 +896,8 @@ dialog button:hover
 		e.checked=pZ.defaultParams.showsc?true:false;
 		e=document.querySelector('[name="showgh"]');
 		e.checked=pZ.defaultParams.showgh?true:false;
+		e=document.querySelector('[name="bkc"]');
+		e.value=pZ.defaultParams.bkc;
 	}
 	pZ.afterEmbossSettings=function()
 	{
@@ -954,6 +962,48 @@ dialog button:hover
 		if(pZ.trace) console.log("r0",r0,"r1",r1,"esz",esz,"emboss",pZ.emboss);
 		return esz;
 	}
+	pZ.setBkColor=function()
+	{
+		function hex2Rgb(a)
+		{
+			let shortHex=/^#([a-f0-9])([a-f0-9])([a-f0-9])([a-f0-9])?$/i;
+			a=a.replace(shortHex,function(m,r,g,b,t=""){return "#"+r+r+g+g+b+b+t+t;});
+			let longHex=/^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2}).*$/i;
+			let r=a.match(longHex);
+			if(r) return [parseInt(r[1],16),parseInt(r[2],16),parseInt(r[3],16)];
+			return [255,255,255]; // something is wrong, return a light color
+		}
+		function isDark(color)
+		{
+			let r,g,b;
+			// ignore transparency
+			if (color.match(/^rgb/))
+			{
+				console.log("rgb");
+				color=color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+				if(!color) color=[255,255,255];
+				else color=color.slice(1);
+  			} 
+			else if(color.match(/^#/))
+			{
+				console.log("hex");
+				color=hex2Rgb(color);
+			}
+			else return 0; // if failed to convert the color, assume it is not a dark color
+			r=color[0];
+			g=color[1];
+			b=color[2];
+			console.log(r,g,b);
+			// HSP equation from http://alienryderflex.com/hsp.html
+			hsp=Math.sqrt(0.299*(r*r)+0.587*(g*g)+0.114*(b*b));
+			// Using the HSP value, determine whether the color is light or dark
+			return (hsp<127.5);
+		}
+		console.log(pZ.bkColor);
+		document.documentElement.style.setProperty('--bk-puzzle',pZ.bkColor);
+		if(isDark(pZ.bkColor)) document.documentElement.style.setProperty('--magic-filter',"invert(1)");
+		else document.documentElement.style.setProperty('--magic-filter',"none");
+	}
 	pZ.doPreferencesOK=function()
 	{
 		let e,changeStatus=0;
@@ -1015,6 +1065,12 @@ dialog button:hover
 			localStorage.pZ_showgh=pZ.showGhost=e.checked?1:0;
 			if(pZ.ghost) pZ.showHideGhost();
 		}
+		e=document.querySelector('[name="bkc"]');
+		if(e&&(e.value!=pZ.bkColor))
+		{
+			localStorage.pZ_bkc=pZ.bkColor=e.value;
+			pZ.setBkColor();
+		}
 		if(pZ.abortSignal) changeStatus|=16;
 		if(pZ.board.querySelector('.figure svg')&&changeStatus)
 		{
@@ -1039,6 +1095,12 @@ dialog button:hover
 		{
 			let s="<label><input name=\""+a+"\" type=\"checkbox\""+(b?" checked":"")+"> ";
 			return s+pZ.locale(c)+"</label>";
+		}
+		function makeColorPicker(a,b,c)
+		{
+			let s=pZ.locale(c);
+			s+="<input name=\""+a+"\" type=\"color\""+(b?" value=\""+b+"\"":"")+"> ";
+			return "<label>"+s+"</label>";
 		}
 		let t=pZ.locale("Preferences"),s="";
 		s+="<label>";
@@ -1074,6 +1136,7 @@ dialog button:hover
 		s+=makeCheckbox("showsw",pZ.showStopwatch,"Show the stopwatch");
 		s+=makeCheckbox("showsc",pZ.showScore,"Show the score");
 		s+=makeCheckbox("showgh",pZ.showGhost,"Show the model");
+		s+=makeColorPicker("bkc",pZ.bkColor,"Background color");
 		let o=[{n:"OK",a:"PreferencesOK"},{n:"Cancel"},{n:"Reset",l:"Default values",a:"PreferencesReset",t:"button"}];
 		pZ.noH2Outline=1;
 		pZ.doDialog("Preferences",t,s,o);
@@ -1485,7 +1548,7 @@ dialog button:hover
 	}
 	pZ.clearRestoreData=function()
 	{
-		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh;
+		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh,bkc;
 		whmax=localStorage.pZ_whmax?localStorage.pZ_whmax:pZ.defaultParams.whmax;
 		pt=localStorage.pZ_pt?localStorage.pZ_pt:pZ.defaultParams.pt;
 		emb=localStorage.pZ_emb?localStorage.pZ_emb:pZ.defaultParams.emb;
@@ -1495,6 +1558,7 @@ dialog button:hover
 		showsw=localStorage.pZ_showsw?localStorage.pZ_showsw:pZ.defaultParams.showsw;
 		showsc=localStorage.pZ_showsc?localStorage.pZ_showsc:pZ.defaultParams.showsc;
 		showgh=localStorage.pZ_showgh?localStorage.pZ_showgh:pZ.defaultParams.showgh;
+		bkc=localStorage.pZ_bkc?localStorage.pZ_bkc:pZ.defaultParams.bkc;
 		if(pZ.trace) console.log("localStorage length",JSON.stringify(localStorage).length);
 		localStorage.clear();
 		localStorage.pZ_whmax=whmax;
@@ -1506,6 +1570,7 @@ dialog button:hover
 		localStorage.pZ_showsw=showsw;
 		localStorage.pZ_showsc=showsc;
 		localStorage.pZ_showgh=showgh;
+		localStorage.pZ_bkc=bkc;
 	}
 	pZ.doGameOver=function()
 	{
@@ -1946,6 +2011,7 @@ dialog button:hover
 		localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
 		localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
 		localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
+		localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
 	}
 	
 	pZ.abort=function(t)
@@ -2594,7 +2660,7 @@ dialog button:hover
 		pZ.figure.addEventListener('focusin',pZ.doFocusIn);
 		// use a linear gradient as background-image to handle the case of top and bottom lines with unusual height
 		// this background is the grey rectangle that fits to the puzzle size
-		pZ.figure.style.setProperty("background-image","linear-gradient(#0000 0 "+ho+"px,#0001 "+ho+"px "+(pZ.esz*pZ.h-ho)+"px,#0000 "+(pZ.esz*pZ.h-ho)+"px "+(pZ.esz*pZ.h)+"px)");
+		pZ.figure.style.setProperty("background-image","linear-gradient(#0000 0 "+ho+"px,#ccc3 "+ho+"px "+(pZ.esz*pZ.h-ho)+"px,#0000 "+(pZ.esz*pZ.h-ho)+"px "+(pZ.esz*pZ.h)+"px)");
 		pZ.map=[];
 		for(let i=0;i<pZ.w;i++) pZ.map[i]=[];
 		pZ.svgs=[];
@@ -3288,6 +3354,8 @@ dialog button:hover
 		else pZ.showScore=-(-localStorage.pZ_showsc); // if 1, show the score
 		if(localStorage.pZ_showgh===undefined) localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
 		else pZ.showGhost=-(-localStorage.pZ_showgh); // if 1, show the ghost
+		if(localStorage.pZ_bkc===undefined) localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
+		else pZ.bkColor=localStorage.pZ_bkc;
 	}
 	
 	pZ.initFirst=function()
@@ -3298,6 +3366,7 @@ dialog button:hover
 		// board
 		pZ.rf=1;
 		pZ.initParameters();
+		pZ.setBkColor();
 		pZ.initMenu();
 		pZ.initStopwatch();
 		pZ.initScore();
@@ -3631,7 +3700,7 @@ dialog button:hover
 	pZ.start2=function()
 	{
 		pZ.initialLoading=1;
-		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1,showgh:1};
+		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1,showgh:1,bkc:"#f3f3f3"};
 		pZ.maxLoadingTime=50*pZ.iwhMax;
 		pZ.embossFilterHtml=pZ.makeEmbossFilter();
 		pZ.board=document.createElement('main');

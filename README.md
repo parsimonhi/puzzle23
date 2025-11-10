@@ -7,6 +7,11 @@ License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 What is new?
 
+2025/11/10
+
+- add the ability to change the background color
+- various minor updates
+
 2025/11/09
 
 - various minor updates
