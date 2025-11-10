@@ -2817,6 +2817,8 @@ dialog button:hover
 		// just for testing
 		if(e?.classList?.contains("puzzleElement"))
 		{
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 			pZ.noFocusEffect=2;
 			let x=e.pZ.imin;
 			let y=e.pZ.jmin;
@@ -2839,7 +2841,6 @@ dialog button:hover
 		// just for testing
 		if(e?.classList?.contains("puzzleElement"))
 		{
-			pZ.noFocusEffect=2;
 			if(t=="v")
 			{
 				let i=e.pZ.imin;
@@ -2852,12 +2853,13 @@ dialog button:hover
 				for(let i=0;i<pZ.w;i++)
 					if(!pZ.map[i][j].englued) pZ.placeOne(pZ.map[i][j].svg);
 			}
-			pZ.noFocusEffect=0;
 		}
 	}
 	pZ.placeAll=function()
 	{
 		// just for testing
+		pZ.clearSelectedArea();
+		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		pZ.noFocusEffect=2;
 		for(let e of pZ.figure.querySelectorAll('.puzzleElement'))
 		{
