@@ -9,6 +9,13 @@ What is new?
 
 2025/11/10
 
+- improve home page
+- add PWA
+- add scattering option
+- various minor updates
+
+2025/11/10
+
 - various minor updates
 
 2025/11/10
