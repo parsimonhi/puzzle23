@@ -9,6 +9,10 @@ What is new?
 
 2025/11/10
 
+- various minor updates
+
+2025/11/10
+
 - add the ability to change the background color
 - various minor updates
 

@@ -1,0 +1,13 @@
+{
+  "short_name": "Puzzle23",
+  "start_url": "./",
+  "scope": "./",
+  "icons": [{
+      "src": "_icon/puzzle512.png",
+      "sizes": "512x512"
+    }
+  ],
+  "display": "standalone",
+  "background_color": "#f3f3f3",
+  "theme_color": "#f3f3f3"
+}

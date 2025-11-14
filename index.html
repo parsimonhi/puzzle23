@@ -4,29 +4,47 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="description" content="Puzzle online">
+<title>Puzzle23</title>
+<link rel="icon" type="image/svg+xml" href="_icon/puzzle.svg">
+<link rel="manifest" href="manifest.json">
 <style>
 :root
 {
-	--btnSize:min(1.5cm,17vmin);
-	--bk-initial:#f3f3f3;
-	--bk-puzzle:#f3f3f3; /* must be the same as pZ.defaultParams.bkc */
-	--bk-h1:#0c0c0c;
-	--bk-btn:#0c0c0c;
-	--bk-focus-btn:#ff8a00;
-	--bk-dlg:#fff;
-	--color:#0c0c0c;
-	--color-h1:#f3f3f3;
-	--color-btn:#f3f3f3;
-	--color-focus-btn:#f3f3f3;
-	--color-dlg:#000;
-	--outline-stroke:#0075ff;
+	/* --u is my special length unit */
+	/* 1rem if the viewport width is more than 20rem */
+	/* 5vw if the viewport width is between 10rem and 20rem */
+	/* 0.5rem if the viewport width is less than 10rem */
+	--u:max(0.5rem,min(1rem,5vw));
+	/* prefer long hex colors here, required for color input tag */
+	--c-light:#ffffff;
+	--c-dark:#000000;
+	--c-colorful:#0040D0;
+	--c-focus:#0040D0;
+	--btnSize:min(1.5cm,15vmin);
+	--bk-initial:var(--c-light);
+	--bk-puzzle:var(--c-light); /* todo: same as pZ.defaultParams.bkc */
+	--bk-h1:var(--c-colorful);
+	--bk-btn:var(--c-colorful);
+	--bk-focus-btn:#ff8800;
+	--bk-dlg:var(--c-light);
+	--color:var(--c-dark);
+	--color-h1:var(--c-light);
+	--color-btn:var(--c-light);
+	--color-focus-btn:var(--c-light);
+	--color-dlg:var(--c-dark);
+	--outline-stroke:var(--c-focus);
 	--no-borders-stroke:#7777;
-	--logo-filter:grayscale(1);
+	--logo-filter:none;
 	--magic-filter:none; /* none or invert(1) */
+	--orientation:portrait; /* use keyword, not a string since a string is strange as css value */
 }
 *
 {
 	font-family:sans-serif;
+}
+input
+{
+	accent-color:var(--c-colorful);
 }
 body
 {
@@ -38,12 +56,15 @@ body
 	padding:0;
 	min-width:10rem;
 	color:var(--color);
-	-webkit-user-select:none; /* Safari */
-	user-select:none;
 }
-body:has(.board.initial)
+body
 {
 	background:var(--bk-initial);
+}
+body:has(.board.puzzle)
+{
+	-webkit-user-select:none; /* Safari */
+	user-select:none;
 }
 body:has(dialog[open])
 {
@@ -75,7 +96,7 @@ body:has(dialog[open])
 .board.puzzle,
 .board:empty
 {
-	--img:url('_img/_animal/Mandarin-duck-Aix-galericulata.webp');
+	--img:none;
 	position:absolute;
 	z-index:1;
 	top:0;
@@ -90,11 +111,13 @@ body:has(.selected)
 	/* no scroll allowed when something is selected */
 	touch-action:none;
 }
-body:has(.board.puzzle) h1,
+body:has(.board.puzzle) header,
+body:has(.board.puzzle) footer,
 .messenger
 {
 	position:fixed;
 	top:200vh;
+	pointer-events:none;
 }
 .menu
 {
@@ -139,41 +162,28 @@ body:has(.board.puzzle) h1,
 	width:100%;
 	height:100%;
 }
-.stopwatch
-{
-	display:flex;
-	justify-content:center;
-	align-items:center;
-	font-size:min(1.5rem,15vh);
-	position:fixed;
-	left:0;
-	right:0;
-	top:0;
-	height:1.25em;
-	padding:0.25em 0.25em 0 0.5em;
-	opacity:0;
-	pointer-events:none;
-	filter:var(--magic-filter);
-}
-body:has(.ghost.show) .stopwatch
-{
-	justify-content:start;
-}
+.stopwatch,
 .score
 {
 	display:flex;
 	justify-content:center;
 	align-items:center;
-	font-size:min(1.5rem,15vh);
+	font-size:calc(1.5 * var(--u));
 	position:fixed;
 	left:0;
 	right:0;
-	bottom:calc(var(--btnSize) + 4vmin);
-	height:1.25em;
-	padding-bottom:0.25em;
+	padding:0.25em 0;
 	opacity:0;
-	filter:var(--magic-filter);
 	pointer-events:none;
+	filter:var(--magic-filter);
+}
+.stopwatch
+{
+	top:0;
+}
+.score
+{
+	bottom:calc(var(--btnSize) + 4vmin);
 }
 .score img
 {
@@ -194,9 +204,10 @@ dialog
 {
 	font-size:1rem;
 	hyphens:auto;
-	max-width:90%;
 	color:var(--color-dlg);
 	background:var(--bk-dlg);
+	border:0;
+	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
 }
 dialog::backdrop
 {
@@ -233,23 +244,29 @@ dialog .shortcuts>ul>li:first-letter
 }
 dialog .shortcuts>ul>li>ul,
 dialog .selectingAndMoving>ul,
-dialog .screenReader>ul
+dialog .screenReader>ul,
+dialog .tipsAndTricksList>li>ul
 {
 	list-style-type:initial;
 	margin:initial;
 	padding:initial;
-	margin-left:2rem;
+	margin-left:calc(2 * var(--u));
 }
 dialog .shortcuts>ul>li>ul>li,
 dialog .selectingAndMoving>ul>li,
-dialog .screenReader>ul>li
+dialog .screenReader>ul>li,
+dialog .tipsAndTricksList>li>ul>li
 {
 	margin:initial;
 	padding:initial;
 }
+dialog .tipsAndTricksList>li
+{
+	margin:var(--u) 0;
+}
 dialog button
 {
-	margin:0.5rem 0.5rem 0 0;
+	margin:calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 0;
 }
 dialog label
 {
@@ -263,7 +280,7 @@ dialog label input, dialog label select
 {
 	display:inline-block;
 	max-width:100%;
-	margin:0 0.25rem;
+	margin:0 calc(0.25 * var(--u));
 }
 dialog input[type="number"]
 {
@@ -348,6 +365,18 @@ dialog a
 	stroke:var(--outline-stroke);
 	stroke-width:calc(10px * var(--esz00));
 }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible,
+figure:focus-visible,
+summary:focus-visible
+{
+	outline-color:var(--outline-stroke);
+	outline-style:solid;
+	outline-width:0.125rem;
+	outline-offset:0.125rem;
+}
 .wait
 {
 	display:block;
@@ -379,88 +408,126 @@ dialog a
 
 .board.initial
 {
-	padding:0 min(1rem,10vw) min(1rem,10vw) min(1rem,10vw);
+	padding:0 var(--u) var(--u) var(--u);
 }
 h1,h2,h3
 {
 	font-family:serif;
 }
-body:has(.board.initial) h1
+header
+{
+	position:relative;
+	z-index:-1;
+}
+h1
 {
 	display:flex;
 	align-items:center;
-	font-size:min(2rem,20vw);
+	font-size:calc(3 * var(--u));
 	margin:0;
-	padding:0 min(1rem,10vw) 0 0;
+	padding:0.25em 0.5em;
 	color:var(--color-h1);
 	background:var(--bk-h1);
-	text-shadow:0.0625em 0.0625em 0.0625em #0007;
+	text-shadow:0rem 0.125rem 0.25rem #0000ff77;
+	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
 }
-body:has(.board.initial) h1:before
+h1:after
 {
 	content:url('_icon/puzzle.svg');
-	display:inline-block;
-	width:min(4rem,40vw);
-	height:min(4rem,40vw);
+	border-radius:50%;
+	display:block;
+	position:absolute;
+	bottom:-0.5em;
+	right:0.25em;
+	width:1.5em;
+	min-width:1.5em; /* necessary to avoid the icon to be shrink */
+	height:1.5em;
+	background:#fff;
 	filter:var(--logo-filter);
+	filter:drop-shadow(0rem 0.125rem 0.25rem #0007);
 }
-.board.initial>h2
+.board.initial>section.preferences,
+.board.initial>section.tipsAndTricks
 {
-	font-size:min(1.5rem,15vw);
-	margin:min(1rem,10vw) 0;
+	display:flex;
+	flex-wrap:wrap;
+	align-items:center;
+	gap:calc(2 * var(--u));
+	margin:calc(2 * var(--u)) 0;
+}
+.board.initial>section>h2
+{
+	display:inline-flex;
+	align-items:center;
+	font-size:calc(2 * var(--u));
+	margin:0;
 	padding:0;
 }
-.board.initial>label
+.board.initial>section.preferences>h2+button,
+.board.initial>section.tipsAndTricks>h2+button
 {
-	display:block;
-	max-width:max-content;
-	border:1px solid var(--color);
-	padding:min(0.5rem,5vw);
+	flex:0;
 }
-.board.initial>label span
+.board.initial>section.chooseAnImage>h2
 {
-	display:block;
-	padding-bottom:min(0.5rem,5vw);
+	margin:0 0 1em 0;
 }
-.board.initial>details
+.board.initial>section>h2:before
+{
+	display:inline-block;
+	width:1em;
+	min-width:1em; /* necessary to avoid the icon to be shrink */
+	height:1em;
+	margin-right:0.5em;
+	padding:0;
+}
+.board.initial>section.preferences>h2:before
+{
+	content:url('_icon/preferences.svg');
+}
+.board.initial>section.tipsAndTricks>h2:before
+{
+	content:url('_icon/help.svg');
+}
+.board.initial>section.chooseAnImage>h2:before
+{
+	content:url('_icon/add-image.svg');
+}
+.board.initial>section.chooseAnImage>details
 {
 	margin:0;
 	padding:0;
 }
-.board.initial>details summary
+.board.initial>section.chooseAnImage>details summary
 {
+	width:max-content;
 	font-size:min(1rem,10vw);
 	margin:0.25rem 0;
 	padding:0.25rem;
 }
-.board.initial ul
+.board.initial ul.imgList
 {
 	display:block;
+	columns:auto 10em;
+	column-gap:min(0.5rem,5vw);
 	list-style-type:none;
 	margin:0;
 	padding:0;
-	columns:auto 10em;
-	column-gap:min(0.5rem,5vw);
 }
-.board.initial ul
-{
-	margin:0;
-	padding:0;
-}
-.board.initial li
+.board.initial ul.imgList li
 {
 	margin:0 0 0.5rem 0;
-	paddig:0;
-	break-inside:avoid;
+	padding:0;
 	text-align:center;
+	break-inside:avoid;
 }
 .board.initial button.imgSelector
 {
 	border:0;
-	border-radius:0.125rem;
+	border-radius:0;
 	background:0;
 	margin:0;
-	padding:0.25rem;
+	padding:0;
 	width:100%;
 }
 .board.initial button.imgSelector img
@@ -470,6 +537,7 @@ body:has(.board.initial) h1:before
 	margin:0 auto;
 	padding:0;
 	cursor:pointer;
+	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
 }
 .board.initial button.imgAlert
 {
@@ -480,41 +548,77 @@ body:has(.board.initial) h1:before
 	min-height:1.5rem;
 	line-height:1.5rem;
 	border:0;
-	border-radius:0.125rem;
+	border-radius:0;
 	background:0;
-	margin:0;
+	margin:0.25rem 0;
 	padding:0.25rem;
 	width:100%;
-	
 }
-.board.initial input[type="file"]
+body>footer
 {
-	max-width:100%;
-	white-space:normal;
+	padding:0 var(--u);
 }
-.board.initial .copyright a
+body>footer .copyright a
 {
 	color:var(--color);
 }
 button.standardBtn,
-input[type="file"],
 input::file-selector-button,
 dialog button
 {
-	/*font-size:1rem;*/
 	cursor:pointer;
-	outline-offset:0.25rem;
-}
-button.standardBtn,
-input::file-selector-button,
-dialog button
-{
+	padding:0.5rem 1rem;
+	border:0;
+	border-radius:0.125rem;
+	white-space:normal;
 	color:var(--color-btn);
 	background:var(--bk-btn);
-	border:0;
-	border-radius:0.25em;
-	line-height:1.5rem;
 	font-weight:bold;
+	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	text-transform:uppercase;
+}
+.board.initial>h2:nth-of-type(1)+button.standardBtn
+{
+	margin-bottom:calc(2 * var(--u));
+}
+button.standardBtn,
+dialog button
+{
+	display:inline-flex;
+	justify-content:center;
+	align-items:center;
+}
+#drop-zone
+{
+	display:block;
+	max-width:max-content;
+	margin:0 0 calc(2 * var(--u)) 0;
+	padding:var(--u);
+	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+}
+#drop-zone span
+{
+	display:block;
+	padding-bottom:calc(0.5 * var(--u));
+	max-width:30rem;
+}
+input[type="file"]
+{
+	cursor:pointer;
+	box-sizing:border-box;
+	display:flex;
+	flex-wrap:wrap;
+	max-width:100%;
+	margin:0;
+	padding:0.25rem; /* necessary to show the shadow around the button */
+	justify-content:center;
+	align-content:center;
+	white-space:normal;
+}
+input::file-selector-button
+{
+	max-width:100%;
+	overflow:hidden;
 }
 button.standardBtn:hover,
 input::file-selector-button:hover,
@@ -530,12 +634,13 @@ dialog button:hover
 	z-index:-1;
 	top:0;
 	right:0;
-	width:25vmin;
 	overflow:hidden;
 	margin:0;
-	resize:horizontal;
+	resize:both;
 	direction:rtl;
-	outline-offset:0.25rem;
+	width:12.5vmin;
+	height:auto;
+	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
 }
 .ghost.show
 {
@@ -547,8 +652,12 @@ dialog button:hover
 	width:100%;
 	height:auto;
 }
-@media (min-aspect-ratio:9/10)
+@media (min-aspect-ratio:7/10)
 {
+	:root
+	{
+		--orientation:landscape; /* use keyword, not a string since a string is strange as css value */
+	}
 	.menu
 	{
 		flex-flow:column;
@@ -556,22 +665,15 @@ dialog button:hover
 		bottom:0;
 		right:initial;
 	}
-	body:has(.ghost.show) .stopwatch
-
-	{
-		justify-content:center;
-	}
 	.score
 	{
 		bottom:0;
 	}
 }
 </style>
-<title>Puzzle23</title>
-<link rel="icon" type="image/svg+xml" href="_icon/puzzle.svg">
 </head>
 <body>
-<h1>Puzzle23</h1>
+<header><h1>Puzzle23</h1></header>
 <script>
 (async function()
 {
@@ -618,15 +720,21 @@ dialog button:hover
 	pZ.hashCode=s=>s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
 	pZ.computeRf=function()
 	{
-		let sth=pZ.stopwatch.offsetHeight,
+		let d=document.documentElement;
+		let o=window.getComputedStyle(d).getPropertyValue('--orientation');
+		let pp=4,
+			sth=pZ.stopwatch.offsetHeight,
 		 	sch=pZ.score.offsetHeight,
 		 	ms=pZ.accessibility.offsetWidth*19/15,
 			bw=pZ.board.offsetWidth,
 			bh=pZ.board.offsetHeight,
-			fw=pZ.figure.offsetWidth*(pZ.w*1.25+1)/pZ.w,
-			fh=pZ.figure.offsetHeight*(pZ.h*1.25+1)/pZ.h;
-		if(0.9*bh>bw) bh=bh-ms-sth-sch;
+			fw=pZ.figure.offsetWidth*(pZ.w+Math.floor(pZ.w/10)+pp)/pZ.w,
+			fh=pZ.figure.offsetHeight*(pZ.h+Math.floor(pZ.h/10)+pp)/pZ.h;
+		if(pZ.trace) console.log("sth",sth,"sch",sch,"ms",ms,"bw",bw,"bh",bh,"fw",fw,"fh",fh);
+		// remember that the figure is centered, so -2*ms when portrait
+		if(o=="portrait") {bh=bh-2*ms-sth-sch;}
 		else {bw=bw-2*ms;bh=bh-sth-sch;}
+		if(pZ.trace) console.log(o,"rw",bw/fw,"rh",bh/fh,"bw2",bw,"bh2",bh);
 		let rf=Math.min(bw/fw,bh/fh);
 		if(pZ.trace) console.log("rf",rf);
 		return rf;
@@ -793,6 +901,59 @@ dialog button:hover
 		return pZ.r2d(n-2*pZ.to/pZ.esz);
 	}
 	
+	// tipsAndTricks
+	pZ.doTipsAndTricksAlert=function()
+	{
+		let s="";
+		s+="<ul class=\"tipsAndTricksList\">";
+		s+="<li>";
+		s+="<p>";
+		s+=pZ.locale("Are my images sent over the internet?");
+		s+="</p><p>";
+		s+=pZ.locale("No, this application does not send anything over the internet.");
+		s+="</p>";
+		s+="</li><li>";
+		s+="<p>";
+		s+=pZ.locale("Where can I find instructions for keyboard navigation?");
+		s+="</p><p>";
+		s+=pZ.locale("When a puzzle is displayed, click on the accessibility button.");
+		s+="</p>";
+		s+="</li><li>";
+		s+="<p>";
+		s+=pZ.locale("How can I move multiple puzzle pieces simultaneously with the mouse?");
+		s+="</p><p>";
+		s+=pZ.locale("You can select and then move multiple pieces with the mouse using the following method:");
+		s+="</p>";
+		s+="<ul>";
+		s+="<li>"+pZ.locale("click where there is nothing while holding down the button of the mouse,")+"</li>";
+		s+="<li>"+pZ.locale("move the mouse, a grey rectangle appears,")+"</li>";
+		s+="<li>"+pZ.locale("release the mouse button; the grey rectangle remains visible, and the pieces inside the rectangle are selected,")+"</li>";
+		s+="<li>"+pZ.locale("click on one of the selected pieces while holding down the button of the mouse,")+"</li>";
+		s+="<li>"+pZ.locale("move the mouse, all the selected pieces will move,")+"</li>";
+		s+="<li>"+pZ.locale("to make the selection rectangle disappear, click somewhere other than on a selected piece.")+"</li>";
+		s+="</ul>";
+		s+="</li><li>";
+		s+="<p>";
+		s+=pZ.locale("How do I zoom in and out?");
+		s+="</p><p>";
+		s+=pZ.locale("Use the browser's zoom function. To reduce or enlarge the puzzle pieces while maintaining the initial zoom level for text and buttons, zoom in or zoom out, then click the Reframe button, then zoom out or zoom in.");
+		s+="</p>";
+		s+="</li><li>";
+		s+="<p>";
+		s+=pZ.locale("How do I change the size of the model image?");
+		s+="</p><p>";
+		s+=pZ.locale("Drag the bottom left corner of the model image with the mouse.");
+		s+="</p>";
+		s+="</li>";
+		s+="</ul>";
+		pZ.noH2Outline=1;
+		pZ.doAlert(pZ.locale("Tips and Tricks"),s);
+	}
+	pZ.doClickOnTipsAndTricks=function(ev)
+	{
+		ev.stopPropagation();
+		pZ.doTipsAndTricksAlert();
+	}
 	// accessibility
 	pZ.doAccessibilityAlert=function()
 	{
@@ -852,7 +1013,11 @@ dialog button:hover
 		s+="</section>";
 		s+="<section class=\"gluing\">";
 		s+="<h3>"+pZ.locale("Gluing")+"</h3>";
-		s+="<p>"+pZ.locale("Finally, use the Space bar to glue together the selected puzzle elements to its neighbors if they match.")+"</p>";
+		s+="<p>"+pZ.locale("Use the Space bar to glue together the selected puzzle elements to its neighbors if they match.")+"</p>";
+		s+="</section>";
+		s+="<section class=\"misc\">";
+		s+="<h3>"+pZ.locale("Miscellaneous")+"</h3>";
+		s+="<p>"+pZ.locale("To change the size of the model image, give it the focus then use the arrow keys.")+"</p>";
 		s+="</section>";
 		pZ.noH2Outline=1;
 		pZ.doAlert(pZ.locale("Accessibility"),s);
@@ -878,6 +1043,7 @@ dialog button:hover
 	// preferences
 	pZ.doPreferencesReset=function()
 	{
+		let e,list;
 		e=document.querySelector('[name="whmax"]');
 		e.value=pZ.defaultParams.whmax;
 		e=document.querySelector('[name="pt"]');
@@ -896,6 +1062,8 @@ dialog button:hover
 		e.checked=pZ.defaultParams.showsc?true:false;
 		e=document.querySelector('[name="showgh"]');
 		e.checked=pZ.defaultParams.showgh?true:false;
+		list=Array.from(document.querySelectorAll('[name="scatter"]'));
+		list.forEach((e)=>e.checked=(pZ.defaultParams.scatter===e.value));
 		e=document.querySelector('[name="bkc"]');
 		e.value=pZ.defaultParams.bkc;
 	}
@@ -966,8 +1134,7 @@ dialog button:hover
 	{
 		function hex2Rgb(a)
 		{
-			let shortHex=/^#([a-f0-9])([a-f0-9])([a-f0-9])([a-f0-9])?$/i;
-			a=a.replace(shortHex,function(m,r,g,b,t=""){return "#"+r+r+g+g+b+b+t+t;});
+			// assume a is a long hex color
 			let longHex=/^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2}).*$/i;
 			let r=a.match(longHex);
 			if(r) return [parseInt(r[1],16),parseInt(r[2],16),parseInt(r[3],16)];
@@ -1012,7 +1179,7 @@ dialog button:hover
 			{
 				localStorage.pZ_whmax=pZ.whmax=whmax;
 				pZ.computeWH();
-				changeStatus|=8;
+				changeStatus|=16;
 			}
 		}
 		e=document.querySelector('[name="pt"]');
@@ -1061,15 +1228,27 @@ dialog button:hover
 			localStorage.pZ_showgh=pZ.showGhost=e.checked?1:0;
 			if(pZ.ghost) pZ.showHideGhost();
 		}
+		e=document.querySelector('[name="scatter"]:checked');
+		if(e&&(e.value!=pZ.scatter))
+		{
+			localStorage.pZ_scatter=pZ.scatter=e.value;
+			changeStatus|=8;
+		}
 		e=document.querySelector('[name="bkc"]');
 		if(e&&(e.value!=pZ.bkColor))
 		{
 			localStorage.pZ_bkc=pZ.bkColor=e.value;
 			pZ.setBkColor();
 		}
-		if(pZ.abortSignal) changeStatus|=16;
+		if(pZ.abortSignal) changeStatus|=32;
 		if(pZ.board.querySelector('.figure svg')&&changeStatus)
 		{
+			if(changeStatus==8)
+			{
+				// just change the pieces positions
+				pZ.doScatteringOnly();
+				return;
+			}
 			// in theory localStorage.imgDataUrl can be null here, but not pZ.imgDataUrl
 			if(!localStorage.imgDataUrl&&pZ.imgDataUrl) localStorage.imgDataUrl=pZ.imgDataUrl;
 			pZ.restoreOn=changeStatus;
@@ -1091,6 +1270,18 @@ dialog button:hover
 		{
 			let s="<label><input name=\""+a+"\" type=\"checkbox\""+(b?" checked":"")+"> ";
 			return s+pZ.locale(c)+"</label>";
+		}
+		function makeRadio(name,value,label,params)
+		{
+			let s="<p>"+pZ.locale(label)+"</p>";
+			for(let p of params)
+			{
+				s+="<label>";
+				s+="<input name=\""+name+"\" value=\""+p.value+"\" type=\"radio\""+((value==p.value)?" checked":"")+"> ";
+				s+=pZ.locale(p.label);
+				s+="</label>";
+			}
+			return s;
 		}
 		function makeColorPicker(a,b,c)
 		{
@@ -1128,10 +1319,11 @@ dialog button:hover
 		s+=makeOption(100,pZ.moveStep);
 		s+="</select>";
 		s+="</label>";
-		s+=makeCheckbox("ric",pZ.roundInitialCoordinates,"Round initial coordinates");
 		s+=makeCheckbox("showsw",pZ.showStopwatch,"Show the stopwatch");
 		s+=makeCheckbox("showsc",pZ.showScore,"Show the score");
 		s+=makeCheckbox("showgh",pZ.showGhost,"Show the model");
+		s+=makeCheckbox("ric",pZ.roundInitialCoordinates,"Round initial coordinates");
+		s+=makeRadio("scatter",pZ.scatter,"Scattering",[{label:pZ.locale("Inside"),value:"inside"},{label:pZ.locale("Outside"),value:"outside"}]);
 		s+=makeColorPicker("bkc",pZ.bkColor,"Background color");
 		let o=[{n:"OK",a:"PreferencesOK"},{n:"Cancel"},{n:"Reset",l:"Default values",a:"PreferencesReset",t:"button"}];
 		pZ.noH2Outline=1;
@@ -1216,7 +1408,7 @@ dialog button:hover
 			let s=pZ.locale("Impossible to restart while a puzzle is being built!");
 			pZ.doAlert(pZ.locale("Alert"),s);
 		}
-		else if(localStorage.imgDataUrl) pZ.doRestartDialog();
+		else if(pZ.dirty) pZ.doRestartDialog();
 		else pZ.doRestartOK();
 	}
 	pZ.initRestart=function(container)
@@ -1406,6 +1598,7 @@ dialog button:hover
 			l=bzs.length;
 		}
 		else l=0;
+		pZ.currentScore=(l==1)?0:l
 		if(pZ.initialScore)
 		{
 			pZ.initialScore=0;
@@ -1420,7 +1613,7 @@ dialog button:hover
 		}
 		else s+=pZ.locale("Still ")+l+pZ.locale(" elements to glue.");
 		pZ.score.setAttribute("aria-label",s);
-		s="<span aria-hidden=\"true\">"+((l==1)?0:l)+" / "+a+"</span>";
+		s="<span aria-hidden=\"true\">"+pZ.currentScore+" / "+a+"</span>";
 		pZ.score.innerHTML=s;
 	}
 	pZ.resetScore=function()
@@ -1494,9 +1687,33 @@ dialog button:hover
 		pZ.stopwatch=document.createElement('time');
 		pZ.stopwatch.classList.add("stopwatch");
 		pZ.showHideStopwatch();
+		pZ.updateStopwatch(); // need it to compute rF
 		pZ.board.before(pZ.stopwatch);
 	}
 	// ghost
+	pZ.setGhostWH=function()
+	{
+		if(!pZ.ghostRatio)
+		{
+			let h=pZ.ghost.offsetHeight;
+			if(!h) return;
+			let w=pZ.ghost.offsetWidth;
+			if(!w) return;
+			pZ.ghostRatio=w/h;
+			if(pZ.ghostRatio>=1) pZ.ghost.style.resize="horizontal";
+			else pZ.ghost.style.resize="vertical";
+		}
+		if(pZ.ghostRatio>=1)
+		{
+			pZ.ghost.style.width=pZ.ghostLengthNum+"vmin";
+			pZ.ghost.style.height="auto";
+		}
+		else
+		{
+			pZ.ghost.style.height=pZ.ghostLengthNum+"vmin";
+			pZ.ghost.style.width="auto";
+		}
+	}
     pZ.resizeGhost=function(ev)
     {
     	let e=ev.target;
@@ -1504,12 +1721,14 @@ dialog button:hover
 		{
 			case 'ArrowUp':
 			case 'ArrowRight':
-				e.style.width=(e.offsetWidth-10)+"px";
+				pZ.ghostLengthNum=Math.max(pZ.ghostLengthNum-1,1);
+				pZ.setGhostWH();
 				ev.preventDefault();
 				break;
 			case 'ArrowDown':
 			case 'ArrowLeft':
-				e.style.width=(e.offsetWidth+10)+"px";
+				pZ.ghostLengthNum=Math.min(pZ.ghostLengthNum+1,100);
+				pZ.setGhostWH();
 				ev.preventDefault();
 				break;
 		}
@@ -1521,6 +1740,7 @@ dialog button:hover
 	}
 	pZ.initGhost=function()
 	{
+		pZ.ghostLengthNum=25;
 		pZ.ghost=document.createElement('figure');
 		pZ.ghost.classList.add("ghost");
 		pZ.ghost.setAttribute("aria-label",pZ.locale("Model"));
@@ -1544,7 +1764,7 @@ dialog button:hover
 	}
 	pZ.clearRestoreData=function()
 	{
-		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh,bkc;
+		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh,scatter,bkc;
 		whmax=localStorage.pZ_whmax?localStorage.pZ_whmax:pZ.defaultParams.whmax;
 		pt=localStorage.pZ_pt?localStorage.pZ_pt:pZ.defaultParams.pt;
 		emb=localStorage.pZ_emb?localStorage.pZ_emb:pZ.defaultParams.emb;
@@ -1554,6 +1774,7 @@ dialog button:hover
 		showsw=localStorage.pZ_showsw?localStorage.pZ_showsw:pZ.defaultParams.showsw;
 		showsc=localStorage.pZ_showsc?localStorage.pZ_showsc:pZ.defaultParams.showsc;
 		showgh=localStorage.pZ_showgh?localStorage.pZ_showgh:pZ.defaultParams.showgh;
+		scatter=localStorage.pZ_scatter?localStorage.pZ_scatter:pZ.defaultParams.scatter;
 		bkc=localStorage.pZ_bkc?localStorage.pZ_bkc:pZ.defaultParams.bkc;
 		if(pZ.trace) console.log("localStorage length",JSON.stringify(localStorage).length);
 		localStorage.clear();
@@ -1566,10 +1787,12 @@ dialog button:hover
 		localStorage.pZ_showsw=showsw;
 		localStorage.pZ_showsc=showsc;
 		localStorage.pZ_showgh=showgh;
+		localStorage.pZ_scatter=scatter;
 		localStorage.pZ_bkc=bkc;
 	}
 	pZ.doGameOver=function()
 	{
+		pZ.dirty=0;
 		if(pZ.selectedArea) pZ.clearSelectedArea();
 		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		let a=pZ.board.getBoundingClientRect();
@@ -1628,6 +1851,8 @@ dialog button:hover
 	}
 	pZ.updateEnglued=function(e)
 	{
+		// detect elements glued on all sides
+		// useful for speeding up subsequent gluing
 		let bz=e.pZ.m.z;
 		for(let m of bz)
 		{
@@ -1971,7 +2196,8 @@ dialog button:hover
 			}
 			pZ.updateScore();
 			if(pZ.isPuzzleCompleted()) {pZ.doGameOver();pZ.movedPiece=null;return;}
-			else if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea(1);
+			else if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea();
+			pZ.dirty=1;
 		}
 		else
 		{
@@ -2007,6 +2233,7 @@ dialog button:hover
 		localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
 		localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
 		localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
+		localStorage.pZ_scatter=pZ.scatter=pZ.defaultParams.scatter;
 		localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
 	}
 	
@@ -2038,13 +2265,11 @@ dialog button:hover
 		// let svgs=Array.from(pZ.figure.querySelectorAll('svg'));
 		svgs=pZ.shuffleArray(pZ.svgs);
 		for(let svg of svgs) pZ.figure.append(svg);
+		//pZ.figure.style.setProperty("opacity",0);
 		pZ.board.append(pZ.figure);
-		pZ.hideWait();
-		pZ.reframe();
-		pZ.startStopwatch();
 		if(pZ.restoreOn)
 		{
-			// todo: should glue only what was glued before restoring
+			// todo: should glue only what was glued before restoring?
 			for(i=0;i<pZ.w;i++)
 				for(j=0;j<pZ.h;j++)
 					pZ.doGluing(pZ.map[i][j]);
@@ -2056,9 +2281,13 @@ dialog button:hover
 			}
 			pZ.restoreOn=0;
 		}
+		pZ.startStopwatch();
 		pZ.updateScore();
 		pZ.inInit=0;
 		pZ.tabTofirst=1;
+		pZ.dirty=0;
+		pZ.reframe();
+		pZ.hideWait();
 		t1 = performance.now();
 		if(pZ.trace) console.log("w:",pZ.w,"h:",pZ.h,"iw",pZ.iw,"ih",pZ.ih);
 		if(pZ.trace) console.log("perf end of terminateInitPuzzle()",t1-pZ.t0);
@@ -2262,6 +2491,148 @@ dialog button:hover
 		return a;
 	};
 
+	pZ.prepareOutsideScattering=function()
+	{
+		// prepare 2 arrays to help to place pieces on possible coordinates
+		// kScatter: array of piece indices (k=j*pZ.w+i) chosen at random
+		// pScatter: array of possible coordinates around the central area
+		let e,ho;
+		e=(pZ.moveStep<=50)?(pZ.moveStep/100):0;
+		ho=pZ.roundInitialCoordinates?0:(pZ.ho/pZ.esz);
+		pZ.kScatter=[];
+		for(let i=0;i<pZ.w;i++)
+			for(let j=0;j<pZ.h;j++)
+				pZ.kScatter.push(j*pZ.w+i);
+		pZ.kScatter=pZ.shuffleArray(pZ.kScatter);
+		pZ.pScatter=[];
+		for(let i=0;i<pZ.w;i++)
+		{
+			
+			pZ.pScatter.push({i:i,j:-1-e+ho});
+			pZ.pScatter.push({i:i,j:pZ.h+e-ho});
+		}
+		for(let j=0;j<pZ.h;j++)
+		{
+			pZ.pScatter.push({i:-1-e,j:j});
+			pZ.pScatter.push({i:pZ.w+e,j:j});
+		}
+		pZ.pScatter=pZ.shuffleArray(pZ.pScatter);
+		if(pZ.kScatter.length>pZ.pScatter.length)
+			pZ.kScatter=pZ.kScatter.slice(0,pZ.pScatter.length);
+		else if(pZ.pScatter.length>pZ.kScatter.length)
+			pZ.pScatter=pZ.pScatter.slice(0,pZ.kScatter.length);
+	}
+
+	pZ.generateTopLeft=function(i,j)
+	{
+		let left,top,a,b,k,ko,po;
+		let e=(pZ.moveStep<=50)?pZ.moveStep:0;
+		if((pZ.scatter=="outside")&&pZ.kScatter&&pZ.kScatter.length&&pZ.pScatter&&pZ.pScatter.length)
+		{
+			ko=pZ.kScatter.indexOf(j*pZ.w+i);
+			if(ko>-1)
+			{
+				// add the piece on integer coordinates
+				pZ.kScatter.splice(ko,1);
+				po=pZ.pScatter.pop();
+				left=po.i*100*pZ.esz00-pZ.to;
+				top=po.j*100*pZ.esz00-pZ.to;
+				return {top:top,left:left};
+			}
+		}
+		if(pZ.roundInitialCoordinates)
+		{
+			if(pZ.scatter=="inside")
+			{
+				a=Math.round(pZ.alea((pZ.w-1)*100)/pZ.moveStep);
+				b=Math.round(pZ.alea((pZ.h-1)*100)/pZ.moveStep);
+			}
+			else // scatter around
+			{
+				c=pZ.alea(3)+1;
+				switch(c)
+				{
+					case 1:
+						a=Math.round(pZ.alea((pZ.w-1)*100)/pZ.moveStep);
+						b=(-100-e)/pZ.moveStep;
+						break;
+					case 2:
+						a=((100*pZ.w)+e)/pZ.moveStep;
+						b=Math.round(pZ.alea((pZ.h-1)*100)/pZ.moveStep);
+						break;
+					case 3:
+						a=Math.round(pZ.alea((pZ.w-1)*100)/pZ.moveStep);
+						b=((100*pZ.h)+e)/pZ.moveStep;
+						break;
+					case 4:
+						a=(-100-e)/pZ.moveStep;
+						b=Math.round(pZ.alea((pZ.h-1)*100)/pZ.moveStep);
+						break;
+				}
+			}
+			left=a*pZ.moveStep*pZ.esz00-pZ.to;
+			top=b*pZ.moveStep*pZ.esz00-pZ.to;
+		}
+		else
+		{
+			if(pZ.scatter=="inside")
+			{
+				a=pZ.alea((pZ.w-1)*pZ.esz);
+				b=pZ.alea((pZ.h-1)*pZ.esz);
+			}
+			else // scatter around
+			{
+				c=pZ.alea(3)+1;
+				let ho=pZ.ho;
+				switch(c)
+				{
+					case 1:
+						a=pZ.alea((pZ.w-1)*pZ.esz);
+						b=(-1-e/100)*pZ.esz+ho;
+						break;
+					case 2:
+						a=(pZ.w+e/100)*pZ.esz;
+						b=pZ.alea((pZ.h-1)*pZ.esz);
+						break;
+					case 3:
+						a=pZ.alea((pZ.w-1)*pZ.esz);
+						b=(pZ.h+e/100)*pZ.esz-ho;
+						break;
+					case 4:
+						a=(-1-e/100)*pZ.esz;
+						b=pZ.alea((pZ.h-1)*pZ.esz);
+						break;
+				}
+			}
+			left=a-pZ.to;
+			top=b-pZ.to;
+		}
+		return {top:top,left:left};
+	}
+	pZ.doScatteringOnly=function()
+	{
+		if(pZ.scatter=="outside") pZ.prepareOutsideScattering();
+		for(let i=0;i<pZ.w;i++)
+			for(let j=0;j<pZ.h;j++)
+			{
+				// consider only element of one piece, let the others in place
+				if(pZ.map[i][j].z.length==1)
+				{
+					let tl=pZ.generateTopLeft(i,j);
+					let left=tl.left;
+					let top=tl.top;
+					localStorage["l"+i+"_"+j]=left;
+					localStorage["t"+i+"_"+j]=top;
+					let x=(left+pZ.to)/pZ.esz;
+					let y=(top+pZ.to)/pZ.esz;
+					let svg=pZ.map[i][j].svg;
+					svg.style.left=left+"px";
+					svg.style.top=top+"px";
+					svg.pZ.x=x;
+					svg.pZ.y=y;
+				}
+			}
+	}
 	pZ.initElement=function(i,j,to,ho,hor,a,qt,qa,qx,qy)
 	{
 		if(pZ.abortSignal) return;
@@ -2521,16 +2892,9 @@ dialog button:hover
 		}
 		else
 		{
-			if(pZ.roundInitialCoordinates)
-			{
-				left=Math.round(pZ.alea((pZ.w-1)*100)/pZ.moveStep)*pZ.moveStep*pZ.esz00-pZ.to;
-				top=Math.round(pZ.alea((pZ.h-1)*100)/pZ.moveStep)*pZ.moveStep*pZ.esz00-pZ.to;
-			}
-			else
-			{
-				left=pZ.alea((pZ.w-1)*pZ.esz)-pZ.to;
-				top=pZ.alea((pZ.h-1)*pZ.esz)-pZ.to;
-			}
+			let tl=pZ.generateTopLeft(i,j);
+			left=tl.left;
+			top=tl.top;
 			localStorage["l"+i+"_"+j]=left;
 			localStorage["t"+i+"_"+j]=top;
 		}
@@ -2575,7 +2939,7 @@ dialog button:hover
 		else
 		{
 			const t1 = performance.now()-pZ.t0;
-			if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime/10)){pZ.abort(t1);return;}// 10 times less than when emboss?
+			if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime/10)){pZ.abort(t1);return;}// 10 times less than when embossing?
 			svg.append(outline);
 			pZ.svgs.push(svg);
 			pZ.figure.pZ.countCreation++;
@@ -2594,7 +2958,7 @@ dialog button:hover
 			pZ.figure=null;
 		}
 	}
-
+	
 	pZ.initPuzzle=function()
 	{
 		pZ.t0=performance.now();
@@ -2609,15 +2973,18 @@ dialog button:hover
 		pZ.initScrollArea();
 		pZ.clearSelectedArea();
 		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+		pZ.setGhostWH();
 		pZ.zIndex=0;
 		let to=pZ.to; // magic offset to keep room for tenon and piece deformation
 		let ho=pZ.ho; // magic h offset when the image and puzzle ratio are not the same
 		let hor=(1-ho/pZ.esz)*(1-ho/pZ.esz);
+		if(pZ.scatter=="outside") pZ.prepareOutsideScattering();
 		pZ.fb=((pZ.pt=="curvy")||(pZ.pt=="quirky"))?1:0; // curve
 		pZ.ft=(pZ.pt=="quirky")?1:0; // tenon offset
 		pZ.fa=(pZ.pt=="quirky")?1:0; // tenon radius
 		pZ.fx=pZ.fy=(pZ.pt=="quirky")?1:0; // corner position
 		let a,qt,qa,qx,qy;
+		// pZ.restoreOn cannot be exactly 8 here
 		if((pZ.restoreOn>0)&&(pZ.restoreOn<4)
 			&&localStorage.a
 			&&localStorage.qt
@@ -2625,7 +2992,7 @@ dialog button:hover
 			&&localStorage.qx
 			&&localStorage.qy)
 		{
-			// when restore dialog appearing or when changing emboss
+			// when restore dialog appearing or when changing emboss, piece shape, scattering
 			a=JSON.parse(localStorage.a);
 			qt=JSON.parse(localStorage.qt);
 			qa=JSON.parse(localStorage.qa);
@@ -2961,6 +3328,7 @@ dialog button:hover
 			e=document.activeElement;
 			pZ.doArrowMoveOneElement(ev,e);
 		}
+		pZ.dirty=1;
 	}
 		
 	pZ.doShiftArrow=function(ev)
@@ -3352,6 +3720,8 @@ dialog button:hover
 		else pZ.showScore=-(-localStorage.pZ_showsc); // if 1, show the score
 		if(localStorage.pZ_showgh===undefined) localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
 		else pZ.showGhost=-(-localStorage.pZ_showgh); // if 1, show the ghost
+		if(localStorage.pZ_scatter===undefined) localStorage.pZ_scatter=pZ.scatter=pZ.defaultParams.scatter;
+		else pZ.scatter=localStorage.pZ_scatter; // "inside" or "outside"
 		if(localStorage.pZ_bkc===undefined) localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
 		else pZ.bkColor=localStorage.pZ_bkc;
 	}
@@ -3428,11 +3798,15 @@ dialog button:hover
 		else pZ.imgObj.src=pZ.imgUrl;
 	}
 	
-	pZ.fetch=function()
+	pZ.fetch=function(o={})
 	{
 		pZ.showWait();
-		fetch(pZ.restoreOn?localStorage.imgDataUrl:pZ.imgUrl)
-		.then((r)=>r.blob())
+		fetch(pZ.restoreOn?localStorage.imgDataUrl:pZ.imgUrl,o)
+		.then((r)=>
+		{
+			if (r.ok) return r.blob();
+			throw new Error(pZ.locale("Error while trying to retrieve the data"));
+		})
 		.then((b)=>
 		{
 			if(pZ.restoreOn)
@@ -3445,7 +3819,7 @@ dialog button:hover
 			else
 			{
 				const reader=new FileReader();
-				let svgImgOn=pZ.imgUrl.match(/\.svg$/i)?1:0;
+				let svgImgOn=b.type.match(/svg\+xml$/i)?1:0;
 				reader.addEventListener("load",()=>
 				{
 					if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
@@ -3456,7 +3830,8 @@ dialog button:hover
 				if(svgImgOn) reader.readAsText(b);
 				else reader.readAsDataURL(b);
 			}
-		});
+		})
+		.catch((e)=>{pZ.imgUrl=pZ.defaultImgUrl;pZ.fetch();});
 	}
 
 	pZ.makeInitialImgBtn=function(a,k)
@@ -3540,7 +3915,7 @@ dialog button:hover
 	  );
 	  if (fileItems.length > 0) {
 		e.preventDefault();
-		if (!dropZone.contains(e.target)) {
+		if (!pZ.dropZone.contains(e.target)) {
 		  e.dataTransfer.dropEffect = "none";
 		}
 	  }
@@ -3592,20 +3967,23 @@ dialog button:hover
 			categories.push({title:"Plants",type:"plant"});
 			categories.push({title:"Transport",type:"transport"});
 		}
-		s+="<h2>"+pZ.locale("Settings")+"</h2>";
+		s+="<section class=\"preferences\"><h2>"+pZ.locale("Settings")+"</h2>";
 		s+="<button id=\"modify-settings\" class=\"standardBtn\" type=\"button\">"+pZ.locale("Modify")+"</button>";
+		s+="</section><section class=\"tipsAndTricks\">";
+		s+="<h2>"+pZ.locale("Tips and Tricks")+"</h2>";
+		s+="<button id=\"tips-and-tricks\" class=\"standardBtn\" type=\"button\">"+pZ.locale("Read")+"</button>";
+		s+="</section><section class=\"chooseAnImage\" class=\"tipsAndTricks\">";
 		s+="<h2>"+t+"</h2>"
 		s+="<label id=\"drop-zone\">";
 		s+="<span>"+pZ.locale("Drag and drop one of your images here or select one by clicking the button below:")+"</span>";
 		s+="<input type=\"file\" accept=\"image/*\">";
 		s+="</label>";
-		s+="<figure id=\"preview\"></figure>";
 		s+="<p>"+pZ.locale("You can also select one of the images below by clicking on it:")+"</p>";
 		let listOfImages=[],k=0;
 		if(pZ.all) for(let c of categories)
 		{
 			s+="<details><summary>"+pZ.locale(c.title)+"</summary>";
-			s+="<ul>";
+			s+="<ul class=\"imgList\">";
 			for(let a of pZ.originJson)
 				if((a.category==c.type)&&(a.visible=="1"))
 				{
@@ -3618,7 +3996,7 @@ dialog button:hover
 		}
 		else
 		{
-			s+="<ul>";
+			s+="<ul class=\"imgList\">";
 			for(let a of pZ.originJson) if(a.always=="1")
 			{
 				k++;
@@ -3626,20 +4004,23 @@ dialog button:hover
 				s+=pZ.makeInitialImgBtn(a,k);
 			}
 			s+="</ul>"
-			s+="</details>";
 		}
-		let currentYear=new Date().getFullYear();
-		let year=2024+((currentYear==2024)?"":("-"+currentYear));
-		s+="<p class=\"copyright\"><a href=\"https://github.com/parsimonhi/puzzle23\">Puzzle23</a> Copyright © "+year+" <a href=\"https://github.com/parsimonhi\">Parsimonhi</a></p>";
+		s+="</section>";
 		pZ.board.innerHTML=s;
 		let i=document.querySelector('input[type="file"]');
 		if(i) i.addEventListener("change",pZ.doChangeFile);
-		let bs=document.getElementById('modify-settings');
+		let bs;
+		bs=document.getElementById('modify-settings');
 		if(bs) bs.addEventListener("click",(ev)=>
-			{
-				pZ.initParameters();
-				pZ.doClickOnPreferences(ev);
-			});
+		{
+			pZ.initParameters();
+			pZ.doClickOnPreferences(ev);
+		});
+		bs=document.getElementById('tips-and-tricks');
+		if(bs) bs.addEventListener("click",(ev)=>
+		{
+			pZ.doClickOnTipsAndTricks(ev);
+		});
 		let list=pZ.board.querySelectorAll('.board.initial button.imgSelector');
 		for(let b of list)
 		{
@@ -3648,6 +4029,11 @@ dialog button:hover
 				pZ.imgUrl=b.value;
 				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
 				pZ.board.innerHTML="";
+				// no mercy for urls that cannot be fetch with {mode:"cors"}
+				// same origin urls and wikimedia commons (most of the time) work with {mode:"cors"}
+				// without this option, on can get an opaque response with some urls (such as https://upload.wikimedia.org/wikipedia/commons/f/f0/Crown_Jewels_of_the_United_Kingdom_1952-12-13.jpg)
+				// and in case of opaque response, it seems difficult to manage the errors in the server worker (how to be sure that one receives an opaque response?)
+				//pZ.fetch({mode:"cors"});
 				pZ.fetch();
 			});
 		}
@@ -3668,7 +4054,7 @@ dialog button:hover
 	
 	pZ.choose=function()
 	{
-		fetch("images.json",{cache:"no-store"})
+		fetch("images.json")
 		.then(r=>r.json())
 		.then(j=>{pZ.originJson=pZ.shuffleArray(j);pZ.doChooseContinue();});
 	}
@@ -3698,7 +4084,7 @@ dialog button:hover
 	pZ.start2=function()
 	{
 		pZ.initialLoading=1;
-		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1,showgh:1,bkc:"#f3f3f3"};
+		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1,showgh:1,scatter:"inside",bkc:"#ffffff"};
 		pZ.maxLoadingTime=50*pZ.iwhMax;
 		pZ.embossFilterHtml=pZ.makeEmbossFilter();
 		pZ.board=document.createElement('main');
@@ -3729,10 +4115,29 @@ dialog button:hover
 	// 1280: common width on Wikimedia Commons
 	// 1260: half of 2520
 	pZ.iwhMax=1280;
-	pZ.defaultImgUrl="_img/_animal/Mandarin-duck-Aix-galericulata.webp"; // default
+	pZ.defaultImgUrl="_icon/puzzle-not-found.svg"; // default img in case of problem
 	pZ.imgUrl=pZ.defaultImgUrl;
 	window.addEventListener('load',pZ.start);
 })();
+</script>
+
+<footer>
+<p class="copyright">
+<a href="https://github.com/parsimonhi/puzzle23">Puzzle23</a>
+<span>Copyright © 2024</span>
+<a href=\"https://github.com/parsimonhi\">Parsimonhi</a>
+</p>
+</footer>
+
+<script>
+window.addEventListener("load",()=>
+{
+	let currentYear=new Date().getFullYear();
+	let year=(currentYear==2024)?"":("-"+currentYear);
+	document.querySelector('.copyright span').innerHTML+=year;
+});
+// Register the PWA service worker
+if ("serviceWorker" in navigator) {navigator.serviceWorker.register("sw.js");}
 </script>
 </body>
 </html>
