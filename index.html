@@ -1540,6 +1540,7 @@ dialog button:hover
 			pZ.imgObj.addEventListener("load",()=>
 			{
 				pZ.initialLoading=0;
+				console.log(pZ.imgObj.width,pZ.imgObj.height,pZ.imgObj.naturalWidth,pZ.imgObj.naturalHeight);
 				pZ.iw=pZ.imgObj.width;
 				pZ.ih=pZ.imgObj.height;
 				if(pZ.trace) console.log("iw and ih when opening",pZ.iw,pZ.ih);
@@ -1706,12 +1707,14 @@ dialog button:hover
 		if(pZ.ghostRatio>=1)
 		{
 			pZ.ghost.style.width=pZ.ghostLengthNum+"vmin";
-			pZ.ghost.style.height="auto";
+			pZ.ghost.style.height=pZ.ghostLengthNum/pZ.ghostRatio+"vmin";
+			// do not use "auto" keyword (seems not working with some pictures from ios)
 		}
 		else
 		{
 			pZ.ghost.style.height=pZ.ghostLengthNum+"vmin";
-			pZ.ghost.style.width="auto";
+			pZ.ghost.style.width=pZ.ghostLengthNum*pZ.ghostRatio+"vmin";
+			// do not use "auto" keyword (seems not working with some pictures from ios)
 		}
 	}
     pZ.resizeGhost=function(ev)
