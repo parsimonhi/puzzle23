@@ -648,8 +648,9 @@ dialog button:hover
 	display:block;
 	width:100%;
 	height:auto;
+	pointer-events:none;
 }
-.ghost:focus
+.ghost:hover
 {
 	cursor:sw-resize;
 }
@@ -1697,6 +1698,7 @@ dialog button:hover
 		let e=pZ.ghost;
 		if(ev.isPrimary&&e&&e.hasPointerCapture(ev.pointerId))
 		{
+			ev.preventDefault();
 			let dx=pZ.ghostBeforeClientX-ev.clientX;
 			let dy=ev.clientY-pZ.ghostBeforeClientY;
 			if(dx>(dy*pZ.ghostRatio))
@@ -1714,6 +1716,7 @@ dialog button:hover
 	pZ.dragGhostStart=function(ev)
 	{
 		let e=pZ.ghost;
+		ev.preventDefault();
 		e.addEventListener('pointermove',pZ.dragGhostContinue);
 		e.setPointerCapture(ev.pointerId);
 		pZ.ghostBeforeClientX=ev.clientX;
@@ -1795,23 +1798,6 @@ dialog button:hover
 		pZ.ghost.addEventListener('keydown',pZ.resizeGhost);
 		pZ.ghost.addEventListener('pointerdown',pZ.dragGhostStart);
 		pZ.ghost.addEventListener('pointerup',pZ.dragGhostEnd);
-		new ResizeObserver(()=>
-		{
-			if(!pZ.ghostRatio) return;
-    		let newWidth,newHeight;
-			if(pZ.ghostRatio>1)
-			{
-				newWidth=pZ.ghost.offsetWidth;
-				newHeight=newWidth/pZ.ghostRatio;
-				pZ.ghost.style.height=`${newHeight}px`;
-			}
-			else
-			{
-				newHeight=pZ.ghost.offsetHeight;
-				newWidth=newHeight*pZ.ghostRatio;
-				pZ.ghost.style.width=`${newWidth}px`;
-			}
-  		}).observe(pZ.ghost);
 	}
 	// puzzle
 	pZ.getSvg=function(ev,cls)
