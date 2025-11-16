@@ -106,7 +106,8 @@ body:has(dialog[open])
 	pointer-events:none;
 }
 body:has(.selectedArea),
-body:has(.selected)
+body:has(.selected),
+body:has(.ghost.dragInProgress)
 {
 	/* no scroll allowed when something is selected */
 	touch-action:none;
@@ -1699,6 +1700,7 @@ dialog button:hover
 		if(ev.isPrimary&&e&&e.hasPointerCapture(ev.pointerId))
 		{
 			ev.preventDefault();
+			e.classList.add("dragInProgress");
 			let dx=pZ.ghostBeforeClientX-ev.clientX;
 			let dy=ev.clientY-pZ.ghostBeforeClientY;
 			if(dx>(dy*pZ.ghostRatio))
@@ -1717,6 +1719,7 @@ dialog button:hover
 	{
 		let e=pZ.ghost;
 		ev.preventDefault();
+		e.classList.remove("dragInProgress");
 		e.addEventListener('pointermove',pZ.dragGhostContinue);
 		e.setPointerCapture(ev.pointerId);
 		pZ.ghostBeforeClientX=ev.clientX;
