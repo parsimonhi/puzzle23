@@ -636,10 +636,7 @@ dialog button:hover
 	right:0;
 	overflow:hidden;
 	margin:0;
-	resize:both;
-	direction:rtl;
-	width:12.5vmin;
-	height:auto;
+	width:12vmin;
 	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
 }
 .ghost.show
@@ -651,6 +648,10 @@ dialog button:hover
 	display:block;
 	width:100%;
 	height:auto;
+}
+.ghost:focus
+{
+	cursor:sw-resize;
 }
 @media (min-aspect-ratio:7/10)
 {
@@ -940,9 +941,9 @@ dialog button:hover
 		s+="</p>";
 		s+="</li><li>";
 		s+="<p>";
-		s+=pZ.locale("How do I change the size of the model image?");
+		s+=pZ.locale("How do I change the size of the model image with the mouse?");
 		s+="</p><p>";
-		s+=pZ.locale("Drag the bottom left corner of the model image with the mouse.");
+		s+=pZ.locale("Click on the model image, then move the mouse while holding down its button.");
 		s+="</p>";
 		s+="</li>";
 		s+="</ul>";
@@ -1540,7 +1541,6 @@ dialog button:hover
 			pZ.imgObj.addEventListener("load",()=>
 			{
 				pZ.initialLoading=0;
-				console.log(pZ.imgObj.width,pZ.imgObj.height,pZ.imgObj.naturalWidth,pZ.imgObj.naturalHeight);
 				pZ.iw=pZ.imgObj.width;
 				pZ.ih=pZ.imgObj.height;
 				if(pZ.trace) console.log("iw and ih when opening",pZ.iw,pZ.ih);
@@ -1692,34 +1692,70 @@ dialog button:hover
 		pZ.board.before(pZ.stopwatch);
 	}
 	// ghost
+	pZ.dragGhostContinue=function(ev)
+	{
+		let e=pZ.ghost;
+		if(ev.isPrimary&&e&&e.hasPointerCapture(ev.pointerId))
+		{
+			let dx=pZ.ghostBeforeClientX-ev.clientX;
+			let dy=ev.clientY-pZ.ghostBeforeClientY;
+			if(dx>(dy*pZ.ghostRatio))
+			{
+				e.style.width=(pZ.ghostBeforeWidth+dx)+"px";
+				e.style.height=(pZ.ghostBeforeWidth+dx)/pZ.ghostRatio+"px";
+			}
+			else
+			{
+				e.style.height=(pZ.ghostBeforeHeight+dy)+"px";
+				e.style.width=(pZ.ghostBeforeHeight+dy)*pZ.ghostRatio+"px";
+			}
+		}
+	}
+	pZ.dragGhostStart=function(ev)
+	{
+		let e=pZ.ghost;
+		e.addEventListener('pointermove',pZ.dragGhostContinue);
+		e.setPointerCapture(ev.pointerId);
+		pZ.ghostBeforeClientX=ev.clientX;
+		pZ.ghostBeforeClientY=ev.clientY;
+		pZ.ghostBeforeWidth=pZ.ghost.offsetWidth;
+		pZ.ghostBeforeHeight=pZ.ghost.offsetHeight;
+	}
+	pZ.dragGhostEnd=function(ev)
+	{
+		let e=pZ.ghost;
+		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
+		else if(pZ.trace) console.log("Lost pointer capture: ghost when dragEnd");
+		pZ.ghost.removeEventListener('pointermove',pZ.dragGhostContinue);
+	}
 	pZ.setGhostWH=function()
 	{
 		if(!pZ.ghostRatio)
 		{
-			let h=pZ.ghost.offsetHeight;
+			let img=pZ.ghost.querySelector('img');
+			let h=img.height;
 			if(!h) return;
-			let w=pZ.ghost.offsetWidth;
+			let w=img.width;
 			if(!w) return;
 			pZ.ghostRatio=w/h;
-			if(pZ.ghostRatio>=1) pZ.ghost.style.resize="horizontal";
-			else pZ.ghost.style.resize="vertical";
 		}
-		if(pZ.ghostRatio>=1)
+		if(pZ.ghostRatio<1)
 		{
-			pZ.ghost.style.width=pZ.ghostLengthNum+"vmin";
-			pZ.ghost.style.height=pZ.ghostLengthNum/pZ.ghostRatio+"vmin";
-			// do not use "auto" keyword (seems not working with some pictures from ios)
+			let h=window.innerWidth*pZ.ghostLengthNum/100;
+			pZ.ghost.style.height=h+"px";
+			pZ.ghost.style.width=h*pZ.ghostRatio+"px";
 		}
 		else
 		{
-			pZ.ghost.style.height=pZ.ghostLengthNum+"vmin";
-			pZ.ghost.style.width=pZ.ghostLengthNum*pZ.ghostRatio+"vmin";
-			// do not use "auto" keyword (seems not working with some pictures from ios)
+			let w=window.innerWidth*pZ.ghostLengthNum/100;
+			pZ.ghost.style.width=w+"px";
+			pZ.ghost.style.height=w/pZ.ghostRatio+"px";
 		}
 	}
     pZ.resizeGhost=function(ev)
     {
-    	let e=ev.target;
+		if(pZ.ghostRatio<1) pZ.ghostLengthNum=pZ.ghost.offsetHeight*100/window.innerWidth;
+		else pZ.ghostLengthNum=pZ.ghost.offsetWidth*100/window.innerWidth;
 		switch (ev.key)
 		{
 			case 'ArrowUp':
@@ -1743,7 +1779,7 @@ dialog button:hover
 	}
 	pZ.initGhost=function()
 	{
-		pZ.ghostLengthNum=25;
+		pZ.ghostLengthNum=12;
 		pZ.ghost=document.createElement('figure');
 		pZ.ghost.classList.add("ghost");
 		pZ.ghost.setAttribute("aria-label",pZ.locale("Model"));
@@ -1752,10 +1788,30 @@ dialog button:hover
 		// hide the image to screen readers to shorten what they say
 		pZ.ghost.append(document.createElement('img'));
 		pZ.ghost.firstChild.setAttribute("aria-hidden","true");
+		pZ.ghost.firstChild.draggable=false;;
 		pZ.ghost.firstChild.src=localStorage.imgDataUrl;
 		pZ.showHideGhost();
 		pZ.board.after(pZ.ghost);
 		pZ.ghost.addEventListener('keydown',pZ.resizeGhost);
+		pZ.ghost.addEventListener('pointerdown',pZ.dragGhostStart);
+		pZ.ghost.addEventListener('pointerup',pZ.dragGhostEnd);
+		new ResizeObserver(()=>
+		{
+			if(!pZ.ghostRatio) return;
+    		let newWidth,newHeight;
+			if(pZ.ghostRatio>1)
+			{
+				newWidth=pZ.ghost.offsetWidth;
+				newHeight=newWidth/pZ.ghostRatio;
+				pZ.ghost.style.height=`${newHeight}px`;
+			}
+			else
+			{
+				newHeight=pZ.ghost.offsetHeight;
+				newWidth=newHeight*pZ.ghostRatio;
+				pZ.ghost.style.width=`${newWidth}px`;
+			}
+  		}).observe(pZ.ghost);
 	}
 	// puzzle
 	pZ.getSvg=function(ev,cls)
@@ -2139,7 +2195,7 @@ dialog button:hover
 	pZ.dragStart=function(ev)
 	{
 		if(!ev.isPrimary) return;
-		let e=pZ.getSvg(ev,"puzzleElement");
+		e=pZ.getSvg(ev,"puzzleElement");
 		if(!e)
 		{
 			pZ.clearSelectedArea();

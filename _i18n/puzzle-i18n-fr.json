@@ -201,8 +201,8 @@
 		"to make the selection rectangle disappear, click somewhere other than on a selected piece.":"pour faire disparaitre le rectangle de sélection, cliquez ailleurs que sur une pièce sélectionnée.",
 		"How do I zoom in and out?":"Comment puis-je zoomer ?",
 		"Use the browser's zoom function. To reduce or enlarge the puzzle pieces while maintaining the initial zoom level for text and buttons, zoom in or zoom out, then click the Reframe button, then zoom out or zoom in.":"Utilisez le zoom du navigateur. Pour réduire ou agrandir les pièces du puzzle tout en conservant le niveau de zoom initial pour le texte et les boutons, effectuez un zoom avant ou arrière, puis cliquez sur le bouton Recadrer, puis effectuez un zoom arrière ou un zoom avant.",
-		"How do I change the size of the model image?":"Comment puis-je changer la taille de l'image du modèle ?",
-		"Drag the bottom left corner of the model image with the mouse.":"Faites glisser le coin inférieur gauche de l'image du modèle avec la souris.",
+		"How do I change the size of the model image with the mouse?":"Comment puis-je changer la taille de l'image du modèle avec la souris ?",
+		"Click on the model image, then move the mouse while holding down its button.":"Cliquez sur l'image du modèle et déplacez la souris en maintenant son bouton enfoncé.",
 		"Tips and Tricks":"Trucs et astuces",
 		"Read":"Lire"
 	}
