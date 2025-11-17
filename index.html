@@ -509,7 +509,7 @@ h1:after
 .board.initial ul.imgList
 {
 	display:block;
-	columns:auto 10em;
+	columns:auto 10rem;
 	column-gap:min(0.5rem,5vw);
 	list-style-type:none;
 	margin:0;
@@ -720,7 +720,7 @@ dialog button:hover
 	pZ.nearlyEqual=function(a,b){return Math.abs(a-b)<0.01;}
 	pZ.hashCode=function(s)
 	{
-		s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+		return s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
 	}
 	pZ.computeRf=function()
 	{
@@ -3876,9 +3876,22 @@ dialog button:hover
 	pZ.makeInitialImgBtn=function(a,k)
 	{
 		let s="",title=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
+		let cls="";
+		if(a.ratio)
+		{
+			let ra,r=0;
+			ra=a.ratio.split(":");
+			if((ra.length==2)&&ra[0].match(/^\d+$/)&&ra[1].match(/^\d+$/))
+			{
+				r=-ra[0]/-ra[1];
+				if(r<1) cls="vertical";
+				else if(r>1) cls="horizontal";
+				else cls="square";
+			}
+		}
 		s+="<li>";
 		s+="<button data-k=\""+k+"\" title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
-		s+="<img aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
+		s+="<img class=\""+cls+"\" aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
 		s+="</button>";
 		s+="<button title=\""+pZ.locale("About this image")+"\" data-k=\""+k+"\" type=\"button\" class=\"imgAlert\">";
 		s+="<span aria-hidden=\"true\">"+title+"</span>";
