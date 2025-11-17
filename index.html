@@ -36,7 +36,7 @@
 	--no-borders-stroke:#7777;
 	--logo-filter:none;
 	--magic-filter:none; /* none or invert(1) */
-	--orientation:portrait; /* use keyword, not a string since a string is strange as css value */
+	--orientation:portrait; /* use a css keyword, not a string */
 }
 *
 {
@@ -601,7 +601,6 @@ dialog button
 {
 	display:block;
 	padding-bottom:calc(0.5 * var(--u));
-	max-width:30rem;
 }
 input[type="file"]
 {
@@ -659,7 +658,7 @@ dialog button:hover
 {
 	:root
 	{
-		--orientation:landscape; /* use keyword, not a string since a string is strange as css value */
+		--orientation:landscape;  /* use a css keyword, not a string */
 	}
 	.menu
 	{
@@ -680,6 +679,7 @@ dialog button:hover
 <script>
 (async function()
 {
+	// do not use arrow functions as methods
 	let pZ={};
 	// to add a new lang, add its code in the array below
 	// and add a translation file in the _i18n folder
@@ -695,10 +695,8 @@ dialog button:hover
 	{
 		let re=pZ.makeLangRegex();
 		if(navigator.languages)
-		{
 			for(let e of navigator.languages)
 				if(e.match(re)) return e.replace(/^(..).*$/,"$1");
-		}
 		if(navigator.language&&navigator.language.match(es))
 			return navigator.language.replace(/^(..).*$/,"$1");
 		return "en";
@@ -720,7 +718,10 @@ dialog button:hover
 	}
 	pZ.ucFirst=function(s){return String(s).charAt(0).toUpperCase()+String(s).slice(1);}
 	pZ.nearlyEqual=function(a,b){return Math.abs(a-b)<0.01;}
-	pZ.hashCode=s=>s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+	pZ.hashCode=function(s)
+	{
+		s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+	}
 	pZ.computeRf=function()
 	{
 		let d=document.documentElement;
@@ -733,14 +734,10 @@ dialog button:hover
 			bh=pZ.board.offsetHeight,
 			fw=pZ.figure.offsetWidth*(pZ.w+Math.floor(pZ.w/10)+pp)/pZ.w,
 			fh=pZ.figure.offsetHeight*(pZ.h+Math.floor(pZ.h/10)+pp)/pZ.h;
-		if(pZ.trace) console.log("sth",sth,"sch",sch,"ms",ms,"bw",bw,"bh",bh,"fw",fw,"fh",fh);
 		// remember that the figure is centered, so -2*ms when portrait
 		if(o=="portrait") {bh=bh-2*ms-sth-sch;}
 		else {bw=bw-2*ms;bh=bh-sth-sch;}
-		if(pZ.trace) console.log(o,"rw",bw/fw,"rh",bh/fh,"bw2",bw,"bh2",bh);
-		let rf=Math.min(bw/fw,bh/fh);
-		if(pZ.trace) console.log("rf",rf);
-		return rf;
+		return Math.min(bw/fw,bh/fh);
 	}
 	pZ.computeWH=function()
 	{
@@ -763,7 +760,6 @@ dialog button:hover
 	}
 	pZ.adaptScrollArea=function()
 	{
-		if(pZ.trace) console.log("adaptScrollArea");
 		if(!pZ.figure||!pZ.figcaption||pZ.abortSignal) return;
 		let a=pZ.board.getBoundingClientRect();
 		let b=pZ.figcaption.getBoundingClientRect();
@@ -812,17 +808,16 @@ dialog button:hover
 				s+=`<button name="${a.n}" type="${a.t}" value="${a.v}">${pZ.locale(a.l)}</button>`;
 			}
 			dialog.pZ=pZ;
-			dialog.addEventListener('close',function(ev){
+			dialog.addEventListener('close',(ev)=>
+			{
 				for(let a of b)
-					if(a.a&&(this.returnValue==a.v))
-					{
-						this.pZ[`do${a.a}`]();
-					}
-				this.pZ.inDialog=0;
+					if(a.a&&(dialog.returnValue==a.v)) pZ[`do${a.a}`]();
+				pZ.inDialog=0;
 			});
-			dialog.addEventListener('cancel',function(ev){
-				if(this.pZ[`do${name}Cancel`]) this.pZ[`do${name}Cancel`]();
-				this.pZ.inDialog=0;
+			dialog.addEventListener('cancel',(ev)=>
+			{
+				if(pZ[`do${name}Cancel`]) pZ[`do${name}Cancel`]();
+				pZ.inDialog=0;
 			});
 			s+=`</fieldset>`;
 			dialog.innerHTML=s;
@@ -1130,7 +1125,6 @@ dialog button:hover
 		let sc=r1*pZ.emboss;
 		pZ.embossFilterHtml=pZ.embossFilterHtml.replace(/stdDeviation="[0-9.]+"/g,"stdDeviation=\""+stdD+"\"");
 		pZ.embossFilterHtml=pZ.embossFilterHtml.replace(/surfaceScale="[0-9.]+"/g,"surfaceScale=\""+sc+"\"");
-		if(pZ.trace) console.log("r0",r0,"r1",r1,"esz",esz,"emboss",pZ.emboss);
 		return esz;
 	}
 	pZ.setBkColor=function()
@@ -1448,28 +1442,22 @@ dialog button:hover
 		container.append(pZ.home);
 	}
 	// menu
+	pZ.initMenuItem=function(item)
+	{
+		let li=document.createElement('li');
+		pZ.menu.append(li);
+		pZ["init"+item](li);
+	}
 	pZ.initMenu=function()
 	{
-		let menu,li;
-		menu=document.createElement('menu');
-		menu.classList.add("menu");
-		li=document.createElement('li');
-		menu.append(li);
-		pZ.initAccessibility(li);
-		li=document.createElement('li');
-		menu.append(li);
-		pZ.initPreferences(li);
-		li=document.createElement('li');
-		menu.append(li);
-		pZ.initReframe(li);
-		li=document.createElement('li');
-		menu.append(li);
-		pZ.initRestart(li);
-		li=document.createElement('li');
-		menu.append(li);
-		pZ.initHome(li);
-		pZ.menu=menu;
-		pZ.board.before(menu);
+		pZ.menu=document.createElement('menu');
+		pZ.menu.classList.add("menu");
+		pZ.initMenuItem("Accessibility");
+		pZ.initMenuItem("Preferences");
+		pZ.initMenuItem("Reframe");
+		pZ.initMenuItem("Restart");
+		pZ.initMenuItem("Home");
+		pZ.board.before(pZ.menu);
 	}
 	// open using an image on user's device
 	pZ.setWHToSvg=function(svgAsTxt)
@@ -1538,14 +1526,12 @@ dialog button:hover
 			pZ.board.innerHTML="";
 			if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
 			else pZ.imgDataUrl=reader.result;
-			// localStorage.imgDataUrl=pZ.imgDataUrl; // too soon, do it after resizing if any
 			pZ.imgObj=new Image();
 			pZ.imgObj.addEventListener("load",()=>
 			{
 				pZ.initialLoading=0;
 				pZ.iw=pZ.imgObj.width;
 				pZ.ih=pZ.imgObj.height;
-				if(pZ.trace) console.log("iw and ih when opening",pZ.iw,pZ.ih);
 				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
 				pZ.computeWH();
 				if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
@@ -1559,7 +1545,6 @@ dialog button:hover
 					createImageBitmap(pZ.imgObj,o)
 					.then((imgBmp)=>
 					{
-						if(pZ.trace) console.log("iw and ih after resizing when opening",pZ.iw,pZ.ih);
 						pZ.imgBmp=imgBmp;
 						pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
 						localStorage.imgDataUrl=pZ.imgDataUrl;
@@ -1658,11 +1643,11 @@ dialog button:hover
 	}
 	pZ.updateStopwatch=function()
 	{
-		let t=pZ.stopwatchTime,h,m,s;
-		s=t%60;
-		m=((t-s)/60)%60;
-		h=(t-s-m*60)/3600;
-		pZ.stopwatch.innerHTML=((h<10)?"0":"")+h+":"+((m<10)?"0":"")+m+":"+((s<10)?"0":"")+s;
+		let t=pZ.stopwatchTime,h,m,s,p=(z)=>(z<10)?("0"+z):(""+z);
+		s=p(t%60);
+		m=p(((t-s)/60)%60);
+		h=p((t-s-m*60)/3600);
+		pZ.stopwatch.innerHTML=h+":"+m+":"+s;
 		localStorage.pZ_stopwatchTime=t;
 	}
 	pZ.pauseStopwatch=function()
@@ -1686,7 +1671,8 @@ dialog button:hover
 	}
 	pZ.initStopwatch=function()
 	{
-		pZ.stopwatchTime=localStorage.pZ_stopwatchTime?-(-localStorage.pZ_stopwatchTime):0;
+		let t=localStorage.pZ_stopwatchTime;
+		pZ.stopwatchTime=t?-(-t):0;
 		pZ.stopwatch=document.createElement('time');
 		pZ.stopwatch.classList.add("stopwatch");
 		pZ.showHideStopwatch();
@@ -1731,7 +1717,6 @@ dialog button:hover
 	{
 		let e=pZ.ghost;
 		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
-		else if(pZ.trace) console.log("Lost pointer capture: ghost when dragEnd");
 		pZ.ghost.removeEventListener('pointermove',pZ.dragGhostContinue);
 	}
 	pZ.setGhostWH=function()
@@ -1747,32 +1732,32 @@ dialog button:hover
 		}
 		if(pZ.ghostRatio<1)
 		{
-			let h=window.innerWidth*pZ.ghostLengthNum/100;
+			let h=window.innerWidth*pZ.gln/100;
 			pZ.ghost.style.height=h+"px";
 			pZ.ghost.style.width=h*pZ.ghostRatio+"px";
 		}
 		else
 		{
-			let w=window.innerWidth*pZ.ghostLengthNum/100;
+			let w=window.innerWidth*pZ.gln/100;
 			pZ.ghost.style.width=w+"px";
 			pZ.ghost.style.height=w/pZ.ghostRatio+"px";
 		}
 	}
     pZ.resizeGhost=function(ev)
     {
-		if(pZ.ghostRatio<1) pZ.ghostLengthNum=pZ.ghost.offsetHeight*100/window.innerWidth;
-		else pZ.ghostLengthNum=pZ.ghost.offsetWidth*100/window.innerWidth;
+    	let r=100/window.innerWidth;
+		pZ.gln=((pZ.ghostRatio<1)?pZ.ghost.offsetHeight:pZ.ghost.offsetWidth)*r;
 		switch (ev.key)
 		{
 			case 'ArrowUp':
 			case 'ArrowRight':
-				pZ.ghostLengthNum=Math.max(pZ.ghostLengthNum-1,1);
+				pZ.gln=Math.max(pZ.gln-1,1);
 				pZ.setGhostWH();
 				ev.preventDefault();
 				break;
 			case 'ArrowDown':
 			case 'ArrowLeft':
-				pZ.ghostLengthNum=Math.min(pZ.ghostLengthNum+1,100);
+				pZ.gln=Math.min(pZ.gln+1,100);
 				pZ.setGhostWH();
 				ev.preventDefault();
 				break;
@@ -1785,7 +1770,7 @@ dialog button:hover
 	}
 	pZ.initGhost=function()
 	{
-		pZ.ghostLengthNum=20;
+		pZ.gln=20; // largest of ghost width or height in vw unit
 		pZ.ghost=document.createElement('figure');
 		pZ.ghost.classList.add("ghost");
 		pZ.ghost.setAttribute("aria-label",pZ.locale("Model"));
@@ -1806,25 +1791,28 @@ dialog button:hover
 	pZ.getSvg=function(ev,cls)
 	{
 		let e=ev.target;
-		while(e&&e.tagName&&(e.tagName.toLowerCase()!="svg")) e=e.parentNode;
-		if(e&&e.classList&&e.classList.contains(cls)) return e;
+		if(e) return e.closest('svg.'+cls);
 		return null;
 	}
 	pZ.clearRestoreData=function()
 	{
 		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh,scatter,bkc;
-		whmax=localStorage.pZ_whmax?localStorage.pZ_whmax:pZ.defaultParams.whmax;
-		pt=localStorage.pZ_pt?localStorage.pZ_pt:pZ.defaultParams.pt;
-		emb=localStorage.pZ_emb?localStorage.pZ_emb:pZ.defaultParams.emb;
-		th=localStorage.pZ_th?localStorage.pZ_th:pZ.defaultParams.th;
-		ms=localStorage.pZ_ms?localStorage.pZ_ms:pZ.defaultParams.ms;
-		ric=localStorage.pZ_ric?localStorage.pZ_ric:pZ.defaultParams.ric;
-		showsw=localStorage.pZ_showsw?localStorage.pZ_showsw:pZ.defaultParams.showsw;
-		showsc=localStorage.pZ_showsc?localStorage.pZ_showsc:pZ.defaultParams.showsc;
-		showgh=localStorage.pZ_showgh?localStorage.pZ_showgh:pZ.defaultParams.showgh;
-		scatter=localStorage.pZ_scatter?localStorage.pZ_scatter:pZ.defaultParams.scatter;
-		bkc=localStorage.pZ_bkc?localStorage.pZ_bkc:pZ.defaultParams.bkc;
-		if(pZ.trace) console.log("localStorage length",JSON.stringify(localStorage).length);
+		let sfls=(p)=>
+		{
+			let n="pZ_"+p;
+			return localStorage[n]?localStorage[n]:pZ.defaultParams[p];
+		}
+		whmax=sfls("whmax");
+		pt=sfls("pt");
+		emb=sfls("emb");
+		th=sfls("th");
+		ms=sfls("ms");
+		ric=sfls("ric");
+		showsw=sfls("showsw");
+		showsc=sfls("showsc");
+		showgh=sfls("showgh");
+		scatter=sfls("scatter");
+		bkc=sfls("bkc");
 		localStorage.clear();
 		localStorage.pZ_whmax=whmax;
 		localStorage.pZ_pt=pt;
@@ -1944,7 +1932,8 @@ dialog button:hover
 					dd=next.ds.d2;
 					cc=next.ds.c2;
 				}
-				else if ((next.j==0)||(pZ.map[next.i+1][next.j-1].svg!=pZ.map[next.i+1][next.j].svg))
+				else if ((next.j==0)
+					||(pZ.map[next.i+1][next.j-1].svg!=pZ.map[next.i+1][next.j].svg))
 				{
 					next=pZ.map[next.i+1][next.j];
 					dd=next.ds.d1;
@@ -1960,13 +1949,15 @@ dialog button:hover
 			}
 			else if(border==2) // 321
 			{
-				if((next.j==(pZ.h-1))||(pZ.map[next.i][next.j+1].svg!=next.svg))
+				if((next.j==(pZ.h-1))
+					||(pZ.map[next.i][next.j+1].svg!=next.svg))
 				{
 					border=3;
 					dd=next.ds.d3;
 					cc=next.ds.c3;
 				}
-				else if ((next.i==(pZ.w-1))||(pZ.map[next.i+1][next.j+1].svg!=pZ.map[next.i][next.j+1].svg))
+				else if ((next.i==(pZ.w-1))
+					||(pZ.map[next.i+1][next.j+1].svg!=pZ.map[next.i][next.j+1].svg))
 				{
 					next=pZ.map[next.i][next.j+1];
 					dd=next.ds.d2;
@@ -1982,13 +1973,15 @@ dialog button:hover
 			}
 			else if(border==3) // 432
 			{
-				if((next.i==0)||(pZ.map[next.i-1][next.j].svg!=next.svg))
+				if((next.i==0)
+					||(pZ.map[next.i-1][next.j].svg!=next.svg))
 				{
 					border=4;
 					dd=next.ds.d4;
 					cc=next.ds.c4;
 				}
-				else if ((next.j==(pZ.h-1))||(pZ.map[next.i-1][next.j+1].svg!=pZ.map[next.i-1][next.j].svg))
+				else if ((next.j==(pZ.h-1))
+					||(pZ.map[next.i-1][next.j+1].svg!=pZ.map[next.i-1][next.j].svg))
 				{
 					next=pZ.map[next.i-1][next.j];
 					dd=next.ds.d3;
@@ -2010,7 +2003,8 @@ dialog button:hover
 					dd=next.ds.d1;
 					cc=next.ds.c1;
 				}
-				else if ((next.i==0)||(pZ.map[next.i-1][next.j-1].svg!=pZ.map[next.i][next.j-1].svg))
+				else if ((next.i==0)
+					||(pZ.map[next.i-1][next.j-1].svg!=pZ.map[next.i][next.j-1].svg))
 				{
 					next=pZ.map[next.i][next.j-1];
 					dd=next.ds.d4;
@@ -2041,7 +2035,10 @@ dialog button:hover
 		if((j>0)&&(a.ds.bb&1))
 		{
 			let b=pZ.map[i][j-1];
-			if(!b.englued&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued
+				&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ay-gY(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)
+				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -2050,7 +2047,10 @@ dialog button:hover
 		if((i<(pZ.w-1))&&(a.ds.bb&2))
 		{
 			let b=pZ.map[i+1][j];
-			if(!b.englued&&(Math.abs(ax-gX(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued
+				&&(Math.abs(ax-gX(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)
+				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -2059,7 +2059,10 @@ dialog button:hover
 		if((j<(pZ.h-1))&&(a.ds.bb&4))
 		{
 			let b=pZ.map[i][j+1];
-			if(!b.englued&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued
+				&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ay-gY(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)
+				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -2068,7 +2071,10 @@ dialog button:hover
 		if((i>0)&&(a.ds.bb&8))
 		{
 			let b=pZ.map[i-1][j];
-			if(!b.englued&&(Math.abs(ax-gX(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)&&!b.z.includes(a))
+			if(!b.englued
+				&&(Math.abs(ax-gX(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)
+				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
 				o=b;
@@ -2089,10 +2095,10 @@ dialog button:hover
 				imax=Math.max(imax,m.i);
 				jmax=Math.max(jmax,m.j);
 			}
-			svg.setAttributeNS(null,"viewBox","0 0 "+((imax-imin+1)*pZ.esz2to)+" "+((jmax-jmin+1)*pZ.esz2to)+"");
-			svg.setAttribute("width",(imax-imin+1)*pZ.esz2to);
-			svg.setAttribute("height",(jmax-jmin+1)*pZ.esz2to);
-			
+			let w=(imax-imin+1)*pZ.esz2to,h=(jmax-jmin+1)*pZ.esz2to;
+			svg.setAttributeNS(null,"viewBox","0 0 "+w+" "+h);
+			svg.setAttribute("width",w);
+			svg.setAttribute("height",h);
 			let d="",c=[];
 			let newX=xo+imin-imino;
 			let newY=yo+jmin-jmino;
@@ -2149,8 +2155,9 @@ dialog button:hover
 			svg.style.setProperty("clip-path","path('"+d+"')");
 			svg.pZ.content=c;
 			pZ.updatePuzzleElementLabel(svg);
+			let xbp=pZ.to-imin*pZ.esz,ybp=pZ.to-jmin*pZ.esz+pZ.ho;
 			if(!pZ.internalBordersOn)
-				svg.style.setProperty("background-position",(pZ.to-imin*pZ.esz)+"px "+(pZ.to-jmin*pZ.esz+pZ.ho)+"px");
+				svg.style.setProperty("background-position",xbp+"px "+ybp+"px");
 			pZ.updateEnglued(svg);
 		}
 	}
@@ -2229,7 +2236,6 @@ dialog button:hover
 		let e=pZ.getSvg(ev,"puzzleElement");
 		if(!e) return;
 		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
-		else if(pZ.trace) console.log("Lost pointer capture: ("+e.pZ.m.i+","+e.pZ.m.j+") when dragEnd");
 		if(pZ.movedPiece&&(e==pZ.movedPiece))
 		{
 			pZ.minMaxChange=0;
@@ -2251,7 +2257,6 @@ dialog button:hover
 		{
 			pZ.clearSelectedArea();
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
-			if(pZ.trace) console.log("Lost dragged element ("+e.pZ.m.i+","+e.pZ.m.j+") when dragEnd");
 		}
 		e.removeEventListener('pointermove',pZ.dragContinue);
 		pZ.movedPiece=null;
@@ -2292,7 +2297,6 @@ dialog button:hover
 		pZ.hideWait();
 		if(t)
 		{
-			if(pZ.trace) console.log("perf when abort()",t,"count creation",pZ.figure.pZ.countCreation);
 			pZ.noH2Outline=1;
 			if(pZ.initialLoading)
 				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please reduce the number of pieces via the \"Preferences\" button!"));
@@ -2304,7 +2308,6 @@ dialog button:hover
 	pZ.terminateInitPuzzle=function()
 	{
 		let t1 = performance.now();
-		if(pZ.trace) console.log("perf beginning of terminateInitPuzzle()",t1-pZ.t0);
 		pZ.figcaption=document.createElement('figcaption');
 		pZ.figcaption.innerHTML=pZ.locale("Puzzle");
 		pZ.figure.append(pZ.figcaption);
@@ -2324,7 +2327,7 @@ dialog button:hover
 			let svgs2=pZ.figure.querySelectorAll('.puzzleElement');
 			for(let svg2 of svgs2)
 			{
-				// no need to save the element here since it is already in the local storage
+				// no need to save the element since it is already in the local storage
 				pZ.updatePuzzleElementLabel(svg2);
 			}
 			pZ.restoreOn=0;
@@ -2332,13 +2335,12 @@ dialog button:hover
 		pZ.startStopwatch();
 		pZ.updateScore();
 		pZ.inInit=0;
-		pZ.tabTofirst=1;
+		if(!document.activeElement||!document.activeElement.closest('.menu'))
+			pZ.tabTofirst=1;
 		pZ.dirty=0;
 		pZ.reframe();
 		pZ.hideWait();
 		t1 = performance.now();
-		if(pZ.trace) console.log("w:",pZ.w,"h:",pZ.h,"iw",pZ.iw,"ih",pZ.ih);
-		if(pZ.trace) console.log("perf end of terminateInitPuzzle()",t1-pZ.t0);
 	}
 
 	pZ.createCn=function(k,dw,dh)
@@ -2427,7 +2429,6 @@ dialog button:hover
 		// has to use data image base64 below since one draws this svg on a canvas later
 		let t1=performance.now();
 		let imgHref=pZ.base64ImagePortion(pA);
-		if(!pA.i&&!pA.j) if(pZ.trace) console.log("perf base64ImagePortion()",performance.now()-t1);
 		if(!imgHref) return 0;
 		img.setAttributeNS(null,"href",imgHref);
 		img.setAttribute("clip-path","url(#"+clipPathId+")");
@@ -2458,7 +2459,6 @@ dialog button:hover
 			{
 				let t2=performance.now();
 				let imgDataUrl=pZ.base64Image(img,esz2to,esz2to);
-				if(!pA.i&&!pA.j) if(pZ.trace) console.log("perf base64Image()",performance.now()-t2);
 				if(!imgDataUrl) return 0;
 				elementImg.setAttributeNS(null,"href",imgDataUrl);
 				pA.svg.prepend(elementImg);
@@ -3080,7 +3080,6 @@ dialog button:hover
 		pZ.ymin=-to;
 		pZ.ymax=pZ.h*pZ.esz+to;
 		pZ.rif=pZ.iw/(pZ.esz*pZ.w);
-		if(pZ.trace) console.log("rif",pZ.rif);
 		// faster to create cn and cx only once instead of doing it for each element
 		// better for browser memory management?
 		pZ.createCn(1,pZ.esz2to*pZ.rif,pZ.esz2to*pZ.rif);
@@ -3534,7 +3533,7 @@ dialog button:hover
 			if(pZ.tabTofirst)
 			{
 				// force to tab on accessibility button when the first tab occurs
-				// otherwise the focused element could be something else
+				// otherwise the focused element could be anywhere
 				pZ.tabTofirst=0;
 				pZ.accessibility.focus();
 				ev.preventDefault();
@@ -3543,7 +3542,7 @@ dialog button:hover
 		}
 		if(ev.altKey||ev.ctrlKey||ev.metaKey) return;
 		let a=document.activeElement;
-		
+		pZ.tabTofirst=0;
 		// to use the default scroll,
 		// the user can give focus to a button of the menu before scrolling
 		if(ev.shiftKey&&["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(ev.key))
@@ -3720,7 +3719,6 @@ dialog button:hover
 		let e=pZ.getSvg(ev,"background");
 		if(!e) return;
 		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
-		else if(pZ.trace) console.log("Lost pointer capture when selectEnd");
 		if(pZ.selectE&&(e==pZ.selectE)&&pZ.selectedArea)
 		{
 			pZ.updateSelectedElements();
@@ -3729,7 +3727,6 @@ dialog button:hover
 		{
 			pZ.clearSelectedArea();
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
-			if(pZ.trace) console.log("Lost something when selectEnd");
 		}
 		e.removeEventListener('pointermove',pZ.selectContinue);
 		pZ.selectE=null;
@@ -3794,12 +3791,10 @@ dialog button:hover
 			if(!pZ.resizeCounter) pZ.resizeCounter=1;
 			else pZ.resizeCounter++;
 			let currentCounter=pZ.resizeCounter;
-			if(pZ.trace) console.log("Resize fired",currentCounter);
 			setTimeout(function()
 			{
 				if(currentCounter>=pZ.resizeCounter)
 				{
-					if(pZ.trace) console.log("Resize did something",currentCounter);
 					pZ.adaptScrollArea();
 					pZ.resizeCounter=0;
 				}
@@ -3816,8 +3811,6 @@ dialog button:hover
 		{
 			pZ.iw=pZ.imgObj.width;
 			pZ.ih=pZ.imgObj.height;
-			if(pZ.restoreOn) if(pZ.trace) console.log("iw and ih at reload",pZ.iw,pZ.ih);
-			else if(pZ.trace) console.log("iw and ih at start",pZ.iw,pZ.ih);
 			if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
 			{
 				let iw=pZ.iw,ih=pZ.ih;
@@ -3829,7 +3822,6 @@ dialog button:hover
 				createImageBitmap(pZ.imgObj,o)
 				.then((imgBmp)=>
 				{
-					if(pZ.trace) console.log("iw and ih after resizing",pZ.iw,pZ.ih);
 					pZ.imgBmp=imgBmp;
 					pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
 					localStorage.imgDataUrl=pZ.imgDataUrl;
@@ -3872,7 +3864,6 @@ dialog button:hover
 				{
 					if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
 					else pZ.imgDataUrl=reader.result;
-					// localStorage.imgDataUrl=pZ.imgDataUrl; // too soon, do it after resizing if any
 					pZ.afterFetch(svgImgOn);
 				});
 				if(svgImgOn) reader.readAsText(b);
@@ -3895,22 +3886,18 @@ dialog button:hover
 		s+="</li>";
 		return s;
 	}
-	pZ.doAlertImageData=function(a)
+	pZ.imgData=function(a)
 	{
-		let s="";
-		s+="<p>";
+		let s="<p>";
 		s+=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
-		s+="</p>";
-		s+="<p>";
+		s+="</p><p>";
 		if(a["owner"])
 		{
 			s+="<em>";
 			if(a["source"]&&a["source"].match(/^(http|_img)/))
 			{
 				s+=pZ.locale("Credits: ");
-				s+="<a href=\""+a["source"]+"\" target=\"_blank\">";
-				s+=a["owner"];
-				s+="</a>";
+				s+="<a href=\""+a["source"]+"\" target=\"_blank\">"+a["owner"]+"</a>";
 			}
 			else s+=a["owner"];
 			s+="</em>";
@@ -3918,11 +3905,7 @@ dialog button:hover
 		else if(a["source"]&&(a["source"]!="?"))
 		{
 			if(a["source"]=="generated by an AI")
-			{
-				s+="<em>";
-				s+=pZ.ucFirst(pZ.locale("generated by an AI"));
-				s+="</em>";
-			}
+				s+="<em>"+pZ.ucFirst(pZ.locale("generated by an AI"))+"</em>";
 			else
 			{
 				s+="<em><a href=\""+a["source"]+"\" target=\"_blank\">";
@@ -3931,57 +3914,39 @@ dialog button:hover
 			}
 		}
 		else if(a["license"]&&(a["license"]=="Public-domain"))
-		{
-			s+="<em>";
-			s+=pZ.locale("Public domain");
-			s+="</em>";
-		}
-		s+="</p>";
-		s+="<p>";
-		s+=pZ.locale("To launch the puzzle, click on the image!");
-		s+="</p>";
+			s+="<em>"+pZ.locale("Public domain")+"</em>";
+		s+="</p><p>"+pZ.locale("To launch the puzzle, click on the image!")+"</p>";
 		return s;
 	}
 	
 	pZ.dragOverHandler=function(e)
 	{
-	  const fileItems = [...e.dataTransfer.items].filter(
-		(item) => item.kind === "file",
-	  );
-	  if (fileItems.length > 0) {
-		e.preventDefault();
-		if (fileItems.some((item) => item.type.startsWith("image/"))) {
-		  e.dataTransfer.dropEffect = "copy";
-		} else {
-		  e.dataTransfer.dropEffect = "none";
+		const files=[...e.dataTransfer.items].filter((item)=>item.kind==="file");
+		if(files.length==1)
+		{
+			e.preventDefault();
+			if (files.some((item)=>item.type.startsWith("image/")))
+				e.dataTransfer.dropEffect="copy";
+			else e.dataTransfer.dropEffect="none";
 		}
-	  }
 	}
-	window.addEventListener("dragover", (e) => {
-	  const fileItems = [...e.dataTransfer.items].filter(
-		(item) => item.kind === "file",
-	  );
-	  if (fileItems.length > 0) {
-		e.preventDefault();
-		if (!pZ.dropZone.contains(e.target)) {
-		  e.dataTransfer.dropEffect = "none";
+	window.addEventListener("dragover",(e)=>
+	{
+		const files=[...e.dataTransfer.items].filter((item)=>item.kind==="file");
+		if(files.length==1)
+		{
+			e.preventDefault();
+			if(!pZ.dropZone.contains(e.target)) e.dataTransfer.dropEffect="none";
 		}
-	  }
 	});
 	pZ.dropHandler=function(ev)
 	{
 		ev.preventDefault();
-		const files = [...ev.dataTransfer.items]
-		.map((item) => item.getAsFile())
-		.filter((file) => file);
-		pZ.doReadFile(files[0]);
+		pZ.doReadFile([...ev.dataTransfer.items].map((item)=>item.getAsFile())[0]);
 	}
 	window.addEventListener("drop",(e)=>
 	{
-	  if ([...e.dataTransfer.items].some((item) => item.kind === "file"))
-	  {
-		e.preventDefault();
-	  }
+		if([...e.dataTransfer.items].some((item)=>item.kind==="file")) e.preventDefault();
 	});
 	
 	pZ.doChooseContinue=function()
@@ -4077,11 +4042,9 @@ dialog button:hover
 				pZ.imgUrl=b.value;
 				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
 				pZ.board.innerHTML="";
-				// no mercy for urls that cannot be fetch with {mode:"cors"}
-				// same origin urls and wikimedia commons (most of the time) work with {mode:"cors"}
-				// without this option, on can get an opaque response with some urls (such as https://upload.wikimedia.org/wikipedia/commons/f/f0/Crown_Jewels_of_the_United_Kingdom_1952-12-13.jpg)
-				// and in case of opaque response, it seems difficult to manage the errors in the server worker (how to be sure that one receives an opaque response?)
-				//pZ.fetch({mode:"cors"});
+				// may consider pZ.fetch({mode:"cors"});
+				// without the "cors" option, one can receive an "opaque" response
+				// with some picture such as https://upload.wikimedia.org/wikipedia/commons/f/f0/Crown_Jewels_of_the_United_Kingdom_1952-12-13.jpg
 				pZ.fetch();
 			});
 		}
@@ -4092,7 +4055,7 @@ dialog button:hover
 			b2.addEventListener('click',function()
 			{
 				pZ.noH2Outline=1;
-				pZ.doAlert(pZ.locale("About this image"),pZ.doAlertImageData(listOfImages[k]));
+				pZ.doAlert(pZ.locale("About this image"),pZ.imgData(listOfImages[k]));
 			});
 		}
 		pZ.dropZone=document.getElementById("drop-zone");
@@ -4122,8 +4085,8 @@ dialog button:hover
 	
 	pZ.doRestoreDialog=function()
 	{
-		if(pZ.trace) console.log("imgDataUrl length",localStorage.imgDataUrl?localStorage.imgDataUrl.length:0);
-		let t=pZ.locale("Restore"),s,o=[{n:"Restore",a:"RestoreContinue"},{n:"Remove",l:"Do not restore",a:"RestoreCancel"}];
+		let t=pZ.locale("Restore"),s,
+			o=[{n:"Restore",a:"RestoreContinue"},{n:"Remove",l:"Do not restore",a:"RestoreCancel"}];
 		s="<p>"+pZ.locale("A puzzle has not been completed.")+"</p>";
 		pZ.noH2Outline=1;
 		pZ.doDialog("Restore",t,s,o);
@@ -4132,7 +4095,20 @@ dialog button:hover
 	pZ.start2=function()
 	{
 		pZ.initialLoading=1;
-		pZ.defaultParams={whmax:100,pt:"quirky",emb:5,th:30,ms:50,ric:1,showsw:1,showsc:1,showgh:1,scatter:"inside",bkc:"#ffffff"};
+		pZ.defaultParams=
+		{
+			whmax:100,
+			pt:"quirky",
+			emb:5,
+			th:30,
+			ms:50,
+			ric:1,
+			showsw:1,
+			showsc:1,
+			showgh:1,
+			scatter:"inside",
+			bkc:"#ffffff"
+		};
 		pZ.maxLoadingTime=50*pZ.iwhMax;
 		pZ.embossFilterHtml=pZ.makeEmbossFilter();
 		pZ.board=document.createElement('main');
@@ -4180,11 +4156,10 @@ dialog button:hover
 <script>
 window.addEventListener("load",()=>
 {
-	let currentYear=new Date().getFullYear();
-	let year=(currentYear==2024)?"":("-"+currentYear);
-	document.querySelector('.copyright span').innerHTML+=year;
+	let y=new Date().getFullYear();
+	document.querySelector('.copyright span').innerHTML+=(y!=2024)?"-"+y:"";
 });
-// Register the PWA service worker
+// register the PWA service worker
 if ("serviceWorker" in navigator) {navigator.serviceWorker.register("sw.js");}
 </script>
 </body>

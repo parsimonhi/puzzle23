@@ -11,6 +11,10 @@ What is new?
 
 - various minor updates
 
+2025/11/16
+
+- various minor updates
+
 2025/11/10
 
 - improve home page
