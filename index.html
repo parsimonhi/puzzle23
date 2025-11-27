@@ -1784,19 +1784,19 @@ footer>a:last-of-type
 	pZ.updateMessenger=function(s)
 	{
 		if(document.ariaNotify) document.ariaNotify(s,{priority:"high"});
-		else if(s==pZ.messenger.innerHTML) pZ.messenger.innerHTML=s+'&nbsp;'; // beurk
-		else pZ.messenger.innerHTML=s;
-	}
-	pZ.initMessenger=function()
-	{
-		if(!document.ariaNotify)
+		else
 		{
-			// 2025-11-24
-			// workaround when the browser does not know document.ariaNotify
-			pZ.messenger=document.createElement('p');
-			pZ.messenger.ariaLive="assertive";
-			pZ.messenger.classList.add("messenger");
-			pZ.score.after(pZ.messenger);
+			if(!pZ.messenger)
+			{
+				// 2025-11-24
+				// workaround when the browser does not know document.ariaNotify
+				pZ.messenger=document.createElement('p');
+				pZ.messenger.ariaLive="assertive";
+				pZ.messenger.classList.add("messenger");
+				pZ.score.after(pZ.messenger);
+			}
+			if(s==pZ.messenger.innerHTML) pZ.messenger.innerHTML=s+'&nbsp;'; // beurk
+			else pZ.messenger.innerHTML=s;
 		}
 	}
 	// stopwatch
@@ -4472,7 +4472,6 @@ footer>a:last-of-type
 		pZ.initStopwatch();
 		pZ.initScore();
 		pZ.initGhost();
-		pZ.initMessenger();
 		// observing the board cost too much, thus observe the menu
 		new ResizeObserver((es)=>
 		{
