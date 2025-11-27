@@ -46,6 +46,10 @@ input
 {
 	accent-color:var(--c-colorful);
 }
+html:has(.board.initial)
+{
+	scroll-behavior:smooth;
+}
 body
 {
 	--rf:1;
@@ -113,12 +117,9 @@ body:has(.ghost.dragInProgress)
 	touch-action:none;
 }
 body:has(.board.puzzle) header,
-body:has(.board.puzzle) footer,
-.messenger
+body:has(.board.puzzle) footer
 {
-	position:fixed;
-	top:200vh;
-	pointer-events:none;
+	display:none;
 }
 .menu
 {
@@ -173,6 +174,7 @@ body:has(.board.puzzle) footer,
 	position:fixed;
 	left:0;
 	right:0;
+	margin:0;
 	padding:0.25em 0;
 	opacity:0;
 	pointer-events:none;
@@ -186,12 +188,6 @@ body:has(.board.puzzle) footer,
 {
 	bottom:calc(var(--btnSize) + 4vmin);
 }
-.score img
-{
-	display-block;
-	height:100%;
-	width:auto;
-}
 .stopwatch.show,
 .score.show
 {
@@ -200,6 +196,9 @@ body:has(.board.puzzle) footer,
 .messenger
 {
 	display:block;
+	position:fixed;
+	top:200vh;
+	pointer-events:none;
 }
 dialog
 {
@@ -264,6 +263,11 @@ dialog .tipsAndTricksList>li>ul>li
 dialog .tipsAndTricksList>li
 {
 	margin:var(--u) 0;
+}
+dialog .tipsAndTricksList>li:not(:last-of-type)
+{
+	padding-bottom:var(--u);
+	border-bottom:1px solid #000;
 }
 dialog button
 {
@@ -365,17 +369,16 @@ dialog a
 {
 	stroke:var(--outline-stroke);
 	stroke-width:calc(10px * var(--esz00));
+	filter:var(--magic-filter);
 }
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 a:focus-visible,
-figure:focus-visible,
+figure.ghost:focus-visible,
 summary:focus-visible
 {
-	outline-color:var(--outline-stroke);
-	outline-style:solid;
-	outline-width:0.125rem;
+	outline:0.125rem solid var(--outline-stroke);
 	outline-offset:0.125rem;
 }
 .wait
@@ -508,6 +511,7 @@ h1:after
 }
 .board.initial ul.imgList
 {
+	/* use columns as default display */
 	display:block;
 	columns:auto 10rem;
 	column-gap:min(0.5rem,5vw);
@@ -521,6 +525,51 @@ h1:after
 	padding:0;
 	text-align:center;
 	break-inside:avoid;
+}
+@supports(display:masonry)
+{
+	/* 2025-11-17, chrome, CSS Masonry Layout flag: enabled */
+	.board.initial ul.imgList
+	{
+		display:masonry;
+		columns:initial;
+		column-gap:initial;
+		gap:min(0.5rem,5vw);
+		masonry:repeat(auto-fill,minmax(5rem,1fr));
+	}
+	.board.initial ul.imgList li
+	{
+		break-inside:initial;
+		max-width:20rem;
+		grid-column:span 2;
+	}
+	.board.initial ul.imgList li:has(img.horizontal)
+	{
+		grid-column:span 3;
+	}
+}
+@supports(grid-template-rows:masonry)
+{
+	/* 2025-11-17, firefox, layout.css.grid-template-masonry-value.enabled: true */
+	.board.initial ul.imgList
+	{
+		display:grid;
+		columns:initial;
+		column-gap:initial;
+		gap:min(0.5rem,5vw);
+		grid-template-columns:repeat(auto-fill,minmax(5rem,1fr));
+		grid-template-rows:masonry;
+	}
+	.board.initial ul.imgList li
+	{
+		break-inside:initial;
+		max-width:20rem;
+		grid-column:span 2;
+	}
+	.board.initial ul.imgList li:has(img.horizontal)
+	{
+		grid-column:span 3;
+	}
 }
 .board.initial button.imgSelector
 {
@@ -559,7 +608,7 @@ body>footer
 {
 	padding:0 var(--u);
 }
-body>footer .copyright a
+body>footer a
 {
 	color:var(--color);
 }
@@ -639,6 +688,11 @@ dialog button:hover
 	width:20vmin;
 	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
 }
+.ghost:focus-visible,
+.ghost:focus-visible img /* invert img twice voluntarily */
+{
+	filter:var(--magic-filter);
+}
 .ghost.show
 {
 	display:flex;
@@ -652,7 +706,49 @@ dialog button:hover
 }
 .ghost:hover
 {
-	cursor:sw-resize;
+	cursor:nesw-resize;
+}
+footer>a:last-of-type
+{
+	display:block;
+	margin:0 0 var(--u) 0;
+}
+@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%))
+{
+	footer>a:last-of-type
+	{
+		--ws:min(10vmin,1rem);
+		font-size:var(--ws);
+		position:fixed;
+		z-index:100;
+		color:transparent;
+		background-color:#0003;
+		border-radius:50%;
+		width:calc(var(--ws) * 4);
+		height:calc(var(--ws) * 4);
+		overflow:clip;
+		right:calc(var(--ws) * 2);
+		bottom:calc(var(--ws) * 2);
+		margin:0;
+		scale:0;
+		opacity:0;
+		animation:auto linear forwards;
+		animation-name:reveal;
+		animation-timeline:scroll(y);
+		animation-range:33vh 67vh;
+	}
+	footer>a:last-of-type::before
+	{
+		content:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12"><path fill="none" stroke="white" d="M6 3V9M3 7L6 3L9 7"/></svg>');
+	}
+}
+@keyframes reveal
+{
+  to
+  {
+    opacity:1;
+    scale:1;
+  }
 }
 @media (min-aspect-ratio:7/10)
 {
@@ -721,6 +817,13 @@ dialog button:hover
 	pZ.hashCode=function(s)
 	{
 		return s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+	}
+	pZ.beep=function(d=0.02)
+	{
+		let a=new AudioContext(),o=new OscillatorNode(a);
+		o.connect(a.destination);
+		o.start(0);
+		o.stop(d);
 	}
 	pZ.computeRf=function()
 	{
@@ -829,7 +932,10 @@ dialog button:hover
 					e.addEventListener("click",pZ[`do${a.a}`]);
 				}
 			}
-			pZ.wait.before(dialog);
+			// put the dialog at the top
+			// since when the dialog closes
+			// a screen saver may continue the reading after the dialog position
+			document.body.prepend(dialog);
 		}
 		let h2=dialog.querySelector('h2');
 		if(pZ.noH2Outline) h2.classList.add("noOutline");
@@ -861,7 +967,7 @@ dialog button:hover
 		pZ.wait.setAttribute("height",64);
 		pZ.wait.classList.add("wait","hide");
 		pZ.wait.src="_icon/wait.svg";
-		document.body.append(pZ.wait);
+		pZ.board.after(pZ.wait);
 	}
 	// alea
 	pZ.alea=function(n)
@@ -880,7 +986,7 @@ dialog button:hover
 	}
 	pZ.r2d=function(n)
 	{
-		n=parseFloat(n).toFixed(2);
+		n=(Math.round(n*20)/20).toFixed(2);
 		n=n.replace(/\.00$/,"");
 		n=n.replace(/(\.[1-9])0$/,"$1");
 		return n;
@@ -934,13 +1040,19 @@ dialog button:hover
 		s+="<p>";
 		s+=pZ.locale("How do I zoom in and out?");
 		s+="</p><p>";
-		s+=pZ.locale("Use the browser's zoom function. To reduce or enlarge the puzzle pieces while maintaining the initial zoom level for text and buttons, zoom in or zoom out, then click the Reframe button, then zoom out or zoom in.");
+		s+=pZ.locale("Use the browser's zoom function. To reduce (or enlarge) the puzzle pieces while maintaining the initial zoom level for text and buttons, zoom in (or zoom out), then click the Reframe button, then zoom out (or zoom in).");
 		s+="</p>";
 		s+="</li><li>";
 		s+="<p>";
 		s+=pZ.locale("How do I change the size of the model image with the mouse?");
 		s+="</p><p>";
 		s+=pZ.locale("Click on the model image, then move the mouse while holding down its button.");
+		s+="</p>";
+		s+="</li><li>";
+		s+="<p>";
+		s+=pZ.locale("When the Rotation option is enabled, how can I rotate the puzzle elements?");
+		s+="</p><p>";
+		s+=pZ.locale("Simply double-click on it.");
 		s+="</p>";
 		s+="</li>";
 		s+="</ul>";
@@ -951,6 +1063,18 @@ dialog button:hover
 	{
 		ev.stopPropagation();
 		pZ.doTipsAndTricksAlert();
+	}
+	pZ.initTipsAndTricks=function(container)
+	{
+		let e=document.createElement('img');
+		e.src="_icon/help.svg";
+		e.ariaHidden="true";
+		e.draggable=false;
+		pZ.tipsAndTricks=document.createElement('button');
+		pZ.tipsAndTricks.append(e);
+		pZ.tipsAndTricks.title=pZ.locale("Tips and Tricks");
+		pZ.tipsAndTricks.addEventListener("click",pZ.doClickOnTipsAndTricks);
+		container.append(pZ.tipsAndTricks);
 	}
 	// accessibility
 	pZ.doAccessibilityAlert=function()
@@ -988,11 +1112,14 @@ dialog button:hover
 		s+="</ul>";
 		s+="</li>";
 		s+="<li><p>d"+pZ.locale(": ")+pZ.locale("if a screen reader is activated, describe the selection area if any or the selected puzzle elements if any or the puzzle element in focus")+"</p></li>";
+		s+="<li><p>"+pZ.locale("Shift + ")+"d"+pZ.locale(": ")+pZ.locale("if a screen reader is activated, may describe the puzzle elements in more detail (for example, when the type of pieces is \"quirky\")")+"</p>";
 		s+="<li><p>e"+pZ.locale(": ")+pZ.locale("reframe the puzzle to fit the window")+"</p></li>";
+		s+="<li><p>f"+pZ.locale(": ")+pZ.locale("focus on the model")+"</p></li>";
 		s+="<li><p>g"+pZ.locale(": ")+pZ.locale("cancel the selection and blur focus (useful when one then wants to scroll the window content)")+"</p></li>";
 		s+="<li><p>h"+pZ.locale(": ")+pZ.locale("focus on the Home button")+"</p></li>";
 		s+="<li><p>p"+pZ.locale(": ")+pZ.locale("open the Preferences dialog")+"</p></li>";
 		s+="<li><p>r"+pZ.locale(": ")+pZ.locale("focus on the Restart button")+"</p></li>";
+		s+="<li><p>t"+pZ.locale(": ")+pZ.locale("open the Tips and Tricks dialog")+"</p></li>";
 		s+="</ul>";
 		s+="</section>";
 		s+="<section class=\"selectingAndMoving\">";
@@ -1016,6 +1143,7 @@ dialog button:hover
 		s+="<section class=\"misc\">";
 		s+="<h3>"+pZ.locale("Miscellaneous")+"</h3>";
 		s+="<p>"+pZ.locale("To change the size of the model image, give it the focus then use the arrow keys.")+"</p>";
+		s+="<p>"+pZ.locale("When the Rotation option is enabled, to rotate a puzzle element, give it the focus then press Shift key + Spacebar.")+"</p>";
 		s+="</section>";
 		pZ.noH2Outline=1;
 		pZ.doAlert(pZ.locale("Accessibility"),s);
@@ -1032,7 +1160,6 @@ dialog button:hover
 		e.ariaHidden="true";
 		e.draggable=false;
 		pZ.accessibility=document.createElement('button');
-		pZ.accessibility.classList.add("accessibility");
 		pZ.accessibility.append(e);
 		pZ.accessibility.title=pZ.locale("Accessibility");
 		pZ.accessibility.addEventListener("click",pZ.doClickOnAccessibility);
@@ -1052,6 +1179,8 @@ dialog button:hover
 		e.value=pZ.defaultParams.th;
 		e=document.querySelector('[name="ms"]');
 		e.value=pZ.defaultParams.ms;
+		e=document.querySelector('[name="ro"]');
+		e.checked=pZ.defaultParams.ro?true:false;
 		e=document.querySelector('[name="ric"]');
 		e.checked=pZ.defaultParams.ric?true:false;
 		e=document.querySelector('[name="showsw"]');
@@ -1064,6 +1193,8 @@ dialog button:hover
 		list.forEach((e)=>e.checked=(pZ.defaultParams.scatter===e.value));
 		e=document.querySelector('[name="bkc"]');
 		e.value=pZ.defaultParams.bkc;
+		e=document.querySelector('[name="bo"]');
+		e.checked=pZ.defaultParams.bo?true:false;
 	}
 	pZ.afterEmbossSettings=function()
 	{
@@ -1176,7 +1307,7 @@ dialog button:hover
 			{
 				localStorage.pZ_whmax=pZ.whmax=whmax;
 				pZ.computeWH();
-				changeStatus|=16;
+				changeStatus|=32;
 			}
 		}
 		e=document.querySelector('[name="pt"]');
@@ -1205,6 +1336,16 @@ dialog button:hover
 		}
 		e=document.querySelector('[name="ms"]');
 		if(e) localStorage.pZ_ms=pZ.moveStep=-(-e.value);
+		e=document.querySelector('[name="ro"]');
+		if(e)
+		{
+			let ro=e.checked?1:0;
+			if(ro!=pZ.rotationOn)
+			{
+				localStorage.pZ_ro=pZ.rotationOn=ro;
+				changeStatus|=16;
+			}
+		}	
 		e=document.querySelector('[name="ric"]');
 		if(e) localStorage.pZ_ric=pZ.roundInitialCoordinates=e.checked?1:0;
 		e=document.querySelector('[name="showsw"]');
@@ -1237,23 +1378,28 @@ dialog button:hover
 			localStorage.pZ_bkc=pZ.bkColor=e.value;
 			pZ.setBkColor();
 		}
-		if(pZ.abortSignal) changeStatus|=32;
+		e=document.querySelector('[name="bo"]');
+		if(e) localStorage.pZ_bo=pZ.beepOn=e.checked?1:0;
+		if(pZ.abortSignal) changeStatus|=64;
 		if(pZ.board.querySelector('.figure svg')&&changeStatus)
 		{
-			if(changeStatus==8)
+			if((changeStatus==8)||(changeStatus==16)||(changeStatus==24))
 			{
 				// just change the pieces positions
-				pZ.doScatteringOnly();
-				return;
+				if(changeStatus&8) pZ.doScatteringOnly();
+				if(changeStatus&16) pZ.doRotationOnly();
 			}
-			// in theory localStorage.imgDataUrl can be null here, but not pZ.imgDataUrl
-			if(!localStorage.imgDataUrl&&pZ.imgDataUrl) localStorage.imgDataUrl=pZ.imgDataUrl;
-			pZ.restoreOn=changeStatus;
-			pZ.showWait();
-			pZ.clearFigure();
-			pZ.resetStopwatch();
-			pZ.updateScore();
-			setTimeout(()=>pZ.initPuzzle(),100);
+			else
+			{
+				// in theory localStorage.imgDataUrl can be null here, but not pZ.imgDataUrl
+				if(!localStorage.imgDataUrl&&pZ.imgDataUrl) localStorage.imgDataUrl=pZ.imgDataUrl;
+				pZ.restoreOn=changeStatus;
+				pZ.showWait();
+				pZ.clearFigure();
+				pZ.resetStopwatch();
+				pZ.updateScore();
+				setTimeout(()=>pZ.initPuzzle(),100);
+			}
 		}
 	}
 	pZ.doPreferencesDialog=function()
@@ -1316,12 +1462,14 @@ dialog button:hover
 		s+=makeOption(100,pZ.moveStep);
 		s+="</select>";
 		s+="</label>";
+		s+=makeCheckbox("ro",pZ.rotationOn,"Rotation");
 		s+=makeCheckbox("showsw",pZ.showStopwatch,"Show the stopwatch");
 		s+=makeCheckbox("showsc",pZ.showScore,"Show the score");
 		s+=makeCheckbox("showgh",pZ.showGhost,"Show the model");
 		s+=makeCheckbox("ric",pZ.roundInitialCoordinates,"Round initial coordinates");
 		s+=makeRadio("scatter",pZ.scatter,"Scattering",[{label:pZ.locale("Inside"),value:"inside"},{label:pZ.locale("Outside"),value:"outside"}]);
 		s+=makeColorPicker("bkc",pZ.bkColor,"Background color");
+		s+=makeCheckbox("bo",pZ.beepOn,"Beep when matching");
 		let o=[{n:"OK",a:"PreferencesOK"},{n:"Cancel"},{n:"Reset",l:"Default values",a:"PreferencesReset",t:"button"}];
 		pZ.noH2Outline=1;
 		pZ.doDialog("Preferences",t,s,o);
@@ -1453,6 +1601,7 @@ dialog button:hover
 		pZ.menu=document.createElement('menu');
 		pZ.menu.classList.add("menu");
 		pZ.initMenuItem("Accessibility");
+		pZ.initMenuItem("TipsAndTricks");
 		pZ.initMenuItem("Preferences");
 		pZ.initMenuItem("Reframe");
 		pZ.initMenuItem("Restart");
@@ -1575,34 +1724,42 @@ dialog button:hover
 	}
 	pZ.updateScore=function()
 	{
-		let a=pZ.wh,l,s="";
+		let a=pZ.wh;
 		if(pZ.figure&&!pZ.abortSignal)
 		{
-			if(!pZ.figure.firstChild) l=a;
-			let bzs=[];
-			for(i=0;i<pZ.w;i++)
-				for(j=0;j<pZ.h;j++)
-					if(!bzs.includes(pZ.map[i][j].z)) bzs.push(pZ.map[i][j].z);
-			l=bzs.length;
+			let score=pZ.figure.querySelectorAll('.puzzleElement').length;
+			if(score!==pZ.currentScore)
+			{
+				if((score!=a)&&pZ.beepOn) pZ.beep();
+				pZ.currentScore=score;
+				let s=pZ.locale("Elements remaining to be glued");
+				pZ.score.setAttribute("aria-label",s);
+				pZ.score.innerHTML=score+" / "+a;
+				if(score!=a)
+				{
+					if(!score)
+					{
+						// announce the game over with a delay
+						// to allow screen readers time to announce something else before
+						// otherwise, the score may not be announced
+						s=pZ.locale("Well done! The puzzle is complete!");
+						pZ.setTimeoutId=setTimeout(()=>pZ.updateMessenger(s),3000);
+					}
+					else
+					{
+						s=pZ.locale("Match found!")+pZ.locale(" ")+s;
+						s+=pZ.locale(": ");
+						s+=score+pZ.locale(" out of ")+a;
+						pZ.updateMessenger(s);
+					}
+				}
+			}
 		}
-		else l=0;
-		pZ.currentScore=(l==1)?0:l
-		if(pZ.initialScore)
+		else
 		{
-			pZ.initialScore=0;
-			s=pZ.locale("Puzzle of ")+pZ.w+pZ.locale(" by ")+pZ.h+pZ.locale(" pieces. ");
+			// something went wrong, just set score to -1
+			pZ.currentScore=-1;
 		}
-		if(l==0) ; // does nothing, just wait
-		else if(l==1) s+=pZ.locale("Well done! The puzzle is complete!");
-		else if(l<a)
-		{
-			s+=pZ.locale("Match found! ");
-			s+=pZ.locale("Still ")+l+pZ.locale(" elements to glue.");
-		}
-		else s+=pZ.locale("Still ")+l+pZ.locale(" elements to glue.");
-		pZ.score.setAttribute("aria-label",s);
-		s="<span aria-hidden=\"true\">"+pZ.currentScore+" / "+a+"</span>";
-		pZ.score.innerHTML=s;
 	}
 	pZ.resetScore=function()
 	{
@@ -1611,29 +1768,36 @@ dialog button:hover
 	}
 	pZ.initScore=function()
 	{
-		pZ.score=document.createElement('output');
-		pZ.score.ariaLive="polite";
-		pZ.score.ariaAtomic="true";
+		// 2025-11-24
+		// an output tag should be better
+		// but safari requires ariaLive="polite" to make it working
+		// and in this case it repeats its content twice
+		// firefox ignore the aria-label of an output tag (why???)
+		// the information provided by this tag is not crucial
+		// so one just uses a p tag to inform users silently 
+		pZ.score=document.createElement('p');
 		pZ.score.classList.add("score");
 		pZ.showHideScore();
-		pZ.wait.before(pZ.score);
+		pZ.board.after(pZ.score);
 	}
 	// messenger
 	pZ.updateMessenger=function(s)
 	{
-		if(pZ.messenger.innerHTML==s)
-		{
-			pZ.messenger.remove();
-			pZ.initMessenger();
-		}
-		pZ.messenger.innerHTML=s;
+		if(document.ariaNotify) document.ariaNotify(s,{priority:"high"});
+		else if(s==pZ.messenger.innerHTML) pZ.messenger.innerHTML=s+'&nbsp;'; // beurk
+		else pZ.messenger.innerHTML=s;
 	}
 	pZ.initMessenger=function()
 	{
-		pZ.messenger=document.createElement('output');
-		pZ.messenger.ariaLive="polite";
-		pZ.messenger.classList.add("messenger");
-		pZ.wait.before(pZ.messenger);
+		if(!document.ariaNotify)
+		{
+			// 2025-11-24
+			// workaround when the browser does not know document.ariaNotify
+			pZ.messenger=document.createElement('p');
+			pZ.messenger.ariaLive="assertive";
+			pZ.messenger.classList.add("messenger");
+			pZ.score.after(pZ.messenger);
+		}
 	}
 	// stopwatch
 	pZ.showHideStopwatch=function()
@@ -1676,7 +1840,7 @@ dialog button:hover
 		pZ.stopwatch=document.createElement('time');
 		pZ.stopwatch.classList.add("stopwatch");
 		pZ.showHideStopwatch();
-		pZ.updateStopwatch(); // need it to compute rF
+		pZ.updateStopwatch(); // need it to compute rf
 		pZ.board.before(pZ.stopwatch);
 	}
 	// ghost
@@ -1796,7 +1960,7 @@ dialog button:hover
 	}
 	pZ.clearRestoreData=function()
 	{
-		let whmax,pt,emb,th,ms,ric,showsw,showsc,showgh,scatter,bkc;
+		let whmax,pt,emb,th,ms,ro,ric,showsw,showsc,showgh,scatter,bkc,bo;
 		let sfls=(p)=>
 		{
 			let n="pZ_"+p;
@@ -1807,24 +1971,28 @@ dialog button:hover
 		emb=sfls("emb");
 		th=sfls("th");
 		ms=sfls("ms");
+		ro=sfls("ro");
 		ric=sfls("ric");
 		showsw=sfls("showsw");
 		showsc=sfls("showsc");
 		showgh=sfls("showgh");
 		scatter=sfls("scatter");
 		bkc=sfls("bkc");
+		bo=sfls("bo");
 		localStorage.clear();
 		localStorage.pZ_whmax=whmax;
 		localStorage.pZ_pt=pt;
 		localStorage.pZ_emb=emb;
 		localStorage.pZ_th=th;
 		localStorage.pZ_ms=ms;
+		localStorage.pZ_ro=ro;
 		localStorage.pZ_ric=ric;
 		localStorage.pZ_showsw=showsw;
 		localStorage.pZ_showsc=showsc;
 		localStorage.pZ_showgh=showgh;
 		localStorage.pZ_scatter=scatter;
 		localStorage.pZ_bkc=bkc;
+		localStorage.pZ_bo=bo;
 	}
 	pZ.doGameOver=function()
 	{
@@ -1842,8 +2010,7 @@ dialog button:hover
 		pZ.dY=dY;
 		pZ.centerFigure();
 		pZ.figure.style.removeProperty("background-image");
-		pZ.figure.replaceChildren();
-		pZ.figure.append(pZ.figcaption);
+		pZ.figure.querySelector('.puzzleElement').remove();
 		pZ.pauseStopwatch();
 		pZ.clearRestoreData();
 	}
@@ -1903,14 +2070,76 @@ dialog button:hover
 			}
 		}
 	}
+	pZ.gXo=function(svg)
+	{
+		if(!pZ.rotationOn||!svg.pZ.rotation) return svg.pZ.x;
+		let cx,cy;
+		cx=(svg.pZ.imax-svg.pZ.imin+1)/2;
+		cy=(svg.pZ.jmax-svg.pZ.jmin+1)/2;
+		if(svg.pZ.rotation==90) return svg.pZ.x+cx+cy-1;
+		if(svg.pZ.rotation==180) return svg.pZ.x+cx+cx-1;
+		if(svg.pZ.rotation==270) return svg.pZ.x+cx-cy;
+		return svg.pZ.x;
+	}
+	pZ.gYo=function(svg)
+	{
+		if(!pZ.rotationOn||!svg.pZ.rotation) return svg.pZ.y;
+		cx=(svg.pZ.imax-svg.pZ.imin+1)/2;
+		cy=(svg.pZ.jmax-svg.pZ.jmin+1)/2;
+		if(svg.pZ.rotation==90) return svg.pZ.y+cy-cx;
+		if(svg.pZ.rotation==180) return svg.pZ.y+cy+cy-1;
+		if(svg.pZ.rotation==270) return svg.pZ.y+cy+cx-1;
+		return svg.pZ.y;
+	}
+	pZ.gXn=function(svg)
+	{
+		if(!pZ.rotationOn||!svg.pZ.rotation) return svg.pZ.x+svg.pZ.imax-svg.pZ.imin;
+		let cx,cy;
+		cx=(svg.pZ.imax-svg.pZ.imin+1)/2;
+		cy=(svg.pZ.jmax-svg.pZ.jmin+1)/2;
+		if(svg.pZ.rotation==90) return svg.pZ.x+cx+(cy-(svg.pZ.jmax-svg.pZ.jmin))-1;
+		if(svg.pZ.rotation==180) return svg.pZ.x+cx+(cx-(svg.pZ.imax-svg.pZ.imin))-1;
+		if(svg.pZ.rotation==270) return svg.pZ.x+cx-(cy-(svg.pZ.jmax-svg.pZ.jmin));
+		return svg.pZ.x+svg.pZ.imax-svg.pZ.imin+1;
+	}
+	pZ.gYn=function(svg)
+	{
+		if(!pZ.rotationOn||!svg.pZ.rotation) return svg.pZ.y+svg.pZ.jmax-svg.pZ.jmin;
+		cx=(svg.pZ.imax-svg.pZ.imin+1)/2;
+		cy=(svg.pZ.jmax-svg.pZ.jmin+1)/2;
+		if(svg.pZ.rotation==90) return svg.pZ.y+cy-(cx-(svg.pZ.imax-svg.pZ.imin));
+		if(svg.pZ.rotation==180) return svg.pZ.y+cy+(cy-(svg.pZ.jmax-svg.pZ.jmin))-1;
+		if(svg.pZ.rotation==270) return svg.pZ.y+cy+(cx-(svg.pZ.imax-svg.pZ.imin))-1;
+		return svg.pZ.y+svg.pZ.jmax-svg.pZ.jmin+1;
+	}
+	pZ.gX=function(m)
+	{
+		if(!pZ.rotationOn||!m.svg.pZ.rotation) return m.svg.pZ.x-(m.svg.pZ.imin-m.i);
+		let cx,cy;
+		cx=(m.svg.pZ.imax-m.svg.pZ.imin+1)/2;
+		cy=(m.svg.pZ.jmax-m.svg.pZ.jmin+1)/2;
+		if(m.svg.pZ.rotation==90) return m.svg.pZ.x+cx+(cy-(m.j-m.svg.pZ.jmin))-1;
+		if(m.svg.pZ.rotation==180) return m.svg.pZ.x+cx+(cx-(m.i-m.svg.pZ.imin))-1;
+		if(m.svg.pZ.rotation==270) return m.svg.pZ.x+cx-(cy-(m.j-m.svg.pZ.jmin));
+		return m.svg.pZ.x-(m.svg.pZ.imin-m.i);
+	}
+	pZ.gY=function(m)
+	{
+		if(!pZ.rotationOn||!m.svg.pZ.rotation) return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);
+		cx=(m.svg.pZ.imax-m.svg.pZ.imin+1)/2;
+		cy=(m.svg.pZ.jmax-m.svg.pZ.jmin+1)/2;
+		if(m.svg.pZ.rotation==90) return m.svg.pZ.y+cy-(cx-(m.i-m.svg.pZ.imin));
+		if(m.svg.pZ.rotation==180) return m.svg.pZ.y+cy+(cy-(m.j-m.svg.pZ.jmin))-1;
+		if(m.svg.pZ.rotation==270) return m.svg.pZ.y+cy+(cx-(m.i-m.svg.pZ.imin))-1;
+		return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);
+	}
 	pZ.saveElement=function(svg)
 	{
-		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
-		function gY(m){return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);}
 		for(let m of svg.pZ.m.z)
 		{
-			localStorage["l"+m.i+"_"+m.j]=Math.round(gX(m)*pZ.esz-pZ.to);
-			localStorage["t"+m.i+"_"+m.j]=Math.round(gY(m)*pZ.esz-pZ.to);
+			localStorage["l"+m.i+"_"+m.j]=Math.round(pZ.gX(m)*pZ.esz-pZ.to);
+			localStorage["t"+m.i+"_"+m.j]=Math.round(pZ.gY(m)*pZ.esz-pZ.to);
+			if(pZ.rotationOn) localStorage["r"+m.i+"_"+m.j]=svg.pZ.rotation;
 		}
 	}
 	pZ.perimeter=function(first)
@@ -1918,11 +2147,11 @@ dialog button:hover
 		let next=first,
 			border=1,
 			d=first.ds.d1,
-			c=first.ds.c1;
+			p=[{m:first,b:1}];
 		let k=0,km=pZ.wh*4; // just to avoid infinite loop when coding error
 		do
 		{
-			let dd="",cc="";
+			let dd="";
 			k++;
 			if(border==1) // 214
 			{
@@ -1930,21 +2159,18 @@ dialog button:hover
 				{
 					border=2;
 					dd=next.ds.d2;
-					cc=next.ds.c2;
 				}
 				else if ((next.j==0)
 					||(pZ.map[next.i+1][next.j-1].svg!=pZ.map[next.i+1][next.j].svg))
 				{
 					next=pZ.map[next.i+1][next.j];
 					dd=next.ds.d1;
-					cc=next.ds.c1;
 				}
 				else
 				{
 					border=4;
 					next=pZ.map[next.i+1][next.j-1];
 					dd=next.ds.d4;
-					cc=next.ds.c4;
 				}
 			}
 			else if(border==2) // 321
@@ -1954,21 +2180,18 @@ dialog button:hover
 				{
 					border=3;
 					dd=next.ds.d3;
-					cc=next.ds.c3;
 				}
 				else if ((next.i==(pZ.w-1))
 					||(pZ.map[next.i+1][next.j+1].svg!=pZ.map[next.i][next.j+1].svg))
 				{
 					next=pZ.map[next.i][next.j+1];
 					dd=next.ds.d2;
-					cc=next.ds.c2;
 				}
 				else
 				{
 					border=1;
 					next=pZ.map[next.i+1][next.j+1];
 					dd=next.ds.d1;
-					cc=next.ds.c1;
 				}
 			}
 			else if(border==3) // 432
@@ -1978,21 +2201,18 @@ dialog button:hover
 				{
 					border=4;
 					dd=next.ds.d4;
-					cc=next.ds.c4;
 				}
 				else if ((next.j==(pZ.h-1))
 					||(pZ.map[next.i-1][next.j+1].svg!=pZ.map[next.i-1][next.j].svg))
 				{
 					next=pZ.map[next.i-1][next.j];
 					dd=next.ds.d3;
-					cc=next.ds.c3;
 				}
 				else
 				{
 					border=2;
 					next=pZ.map[next.i-1][next.j+1];
 					dd=next.ds.d2;
-					cc=next.ds.c2;
 				}
 			}
 			else // 143
@@ -2001,43 +2221,53 @@ dialog button:hover
 				{
 					border=1;
 					dd=next.ds.d1;
-					cc=next.ds.c1;
 				}
 				else if ((next.i==0)
 					||(pZ.map[next.i-1][next.j-1].svg!=pZ.map[next.i][next.j-1].svg))
 				{
 					next=pZ.map[next.i][next.j-1];
 					dd=next.ds.d4;
-					cc=next.ds.c4;
 				}
 				else
 				{
 					border=3;
 					next=pZ.map[next.i-1][next.j-1];
 					dd=next.ds.d3;
-					cc=next.ds.c3;
 				}
 			}
 			if(border==1) next.ds.bb|=16;
 			if((first==next)&&(border==1)) break; // definition completed
-			else {d+=dd;c+=pZ.locale(", ")+cc;}
+			else
+			{
+				d+=dd;
+				p.push({m:next,b:border});
+			}
 		} while (k<km);
-		return {d:d,c:c};
+		return {d:d,p:p};
 	}
 	pZ.doGluing=function(a)
 	{
 		if(!(a.ds.bb&15)||a.englued) return;
-		function gX(m){return m.svg.pZ.x-(m.svg.pZ.imin-m.i);}
-		function gY(m){return m.svg.pZ.y-(m.svg.pZ.jmin-m.j);}
 		function concatZ(a,b){let bz=b.z.concat(a.z);for(let m of bz) m.z=bz;}
-		let i=a.i,j=a.j,o=null,ax=gX(a),ay=gY(a);
+		let i=a.i,j=a.j,o=null,ax=pZ.gX(a),ay=pZ.gY(a);
+		let t=pZ.threshold/100;
+		let dx,dy;
 		pZ.updateMinMax(ax*pZ.esz-pZ.to,ay*pZ.esz-pZ.to);
 		if((j>0)&&(a.ds.bb&1))
 		{
 			let b=pZ.map[i][j-1];
+			if(pZ.rotationOn)
+			{
+				if(a.svg.pZ.rotation==90) {dx=1;dy=0;}
+				else if(a.svg.pZ.rotation==180) {dx=0;dy=1;}
+				else if(a.svg.pZ.rotation==270) {dx=-1;dy=0;}
+				else {dx=0;dy=-1;}
+			}
+			else {dx=0;dy=-1;}
 			if(!b.englued
-				&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)
-				&&(Math.abs(ay-gY(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ax-pZ.gX(b)+dx)<t)
+				&&(Math.abs(ay-pZ.gY(b)+dy)<t)
+				&&(!pZ.rotationOn||(a.svg.pZ.rotation==b.svg.pZ.rotation))
 				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
@@ -2047,9 +2277,18 @@ dialog button:hover
 		if((i<(pZ.w-1))&&(a.ds.bb&2))
 		{
 			let b=pZ.map[i+1][j];
+			if(pZ.rotationOn)
+			{
+				if(a.svg.pZ.rotation==90) {dx=0;dy=1;}
+				else if(a.svg.pZ.rotation==180) {dx=-1;dy=0;}
+				else if(a.svg.pZ.rotation==270) {dx=0;dy=-1;}
+				else {dx=1;dy=0;}
+			}
+			else {dx=1;dy=0;}
 			if(!b.englued
-				&&(Math.abs(ax-gX(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)
-				&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ax-pZ.gX(b)+dx)<t)
+				&&(Math.abs(ay-pZ.gY(b)+dy)<t)
+				&&(!pZ.rotationOn||(a.svg.pZ.rotation==b.svg.pZ.rotation))
 				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
@@ -2059,9 +2298,18 @@ dialog button:hover
 		if((j<(pZ.h-1))&&(a.ds.bb&4))
 		{
 			let b=pZ.map[i][j+1];
+			if(pZ.rotationOn)
+			{
+				if(a.svg.pZ.rotation==90) {dx=-1;dy=0;}
+				else if(a.svg.pZ.rotation==180) {dx=0;dy=-1;}
+				else if(a.svg.pZ.rotation==270) {dx=1;dy=0;}
+				else {dx=0;dy=1;}
+			}
+			else {dx=0;dy=1;}
 			if(!b.englued
-				&&(Math.abs(ax-gX(b))*pZ.esz<pZ.threshold*pZ.esz00)
-				&&(Math.abs(ay-gY(b)+1)*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ax-pZ.gX(b)+dx)<t)
+				&&(Math.abs(ay-pZ.gY(b)+dy)<t)
+				&&(!pZ.rotationOn||(a.svg.pZ.rotation==b.svg.pZ.rotation))
 				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
@@ -2071,9 +2319,18 @@ dialog button:hover
 		if((i>0)&&(a.ds.bb&8))
 		{
 			let b=pZ.map[i-1][j];
+			if(pZ.rotationOn)
+			{
+				if(a.svg.pZ.rotation==90) {dx=0;dy=-1;}
+				else if(a.svg.pZ.rotation==180) {dx=1;dy=0;}
+				else if(a.svg.pZ.rotation==270) {dx=0;dy=1;}
+				else {dx=-1;dy=0;}
+			}
+			else {dx=-1;dy=0;}
 			if(!b.englued
-				&&(Math.abs(ax-gX(b)-1)*pZ.esz<pZ.threshold*pZ.esz00)
-				&&(Math.abs(ay-gY(b))*pZ.esz<pZ.threshold*pZ.esz00)
+				&&(Math.abs(ax-pZ.gX(b)+dx)<t)
+				&&(Math.abs(ay-pZ.gY(b)+dy)<t)
+				&&(!pZ.rotationOn||(a.svg.pZ.rotation==b.svg.pZ.rotation))
 				&&!b.z.includes(a))
 			{
 				concatZ(a,b);
@@ -2082,8 +2339,14 @@ dialog button:hover
 		}
 		if(o)
 		{
-			let svgo=o.svg;
-			let imin=pZ.w,jmin=pZ.h,imax=0,jmax=0,svg=a.svg;
+			let svgo=o.svg,ox,oy;
+			if(pZ.rotationOn&&svgo.pZ.rotation)
+			{
+				ox=pZ.gX(o);
+				oy=pZ.gY(o);
+			}
+			let svg=a.svg;
+			let imin=pZ.w,jmin=pZ.h,imax=0,jmax=0;
 			let xo=svgo.pZ.x,
 				yo=svgo.pZ.y,
 				imino=svgo.pZ.imin,
@@ -2095,21 +2358,17 @@ dialog button:hover
 				imax=Math.max(imax,m.i);
 				jmax=Math.max(jmax,m.j);
 			}
-			let w=(imax-imin+1)*pZ.esz2to,h=(jmax-jmin+1)*pZ.esz2to;
-			svg.setAttributeNS(null,"viewBox","0 0 "+w+" "+h);
-			svg.setAttribute("width",w);
-			svg.setAttribute("height",h);
-			let d="",c=[];
+			let w=(imax-imin+1)*pZ.esz+2*pZ.to,h=(jmax-jmin+1)*pZ.esz+2*pZ.to;
 			let newX=xo+imin-imino;
 			let newY=yo+jmin-jmino;
-			svg.pZ.x=newX;
-			svg.pZ.y=newY;
 			svg.pZ.imin=imin;
 			svg.pZ.jmin=jmin;
 			svg.pZ.imax=imax;
 			svg.pZ.jmax=jmax;
-			svg.style.left=newX*pZ.esz-pZ.to+"px";
-			svg.style.top=newY*pZ.esz-pZ.to+"px";
+			svg.setAttributeNS(null,"viewBox","0 0 "+w+" "+h);
+			svg.setAttribute("width",w);
+			svg.setAttribute("height",h);
+			let d="",c=[],p=[];
 			if(pZ.internalBordersOn) for(let m of a.z)
 			{
 				m.img.setAttributeNS(null,"x",(m.i-imin)*pZ.esz);
@@ -2130,30 +2389,43 @@ dialog button:hover
 				{
 					let m=pZ.map[ki][kj];
 					if((svg==m.svg)&&!(m.ds.bb&16)&&(m.ds.bb&1))
-					// same svg as the glued svg, not checked yet
-					// start at the first piece on the external top border
+					// start at the first piece to the left with an external top border
 					{
 						let xo,yo,pe=pZ.perimeter(m);
 						xo=parseFloat(m.ds.d10.replace(/^m([e0-9.-]+) [e0-9.-]+$/i,"$1"));
 						yo=parseFloat(m.ds.d10.replace(/^m[e0-9.-]+ ([e0-9.-]+)$/i,"$1"));
 						d+="M"+((ki-imin)*pZ.esz+xo)+" "+((kj-jmin)*pZ.esz+yo)+pe.d+"z";
-						c.push({c:pe.c,ip:ki-imin,jp:kj-jmin});
-						// must continue in case there are "holes" amid the elements
+						p.push({ip:ki-imin,jp:kj-jmin,p:pe.p});
+						// must continue in case there are "holes" inside the elements
 					}
 				}
 			for(let kj=jmin;kj<=jmax;kj++)
 			{
 				if(pZ.map[imin][kj].svg==svg)
 				{
-					svg.pZ.m=pZ.map[imin][kj];
+					svg.pZ.m=pZ.map[imin][kj]; // leftmost then topmost piece of the svg 
 					break;
 				}
 			}
+			// set it (newX,newY) at the very last moment
+			// since in case of rotation, one has to recompute pZ.gX(o) and pZ.gY(o)
+			svg.pZ.x=newX;
+			svg.pZ.y=newY;
+			if(pZ.rotationOn&&svg.pZ.rotation)
+			{
+				// have to adapt (newX,newY)
+				newX-=(pZ.gX(o)-ox);
+				newY-=(pZ.gY(o)-oy);
+				svg.pZ.x=newX;
+				svg.pZ.y=newY;
+			}
+			svg.style.left=newX*pZ.esz-pZ.to+"px";
+			svg.style.top=newY*pZ.esz-pZ.to+"px";
 			let outline=svg.querySelector('path.outline');
 			svg.append(outline);
 			outline.setAttributeNS(null,"d",d);
 			svg.style.setProperty("clip-path","path('"+d+"')");
-			svg.pZ.content=c;
+			svg.pZ.perimeters=p;
 			pZ.updatePuzzleElementLabel(svg);
 			let xbp=pZ.to-imin*pZ.esz,ybp=pZ.to-jmin*pZ.esz+pZ.ho;
 			if(!pZ.internalBordersOn)
@@ -2170,8 +2442,13 @@ dialog button:hover
 				let left,top;
 				e.pZ.movedPieceX=e.pZ.movedPieceX-pZ.lastClientX+ev.clientX;
 				e.pZ.movedPieceY=e.pZ.movedPieceY-pZ.lastClientY+ev.clientY;
-				left=(e.pZ.movedPieceX-pZ.figureX)/pZ.rf,
+				left=(e.pZ.movedPieceX-pZ.figureX)/pZ.rf;
 				top=(e.pZ.movedPieceY-pZ.figureY)/pZ.rf;
+				if(pZ.rotationOn)
+				{
+					left-=pZ.rotationDeltaX;
+					top-=pZ.rotationDeltaY;
+				}
 				e.pZ.x=(left+pZ.to)/pZ.esz;
 				e.pZ.y=(top+pZ.to)/pZ.esz;
 				e.style.left=left+"px";
@@ -2220,12 +2497,22 @@ dialog button:hover
 			pZ.selectedAreaX=bs.x;
 			pZ.selectedAreaY=bs.y;
 		}
+		let first=1;
 		for(let e2 of pZ.selectedElements)
 		{
 			pZ.sendAbove(e2);
 			let be2=e2.getBoundingClientRect();
-				e2.pZ.movedPieceX=be2.x;
-				e2.pZ.movedPieceY=be2.y;
+			e2.pZ.movedPieceX=be2.x;
+			e2.pZ.movedPieceY=be2.y;
+			if(pZ.rotationOn&&first)
+			{
+				let top,left,x,y;
+				left=(e2.pZ.movedPieceX-pZ.figureX)/pZ.rf,
+				top=(e2.pZ.movedPieceY-pZ.figureY)/pZ.rf;
+				pZ.rotationDeltaX=left-e2.pZ.x*pZ.esz+pZ.to;
+				pZ.rotationDeltaY=top-e2.pZ.y*pZ.esz+pZ.to;
+				first=0;
+			}
 		}
 		pZ.sendAbove(e);
 		if(pZ.selectedArea) pZ.selectedArea.style.setProperty("z-index",pZ.zIndex);
@@ -2236,40 +2523,66 @@ dialog button:hover
 		let e=pZ.getSvg(ev,"puzzleElement");
 		if(!e) return;
 		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
-		if(pZ.movedPiece&&(e==pZ.movedPiece))
-		{
-			pZ.minMaxChange=0;
-			// when e.pZ.m.z is changed in doGluing(), z is a new array
-			// so e.pZ.m.z in for(let m of e.pZ.m.z) continues to refer to the old z
-			for(let e2 of pZ.selectedElements)
-			{
-				let mo=e2.pZ.m.z[0];
-				for(let m of e2.pZ.m.z) pZ.doGluing(m);
-				pZ.saveElement(mo.svg);
-				pZ.updatePuzzleElementLabel(mo.svg);
-			}
-			pZ.updateScore();
-			if(pZ.isPuzzleCompleted()) {pZ.doGameOver();pZ.movedPiece=null;return;}
-			else if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea();
-			pZ.dirty=1;
-		}
+		e.removeEventListener('pointermove',pZ.dragContinue);
+		if(e==pZ.movedPiece) pZ.match(pZ.selectedElements);
 		else
 		{
 			pZ.clearSelectedArea();
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		}
-		e.removeEventListener('pointermove',pZ.dragContinue);
 		pZ.movedPiece=null;
+	}
+	pZ.rotate2=function(e)
+	{
+		if(e.pZ.rotation>=360) e.pZ.rotation=0;
+		else if(e.pZ.rotation<0) e.pZ.rotation=270;
+		if(!e.pZ.rotation) e.style.removeProperty("transform");
+		else e.style.setProperty("transform","rotate("+e.pZ.rotation+"deg)");
+	}
+	pZ.rotate=function(e,r)
+	{
+		if(!e.pZ.rotation) e.pZ.rotation=0; // in case of e.pZ.rotation is undefined
+		e.pZ.rotation+=r;
+		pZ.rotate2(e);
+		pZ.saveElement(e);
+	}
+	pZ.rotateWhenDblClick=function(ev)
+	{
+		//if(!ev.isPrimary) return; // does not work for dblclick?
+		if(pZ.selectedArea||pZ.hasSomeSelectedByKeyboard)
+		{
+			ev.preventDefault();
+			ev.stopPropagation();
+			pZ.clearSelectedArea();
+			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+			return;
+		}
+		let e=pZ.getSvg(ev,"puzzleElement");
+		if(!e) return;
+		ev.preventDefault();
+		ev.stopPropagation();
+		pZ.rotate(e,ev.shiftKey?-90:90);
+		pZ.updateMessenger(pZ.locale("Rotation"));
+		pZ.match([e]);
 	}
 	pZ.updatePuzzleElementLabel=function(e)
 	{
 		let s="",x,y,n;
-		x=pZ.r2d(e.pZ.x+1);
-		y=pZ.r2d(e.pZ.y+1);
+		// e(x of imin,y of jmin) or e.pZ.m(x of ip,y of jp)?
+		x=pZ.r2d(pZ.gXo(e)+1);
+		y=pZ.r2d(pZ.gYo(e)+1);
 		n=e.pZ.m.z.length;
-		s+=pZ.locale("element of ");
-		s+=n+pZ.locale(" ")+((n>1)?pZ.locale("pieces"):pZ.locale("piece"));
-		s+=pZ.locale(" on ")+pZ.locale("(")+x+", "+y+pZ.locale(")");
+		s+=n+pZ.locale(" ")+((n>1)?pZ.locale("glued pieces"):pZ.locale("piece"));
+		s+=pZ.locale(" on ");
+		if(n==1) s+=pZ.locale("(")+x+", "+y+pZ.locale(")");
+		else
+		{
+			let x2=pZ.r2d(pZ.gXn(e)+1);
+			let y2=pZ.r2d(pZ.gYn(e)+1);
+			s+=pZ.locale("(")+Math.min(x,x2)+", "+Math.min(y,y2)+pZ.locale(")");
+			s+=pZ.locale(" to ");
+			s+=pZ.locale("(")+Math.max(x,x2)+", "+Math.max(y,y2)+pZ.locale(")");
+		}
 		e.ariaLabel=pZ.ucFirst(s);
 	}
 
@@ -2282,12 +2595,14 @@ dialog button:hover
 		pZ.afterEmbossSettings();
 		localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th;
 		localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
+		localStorage.pZ_ro=pZ.rotationOn=pZ.defaultParams.ro;
 		localStorage.pZ_ric=pZ.roundInitialCoordinates=pZ.defaultParams.ric;
 		localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
 		localStorage.pZ_showsc=pZ.showScore=pZ.defaultParams.showsc;
 		localStorage.pZ_showgh=pZ.showGhost=pZ.defaultParams.showgh;
 		localStorage.pZ_scatter=pZ.scatter=pZ.defaultParams.scatter;
 		localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
+		localStorage.pZ_bo=pZ.beepOn=pZ.defaultParams.bo;
 	}
 	
 	pZ.abort=function(t)
@@ -2307,9 +2622,9 @@ dialog button:hover
 
 	pZ.terminateInitPuzzle=function()
 	{
-		let t1 = performance.now();
+		let t1 = performance.now(),s=pZ.locale("Puzzle of ")+pZ.w+pZ.locale(" by ")+pZ.h+pZ.locale(" pieces");
 		pZ.figcaption=document.createElement('figcaption');
-		pZ.figcaption.innerHTML=pZ.locale("Puzzle");
+		pZ.figcaption.innerHTML=s;
 		pZ.figure.append(pZ.figcaption);
 		// suffle puzzle pieces
 		// if not, when using tab and tab+shift, the pieces may be in the final order
@@ -2340,6 +2655,7 @@ dialog button:hover
 		pZ.dirty=0;
 		pZ.reframe();
 		pZ.hideWait();
+		pZ.updateMessenger(s);
 		t1 = performance.now();
 	}
 
@@ -2450,6 +2766,9 @@ dialog button:hover
 		elementImg.setAttribute("y",0);
 		elementImg.setAttribute("width",esz2to);
 		elementImg.setAttribute("height",esz2to);
+		// set "aria-hidden" to "true" otherwise some screen readers
+		// (for instance safari+voiceover) may annonce "image" when reading the page
+		elementImg.setAttribute("aria-hidden","true");
 		// transforming the embossed svg in a bitmap image is decisive for play speed
 		let img=new Image();
 		img.addEventListener("load",()=>
@@ -2573,7 +2892,7 @@ dialog button:hover
 
 	pZ.generateTopLeft=function(i,j)
 	{
-		let left,top,a,b,k,ko,po;
+		let left,top,a,b,c,k,ko,po;
 		let e=(pZ.moveStep<=50)?pZ.moveStep:0;
 		if((pZ.scatter=="outside")&&pZ.kScatter&&pZ.kScatter.length&&pZ.pScatter&&pZ.pScatter.length)
 		{
@@ -2681,11 +3000,39 @@ dialog button:hover
 				}
 			}
 	}
+	pZ.doRotationOnly=function()
+	{
+		let svgs=pZ.figure.querySelectorAll('.puzzleElement');
+		if(pZ.rotationOn)
+		{
+			pZ.figure.addEventListener('dblclick',pZ.rotateWhenDblClick);
+			for(let svg of svgs)
+			{
+				// no change, just init svg.pZ.rotation and save it in the localStorage
+				svg.pZ.rotation=0;
+				pZ.saveElement(svg);
+			}
+		}
+		else
+		{
+			pZ.figure.removeEventListener('dblclick',pZ.rotateWhenDblClick);
+			for(let svg of svgs)
+			{
+				// remove the rotation effect if any,
+				// save the change in the localStorage,
+				// update the aria-label
+				svg.pZ.rotation=0;
+				pZ.rotate2(svg);
+				pZ.saveElement(svg);
+				pZ.updatePuzzleElementLabel(svg);
+			}
+		}	
+	}
 	pZ.initElement=function(i,j,to,ho,hor,a,qt,qa,qx,qy)
 	{
 		if(pZ.abortSignal) return;
 		let svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-		let d,d1,d2,d3,d4,d10,d20,d30,d40,left,top,x,y,c="",c1,c2,c3,c4;
+		let d,d1,d2,d3,d4,d10,d20,d30,d40,left,top,x,y;
 		pZ.map[i][j]={svg:svg,i:i,j:j};
 		pZ.map[i][j].z=[pZ.map[i][j]];
 		svg.pZ={m:pZ.map[i][j]};
@@ -2705,81 +3052,28 @@ dialog button:hover
 		let anRef=15*pZ.esz00;
 		let qaRef=pZ.esz00;
 		let adRef=50*pZ.esz00;
+		// desc
+		// tmt: tenon or mortise type, mortise (<0) or tenon (>0) or straight (=0)
+		// qt: tenon or mortise offset, to begin (<0), to end (>0), centered (=0)
+		// qa: tenon or mortise size, small (<0), big (>0) or medium (=0)
+		// qx: corner abscissa offset, -2, -1, 0, 1, 2
+		// qy: corner ordinate offset, -2, -1, 0, 1, 2
+		let desc=[];
 		if((pZ.pt=="quirky")||(pZ.pt=="curvy"))
 		{
 			let kb,kt,kx1,ky1,kx2,ky2,ad,an,af,qtt,qxy1,qxy2,qaa;
 			let sl,px1,px2,px3,px4,py1,py2,py3,py4,aaa;
-			function buildTom(z,qt,a,qaa)
-			{
-				let s="";
-				if(a) s+=(pZ.pt=="curvy")?"":(qaa>0)?"big ":(qaa<0)?"small ":"";
-				s+=(a<0)?"mortise":(a>0)?"tenon":"straight";
-				s=pZ.locale(s);
-				if(pZ.pt=="curvy") return s;
-				switch(z)
-				{
-					case 0:
-						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset to the left");
-						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset to the right");
-						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
-						break;
-					case 1:
-						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset upwards");
-						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset downwards");
-						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
-						break;
-					case 2:
-						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset to the right");
-						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset to the left");
-						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
-						break;
-					case 3:
-						if(qt<0) s+=pZ.locale(" ")+pZ.locale("offset downwards");
-						else if(qt>0) s+=pZ.locale(" ")+pZ.locale("offset upwards");
-						else if(a) s+=pZ.locale(" ")+pZ.locale("centered");
-						break;
-				}
-				return s;
-			}
-			function buildAo(z,x,y)
-			{
-				let s="";
-				switch(z)
-				{
-					case 0:s+=pZ.locale("top right corner");break;
-					case 1:s+=pZ.locale("bottom right corner");break;
-					case 2:s+=pZ.locale("bottom left corner");break;
-					case 3:s+=pZ.locale("top left corner");break;
-				}
-				s+=pZ.locale(", ");
-				switch(x)
-				{
-					case -2:s+=pZ.locale("very negative abscissa offset");break;
-					case -1:s+=pZ.locale("negative abscissa offset");break;
-					case 0:s+=pZ.locale("abscissa without offset");break;
-					case 1:s+=pZ.locale("positive abscissa offset");break;
-					case 2:s+=pZ.locale("very positive abscissa offset");break;
-				}
-				s+=pZ.locale(", ");
-				switch(y)
-				{
-					case -2:s+=pZ.locale("very negative ordinate offset");break;
-					case -1:s+=pZ.locale("negative ordinate offset");break;
-					case 0:s+=pZ.locale("ordinate without offset");break;
-					case 1:s+=pZ.locale("positive ordinate offset");break;
-					case 2:s+=pZ.locale("very positive ordinate offset");break;
-				}
-				return s;
-			}
 			// top
-			qtt=((j==1)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
 			qxy1=((j==0)||(j==1)||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
 			kx1=qxy1*qx[i][j][0];
 			ky1=qxy1*qy[i][j][0];
 			kx2=qxy1*qx[i][j][1];
+			ky2=qxy1*qy[i][j][1];
+			d10="m"+(to+kx1)+" "+(to+hoj0+ky1);
+			d1="";
 			if(a[i][j][0])
 			{
-				ky2=qxy1*qy[i][j][1];
+				qtt=((j==1)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
 				kt=qtt*qt[i][j][0];
 				kb=a[i][j][0]*bRef;
 				qaa=qa[i][j][0]*qaRef;
@@ -2799,117 +3093,117 @@ dialog button:hover
 				px5=ad+kt;
 				py5=px5*sl+kb;
 				aaa="a"+an+" "+an+((a[i][j][0]>0)?" 0 1 0 ":" 1 1 1 ");
+				d1+="q"+px1+" "+py1+" "+px2+" "+py2+aaa+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
 			}
-			d10="m"+(to+kx1)+" "+(to+hoj0+ky1);
-			d1="";
-			c1=pZ.locale("top edge")+pZ.locale(", ")+buildTom(0,-qt[i][j][0],-a[i][j][0],qaa);
-			if(pZ.pt=="quirky") c1+=(pZ.locale(", ")+buildAo(0,qx[i][j][1],qy[i][j][1]));
-			if(a[i][j][0]) d1+="q"+px1+" "+py1+" "+px2+" "+py2+aaa+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
 			else d1+="h"+(pZ.esz-kx1+kx2);
-			
+			desc[0]={tmt:-a[i][j][0],qt:-qt[i][j][0],qa:qa[i][j][0],qx:qx[i][j][1],qy:qy[i][j][1]};
+
 			// right
-			qtt=((j==0)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
 			qxy1=((j==0)||(j==1)||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
 			qxy2=((j==0)||(j==(pZ.h-2))||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
-			kt=qtt*qt[i][j][1];
 			kx1=qxy1*qx[i][j][1];
 			ky1=qxy1*qy[i][j][1];
 			kx2=qxy2*qx[i][j][2];
 			ky2=qxy2*qy[i][j][2];
-			kb=a[i][j][1]*bRef;
-			qaa=qa[i][j][1]*qaRef;
-			an=anRef+qaa;
-			ad=adRef-an/2;
-			af=pZ.esz-2*ad;
-			ad=ad-(ky1-ky2)/2-hoo/2;
-			
-			sl=(kx2-kx1)/(pZ.esz-hoo-ky1+ky2);
-			py1=(ad-kt)/2;
-			px1=py1*sl+kb;
-			py2=ad-kt;
-			px2=py2*sl+kb;
-			py3=af;
-			px3=py3*sl;
-			py4=(ad+kt)/2;
-			px4=py4*sl;
-			py5=ad+kt;
-			px5=py5*sl-kb;
 			d20="m"+(to+pZ.esz+kx1)+" "+(to+hoj0+ky1);
 			d2="";
-			c2=pZ.locale("right edge")+pZ.locale(", ")+buildTom(1,-qt[i][j][1],-a[i][j][1],qaa);
-			if(pZ.pt=="quirky") c2+=(pZ.locale(", ")+buildAo(1,qx[i][j][2],qy[i][j][2]));
-			if(a[i][j][1]==-1) d2+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 1 1 1 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
-			else if(a[i][j][1]==1) d2+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 0 1 0 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			if(a[i][j][1])
+			{
+				qtt=((j==0)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
+				kt=qtt*qt[i][j][1];
+				kb=a[i][j][1]*bRef;
+				qaa=qa[i][j][1]*qaRef;
+				an=anRef+qaa;
+				ad=adRef-an/2;
+				af=pZ.esz-2*ad;
+				ad=ad-(ky1-ky2)/2-hoo/2;
+				sl=(kx2-kx1)/(pZ.esz-hoo-ky1+ky2);
+				py1=(ad-kt)/2;
+				px1=py1*sl+kb;
+				py2=ad-kt;
+				px2=py2*sl+kb;
+				py3=af;
+				px3=py3*sl;
+				py4=(ad+kt)/2;
+				px4=py4*sl;
+				py5=ad+kt;
+				px5=py5*sl-kb;
+				aaa="a"+an+" "+an+((a[i][j][1]>0)?" 0 1 0 ":" 1 1 1 ");
+				d2+="q"+px1+" "+py1+" "+px2+" "+py2+aaa+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			}
 			else d2+="v"+(pZ.esz-hoo-ky1+ky2);
+			desc[1]={tmt:-a[i][j][1],qt:-qt[i][j][1],qa:qa[i][j][1],qx:qx[i][j][2],qy:qy[i][j][2]};
 			
 			// bottom
-			qtt=((j==0)||(j==(pZ.h-2)))?hor*qttRef:qttRef;
 			qxy1=((j==0)||(j==(pZ.h-2))||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
-			kt=qtt*qt[i][j][2];
 			kx1=qxy1*qx[i][j][2];
 			ky1=qxy1*qy[i][j][2];
 			kx2=qxy1*qx[i][j][3];
 			ky2=qxy1*qy[i][j][3];
-			kb=a[i][j][2]*bRef;
-			qaa=qa[i][j][2]*qaRef;
-			an=anRef+qaa;
-			ad=adRef-an/2;
-			af=pZ.esz-2*ad;
-			ad=ad+(kx1-kx2)/2;
-			
-			sl=(ky2-ky1)/(-pZ.esz-kx1+kx2);
-			px1=(-ad-kt)/2;
-			py1=px1*sl-kb;
-			px2=-ad-kt;
-			py2=px2*sl-kb;
-			px3=-af;
-			py3=px3*sl;
-			px4=(-ad+kt)/2;
-			py4=px4*sl;
-			px5=-ad+kt;
-			py5=px5*sl+kb;
 			d30="m"+(to+pZ.esz+kx1)+" "+(to+hoj0+pZ.esz-hoo+ky1);
 			d3="";
-			c3=pZ.locale("bottom edge")+pZ.locale(", ")+buildTom(2,qt[i][j][2],a[i][j][2],qaa);
-			if(pZ.pt=="quirky") c3+=(pZ.locale(", ")+buildAo(2,qx[i][j][3],qy[i][j][3]));
-			if(a[i][j][2]==-1) d3+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 0 1 0 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
-			else if(a[i][j][2]==1) d3+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 1 1 1 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			if(a[i][j][2])
+			{
+				qtt=((j==0)||(j==(pZ.h-2)))?hor*qttRef:qttRef;
+				kt=qtt*qt[i][j][2];
+				kb=a[i][j][2]*bRef;
+				qaa=qa[i][j][2]*qaRef;
+				an=anRef+qaa;
+				ad=adRef-an/2;
+				af=pZ.esz-2*ad;
+				ad=ad+(kx1-kx2)/2;
+				sl=(ky2-ky1)/(-pZ.esz-kx1+kx2);
+				px1=(-ad-kt)/2;
+				py1=px1*sl-kb;
+				px2=-ad-kt;
+				py2=px2*sl-kb;
+				px3=-af;
+				py3=px3*sl;
+				px4=(-ad+kt)/2;
+				py4=px4*sl;
+				px5=-ad+kt;
+				py5=px5*sl+kb;
+				aaa="a"+an+" "+an+((a[i][j][2]>0)?" 1 1 1 ":" 0 1 0 ");
+				d3+="q"+px1+" "+py1+" "+px2+" "+py2+aaa+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			}
 			else d3+="h"+(-pZ.esz-kx1+kx2);
+			desc[2]={tmt:a[i][j][2],qt:qt[i][j][2],qa:qa[i][j][2],qx:qx[i][j][3],qy:qy[i][j][3]};
 			
 			// left
-			qtt=((j==0)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
 			qxy1=((j==0)||(j==(pZ.h-2))||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
 			qxy2=((j==0)||(j==1)||(j==(pZ.h-1)))?hor*qxyRef:qxyRef;
-			kt=qtt*qt[i][j][3];
 			kx1=qxy1*qx[i][j][3];
 			ky1=qxy1*qy[i][j][3];
 			kx2=qxy2*qx[i][j][0];
 			ky2=qxy2*qy[i][j][0];
-			kb=a[i][j][3]*bRef;
-			qaa=qa[i][j][3]*qaRef;
-			an=anRef+qaa;
-			ad=adRef-an/2;
-			af=pZ.esz-2*ad;
-			ad=ad+(ky1-ky2)/2-hoo/2;
-			
-			sl=(kx2-kx1)/(-pZ.esz+hoo-ky1+ky2);
-			py1=(-ad-kt)/2;
-			px1=py1*sl+kb;
-			py2=-ad-kt;
-			px2=py2*sl+kb;
-			py3=-af;
-			px3=py3*sl;
-			py4=(-ad+kt)/2;
-			px4=py4*sl;
-			py5=-ad+kt;
-			px5=py5*sl-kb;
 			d40="m"+(to+kx1)+" "+(to+hoj0+pZ.esz-hoo+ky1);					
 			d4="";
-			c4=pZ.locale("left edge")+pZ.locale(", ")+buildTom(3,qt[i][j][3],a[i][j][3],qaa);
-			if(pZ.pt=="quirky") c4+=(pZ.locale(", ")+buildAo(3,qx[i][j][0],qy[i][j][0]));
-			if(a[i][j][3]==-1) d4+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 0 1 0 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
-			else if(a[i][j][3]==1) d4+="q"+px1+" "+py1+" "+px2+" "+py2+"a"+an+" "+an+" 1 1 1 "+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			if(a[i][j][3])
+			{
+				qtt=((j==0)||(j==(pZ.h-1)))?hor*qttRef:qttRef;
+				kt=qtt*qt[i][j][3];
+				kb=a[i][j][3]*bRef;
+				qaa=qa[i][j][3]*qaRef;
+				an=anRef+qaa;
+				ad=adRef-an/2;
+				af=pZ.esz-2*ad;
+				ad=ad+(ky1-ky2)/2-hoo/2;
+				sl=(kx2-kx1)/(-pZ.esz+hoo-ky1+ky2);
+				py1=(-ad-kt)/2;
+				px1=py1*sl+kb;
+				py2=-ad-kt;
+				px2=py2*sl+kb;
+				py3=-af;
+				px3=py3*sl;
+				py4=(-ad+kt)/2;
+				px4=py4*sl;
+				py5=-ad+kt;
+				px5=py5*sl-kb;
+				aaa="a"+an+" "+an+((a[i][j][3]>0)?" 1 1 1 ":" 0 1 0 ");
+				d4+="q"+px1+" "+py1+" "+px2+" "+py2+aaa+px3+" "+py3+"q"+px4+" "+py4+" "+px5+" "+py5;
+			}
 			else d4+="v"+(-pZ.esz+hoo-ky1+ky2);
+			desc[3]={tmt:a[i][j][3],qt:qt[i][j][3],qa:qa[i][j][3],qx:qx[i][j][0],qy:qy[i][j][0]};
 		}
 		else // squared
 		{
@@ -2919,20 +3213,15 @@ dialog button:hover
 			d30="m"+(to+pZ.esz)+" "+(to+hoj0+pZ.esz-hoo);
 			d40="m"+to+" "+(to+hoj0+pZ.esz-hoo);
 			d1="h"+mesz2+"v"+(mesz*a[i][j][0])+"h"+mesz+"v"+(-mesz*a[i][j][0])+"h"+mesz2;
-			c1=pZ.locale("top edge")+pZ.locale(" ");
-			c1+=(a[i][j][0]>0)?pZ.locale("tenon"):(a[i][j][0]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			desc[0]={tmt:a[i][j][0]};
 			d2="v"+(mesz2-hoo/2)+"h"+(mesz*a[i][j][1])+"v"+mesz+"h"+(-mesz*a[i][j][1])+"v"+(mesz2-hoo/2);
-			c2=pZ.locale("right edge")+pZ.locale(" ");
-			c2+=(a[i][j][1]>0)?pZ.locale("tenon"):(a[i][j][1]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			desc[1]={tmt:a[i][j][1]};
 			d3="h-"+mesz2+"v"+(mesz*a[i][j][2])+"h-"+mesz+"v"+(-mesz*a[i][j][2])+"h-"+mesz2;
-			c3=pZ.locale("bottom edge")+pZ.locale(" ");
-			c3+=(a[i][j][2]>0)?pZ.locale("tenon"):(a[i][j][2]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			desc[2]={tmt:a[i][j][2]};
 			d4="v"+(-(mesz2-hoo/2))+"h"+(mesz*a[i][j][3])+"v-"+mesz+"h"+(-mesz*a[i][j][3])+"v"+(-(mesz2-hoo/2));
-			c4=pZ.locale("left edge")+pZ.locale(" ");
-			c4+=(a[i][j][3]>0)?pZ.locale("tenon"):(a[i][j][3]<0)?pZ.locale("mortise"):pZ.locale("straight");
+			desc[2]={tmt:a[i][j][2]};
 		}
 		d=d10+d1+d2+d3+d4+"z";
-		c=c1+pZ.locale(", ")+c2+pZ.locale(", ")+c3+pZ.locale(", ")+c4;
 		if((pZ.restoreOn>0)&&(pZ.restoreOn<8)&&localStorage["l"+i+"_"+j]&&localStorage["t"+i+"_"+j])
 		{
 			left=-(-localStorage["l"+i+"_"+j]);
@@ -2952,6 +3241,17 @@ dialog button:hover
 		svg.style.top=top+"px";
 		svg.pZ.x=x;
 		svg.pZ.y=y;
+		if(pZ.rotationOn)
+		{
+			if(!pZ.restoreOn||(pZ.restoreOn&16))
+				localStorage["r"+i+"_"+j]=svg.pZ.rotation=pZ.alea(3)*90;
+			else
+			{
+				if(!localStorage["r"+i+"_"+j]) svg.pZ.rotation=0;
+				else svg.pZ.rotation=-(-localStorage["r"+i+"_"+j]);
+			}
+		}
+		if(pZ.rotationOn&&svg.pZ.rotation) pZ.rotate2(svg);
 		if(!pZ.internalBordersOn)
 		{
 			svg.style.backgroundSize=(pZ.w*pZ.esz)+"px auto";
@@ -2970,8 +3270,8 @@ dialog button:hover
 		outline.classList.add("outline");
 		svg.append(outline);
 		svg.style.setProperty("clip-path","path('"+d+"')");
-		svg.pZ.content=[{ip:0,jp:0,c:c}];// only an external perimeter start at (0,0)
-		pZ.map[i][j].ds={d:d,d10:d10,d20:d20,d30:d30,d40:d40,d1:d1,d2:d2,d3:d3,d4:d4,bb:15,c1:c1,c2:c2,c3:c3,c4:c4};
+		svg.pZ.perimeters=[{ip:0,jp:0,p:[{m:pZ.map[i][j],b:1},{m:pZ.map[i][j],b:2},{m:pZ.map[i][j],b:3},{m:pZ.map[i][j],b:4}]}];
+		pZ.map[i][j].ds={d:d,d10:d10,d20:d20,d30:d30,d40:d40,d1:d1,d2:d2,d3:d3,d4:d4,bb:15,desc:desc};
 		pZ.updateMinMax(left,top);
 		pZ.updatePuzzleElementLabel(svg);
 		if(pZ.internalBordersOn)
@@ -3010,6 +3310,7 @@ dialog button:hover
 	pZ.initPuzzle=function()
 	{
 		pZ.t0=performance.now();
+		if(pZ.setTimeoutId) clearTimeout(pZ.setTimeoutId);
 		pZ.clearFigure();
 		pZ.lastFocused=null;
 		pZ.esz=pZ.computeEsz();
@@ -3069,7 +3370,9 @@ dialog button:hover
 		pZ.figure.addEventListener('pointerdown',pZ.dragStart);
 		pZ.figure.addEventListener('pointerup',pZ.dragEnd);
 		pZ.figure.addEventListener('focusin',pZ.doFocusIn);
-		// use a linear gradient as background-image to handle the case of top and bottom lines with unusual height
+		if(pZ.rotationOn) pZ.figure.addEventListener('dblclick',pZ.rotateWhenDblClick);
+		// use a linear gradient as background-image
+		// to handle the case of top and bottom lines with unusual height
 		// this background is the grey rectangle that fits to the puzzle size
 		pZ.figure.style.setProperty("background-image","linear-gradient(#0000 0 "+ho+"px,#ccc3 "+ho+"px "+(pZ.esz*pZ.h-ho)+"px,#0000 "+(pZ.esz*pZ.h-ho)+"px "+(pZ.esz*pZ.h)+"px)");
 		pZ.map=[];
@@ -3145,23 +3448,28 @@ dialog button:hover
 		}
 		else pZ.focusOnLast();
 	}
-	pZ.match=function(e)
+	pZ.match=function(eList)
 	{
-		if(e&&e.classList&&e.classList.contains("puzzleElement"))
+		pZ.dirty=1;
+		pZ.minMaxChange=0;
+		for(let e of eList)
 		{
-			pZ.minMaxChange=0;
 			let mo=e.pZ.m.z[0];
+			// when e.pZ.m.z is changed in doGluing(), z is a new array
+			// so e.pZ.m.z in for(let m of e.pZ.m.z) continues to refer to the old z
 			for(let m of e.pZ.m.z) pZ.doGluing(m);
 			pZ.saveElement(mo.svg);
 			pZ.updatePuzzleElementLabel(mo.svg);
+		}
+		if(pZ.isPuzzleCompleted())
+		{
+			pZ.doGameOver();
 			pZ.updateScore();
-			if(pZ.isPuzzleCompleted()) pZ.doGameOver();
-			else
-			{
-				if(pZ.minMaxChange) pZ.adaptScrollArea();
-				// not very good to force this scroll into view
-				//e.scrollIntoView({block:"nearest",inline:"nearest"});
-			}
+		}
+		else
+		{
+			pZ.updateScore();
+			if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea();
 		}
 	}
 	pZ.doBoard=function(ev)
@@ -3177,40 +3485,347 @@ dialog button:hover
 		else if(pZ.lastFocused) pZ.focus(pZ.lastFocused);
 		else pZ.focusOnFirst();
 	}
-	pZ.doContent=function(e)
+	pZ.edgeShortDesc=function(tmType)
 	{
-		let c=e.pZ.content,s="";
-		for(let k=0;k<c.length;k++)
+		return (tmType>0)?pZ.locale("tenon"):(tmType<0)?pZ.locale("mortise"):pZ.locale("straight");
+	}
+	pZ.edgeLongDesc=function(tmType,tmSize,tmOffset,upstream,downstream)
+	{
+		let s="";
+		let tmLabel=(tmType>0)?"tenon":(tmType<0)?"mortise":"straight";
+		if(tmType==0) return pZ.locale(tmLabel);
+		if(tmSize>0) s+=pZ.locale("big "+tmLabel);
+		else if(tmSize==0) s+=pZ.locale("medium "+tmLabel);
+		else s+=pZ.locale("small "+tmLabel);
+		s+=pZ.locale(", ");
+		if(tmOffset>0) s+=pZ.locale("offset to ")+pZ.locale("the "+downstream);
+		else if(tmOffset==0) s+=pZ.locale("centered");
+		else s+=pZ.locale("offset to ")+pZ.locale("the "+upstream);
+		return s;
+	}
+	pZ.pointDesc=function(r,qx,qy)
+	{
+		let s="",north,east,south,west;
+		switch(r)
 		{
-			if(c.length>1)
+			case 1:north="east";east="south";south="west";west="north";break;
+			case 2:north="south";east="west";south="north";west="east";break;
+			case 3:north="west";east="north";south="east";west="south";break;
+			default:north="north";east="east";south="south";west="west";
+		}
+		switch(qx)
+		{
+			case -2:s+=pZ.locale("very far to ")+pZ.locale("the "+west);break;
+			case -1:s+=pZ.locale("slightly to ")+pZ.locale("the "+west);break;
+			case 1:s+=pZ.locale("slightly to ")+pZ.locale("the "+east);break;
+			case 2:s+=pZ.locale("very far to ")+pZ.locale("the "+east);break;
+		}
+		if(s&&qy) s+=pZ.locale(", ");
+		switch(qy)
+		{
+			case -2:s+=pZ.locale("very far to ")+pZ.locale("the "+north);break;
+			case -1:s+=pZ.locale("slightly to ")+pZ.locale("the "+north);break;
+			case 1:s+=pZ.locale("slightly to ")+pZ.locale("the "+south);break;
+			case 2:s+=pZ.locale("very far to ")+pZ.locale("the "+south);break;
+		}
+		if(!s) s+=pZ.locale("centered");
+		return s;
+	}
+	pZ.doOneElementDescription=function(e,longDescOn)
+	{
+		let s=e.ariaLabel;
+		let r=e.pZ.rotation?Math.round(e.pZ.rotation/90):0;
+		function isOnCompletedStraight(p)
+		{
+			// check if p is on a "completed straight" border
+			// if yes
+			//   if p is the first on this border
+			//     display "xxx edge completed" (iocs=2)
+			//     else skip p (iocs=1)
+			// else describe p (iocs=0)
+			let ip=p.m.i,jp=p.m.j;
+			let svg=p.m.svg,found=0;
+			switch(p.b)
 			{
-				if(k==0) s+=pZ.locale("external perimeter starting at ");
-				else s+=pZ.locale(", internal perimeter starting at ");
-				let xp=pZ.r2d(e.pZ.x+1+c[k].ip);
-				let yp=pZ.r2d(e.pZ.y+1+c[k].jp);
-				s+=pZ.locale("(")+xp+", "+yp+pZ.locale("), ");
-
+				case 1:
+					if(jp!=0) return 0;
+					for(let i=0;i<pZ.w;i++) if(pZ.map[i][0].svg!=svg) {found=1;break;}
+					if(found) return 0;
+					if((p.m.i==0)&&(p.m.j==0)) return 2;
+					return 1;
+				case 2:
+					if(ip!=(pZ.w-1)) return 0;
+					for(let j=0;j<pZ.h;j++) if(pZ.map[pZ.w-1][j].svg!=svg) {found=1;break;}
+					if(found) return 0;
+					if((p.m.i==(pZ.w-1))&&(p.m.j==0)) return 2;
+					return 1;
+				case 3:
+					if(jp!=(pZ.h-1)) return 0;
+					for(let i=0;i<pZ.w;i++) if(pZ.map[i][pZ.h-1].svg!=svg) {found=1;break;}
+					if(found) return 0;
+					if((p.m.i==(pZ.w-1))&&(p.m.j==(pZ.h-1))) return 2;
+					return 1;
+				case 4:
+					if(ip!=0) return 0;
+					for(let j=0;j<pZ.h;j++) if(pZ.map[0][j].svg!=svg) {found=1;break;}
+					if(found) return 0;
+					if((p.m.i==0)&&(p.m.j==(pZ.h-1))) return 2;
+					return 1;
 			}
-			s+=c[k].c;
+			return 0;
+		}
+		let first=1;
+		for(let perimeter of e.pZ.perimeters)
+		{
+			let isExternal=1;
+			if(!((e.pZ.perimeters.length==1)&&!perimeter.ip&&!perimeter.jp))
+			{
+				s+=pZ.locale(", ");
+				if(first) {s+=pZ.locale("external perimeter starting at ");first=0;}
+				else
+				{
+					isExternal=0;
+					s+=pZ.locale("internal perimeter starting at ");
+				}
+				let mp=pZ.map[e.pZ.imin+perimeter.ip][e.pZ.jmin+perimeter.jp];
+				let xp=pZ.r2d(pZ.gX(mp)+1);
+				let yp=pZ.r2d(pZ.gY(mp)+1);
+				s+=pZ.locale("(")+xp+", "+yp+pZ.locale(")");
+			}
+			for(let p of perimeter.p)
+			{
+				let b=((p.b-1)+r)%4;
+				let desc=p.m.ds.desc[p.b-1];
+				let tmType=desc.tmt;
+				let tmSize=desc.qa;
+				let tmOffset=desc.qt;
+				let iocs=isExternal?isOnCompletedStraight(p):0;
+				if(iocs==2)
+				{
+					s+=pZ.locale(", ");
+					switch(b)
+					{
+						case 0:
+							s+=pZ.locale("north edge");
+							s+=pZ.locale(", ");
+							s+=pZ.locale("straight, completed");
+							break;
+						case 1:
+							s+=pZ.locale("east edge");
+							s+=pZ.locale(", ");
+							s+=pZ.locale("straight, completed");
+							break;
+						case 2:
+							s+=pZ.locale("south edge");
+							s+=pZ.locale(", ");
+							s+=pZ.locale("straight, completed");
+							break;
+						case 3:
+							s+=pZ.locale("west edge");
+							s+=pZ.locale(", ");
+							s+=pZ.locale("straight, completed");
+							break;
+					}
+				}
+				// else if(iocs==1), just skip
+				else if(iocs==0)
+				{
+					s+=pZ.locale(", ");
+					switch(b)
+					{
+						
+						case 0:
+							s+=pZ.locale("north edge");
+							s+=pZ.locale(", ");
+							if(longDescOn)
+							{
+								s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"west","east");
+								s+=pZ.locale(", ");
+								s+=pZ.locale("northeast point");
+							}
+							else s+=pZ.edgeShortDesc(tmType);
+							break;
+						case 1:
+							s+=pZ.locale("east edge");
+							s+=pZ.locale(", ");
+							if(longDescOn)
+							{
+								s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"north","south");
+								s+=pZ.locale(", ");
+								s+=pZ.locale("southeast point");
+							}
+							else s+=pZ.edgeShortDesc(tmType);
+							break;
+						case 2:
+							s+=pZ.locale("south edge");
+							s+=pZ.locale(", ");
+							if(longDescOn)
+							{
+								s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"east","west");
+								s+=pZ.locale(", ");
+								s+=pZ.locale("southwest point");
+							}
+							else s+=pZ.edgeShortDesc(tmType);
+							break;
+						case 3:
+							s+=pZ.locale("west edge");
+							s+=pZ.locale(", ");
+							if(longDescOn)
+							{
+								s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"south","north");
+								s+=pZ.locale(", ");
+								s+=pZ.locale("northwest point");
+							}
+							else s+=pZ.edgeShortDesc(tmType);
+							break;
+					}
+					if(longDescOn)
+					{
+						s+=pZ.locale(", ");
+						s+=pZ.pointDesc(r,desc.qx,desc.qy);
+					}
+				}
+			}
 		}
 		return s;
 	}
-	pZ.doDescription=function(e)
+	pZ.doOnePieceDescription=function(m,xm,ym,longDescOn)
 	{
-		if(pZ.selectedArea)
+		let s;
+		s=pZ.locale(", ")+pZ.locale("piece at ")+pZ.locale("(")+xm+", "+ym+pZ.locale(")");
+		let svg=m.svg;
+		let r=svg.pZ.rotation?Math.round(svg.pZ.rotation/90):0;
+		for(let bb of [1,2,3,4])
 		{
-			// describe the selected area
-			let s="";
-			let be=pZ.selectedArea.getBoundingClientRect();
-			let bf=pZ.figure.getBoundingClientRect();
-			s+=pZ.locale("Selection area at ");
-			s+=pZ.a2A((be.x-bf.x)/pZ.rf)+pZ.locale(", ")+pZ.a2A((be.y-bf.y)/pZ.rf)+pZ.locale(". ");
-			s+=pZ.locale("Width: ")+pZ.b2B(be.width/pZ.rf)+pZ.locale(". ");
-			s+=pZ.locale("Height: ")+pZ.b2B(be.height/pZ.rf)+pZ.locale(". ");
-			pZ.updateMessenger(s);
+			let b=((bb-1)+r)%4;
+			let desc=m.ds.desc[bb-1];
+			let tmType=desc.tmt;
+			let tmSize=desc.qa;
+			let tmOffset=desc.qt;
+			let alreadyGlued=!(m.ds.bb&(1<<(bb-1)));
+			s+=pZ.locale(", ");
+			switch(b)
+			{
+				case 0:
+					s+=pZ.locale("north edge");
+					if(alreadyGlued) s+=pZ.locale(" ")+pZ.locale("already glued");
+					s+=pZ.locale(", ");
+					if(longDescOn)
+					{
+						s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"west","east");
+						s+=pZ.locale(", ");
+						s+=pZ.locale("northeast point");
+					}
+					else s+=pZ.edgeShortDesc(tmType);
+					break;
+				case 1:
+					s+=pZ.locale("east edge");
+					if(alreadyGlued) s+=pZ.locale(" ")+pZ.locale("already glued");
+					s+=pZ.locale(", ");
+					if(longDescOn)
+					{
+						s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"north","south");
+						s+=pZ.locale(", ");
+						s+=pZ.locale("southeast point");
+					}
+					else s+=pZ.edgeShortDesc(tmType);
+					break;
+				case 2:
+					s+=pZ.locale("south edge");
+					if(alreadyGlued) s+=pZ.locale(" ")+pZ.locale("already glued");
+					s+=pZ.locale(", ");
+					if(longDescOn)
+					{
+						s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"east","west");
+						s+=pZ.locale(", ");
+						s+=pZ.locale("southwest point");
+					}
+					else s+=pZ.edgeShortDesc(tmType);
+					break;
+				case 3:
+					s+=pZ.locale("west edge");
+					if(alreadyGlued) s+=pZ.locale(" ")+pZ.locale("already glued");
+					s+=pZ.locale(", ");
+					if(longDescOn)
+					{
+						s+=pZ.edgeLongDesc(tmType,tmSize,tmOffset,"south","north");
+						s+=pZ.locale(", ");
+						s+=pZ.locale("northwest point");
+					}
+					else s+=pZ.edgeShortDesc(tmType);
+					break;
+			}
+			if(longDescOn)
+			{
+				s+=pZ.locale(", ");
+				s+=pZ.pointDesc(r,desc.qx,desc.qy);
+			}
 		}
+		return s;
+	}
+	pZ.doDescriptionOfSelectedArea=function(longDescOn)
+	{
+		let s="";
+		let bs=pZ.selectedArea.getBoundingClientRect();
+		let bf=pZ.figure.getBoundingClientRect();
+		let xs,ys,xls,yts,xrs,ybs,ws,hs;
+		xs=(bs.left-bf.left)/pZ.rf;
+		ys=(bs.top-bf.top)/pZ.rf;
+		ws=bs.width/pZ.rf;
+		hs=bs.height/pZ.rf;
+		s+=pZ.locale("Selection area at ");
+		s+=pZ.locale("(")+pZ.a2A(xs)+pZ.locale(", ")+pZ.a2A(ys)+pZ.locale(")");
+		s+=pZ.locale(", ")+pZ.locale("width: ")+pZ.b2B(ws);
+		s+=pZ.locale(", ")+pZ.locale("height: ")+pZ.b2B(hs);
+		let eList=[];
+		for(let e of pZ.figure.querySelectorAll(".puzzleElement"))
+		{
+			// get all elements that partially intersect with the selected area
+			let be=e.querySelector('.outline').getBoundingClientRect();
+			if((be.left<(bs.right+1))
+				&&(be.right>(bs.left-1))
+				&&(be.top<(bs.bottom+1))
+				&&(be.bottom>(bs.top-1)))
+				eList.push(e);
+		}
+		// get all path segments that are inside the selected area
+		let to00=pZ.to/pZ.esz;
+		xls=pZ.a2A(xs)-to00-1;
+		yts=pZ.a2A(ys)-to00-1;
+		xrs=xls+(pZ.b2B(ws)-1)+2*to00;
+		ybs=yts+(pZ.b2B(hs)-1)+2*to00;
+		let eList2=[];
+		for(let e of eList)
+		{
+			for(let m of e.pZ.m.z)
+			{
+				let xm=pZ.gX(m),ym=pZ.gY(m);
+				if((xm>=xls)&&(ym>=yts)&&(xm<=xrs)&&(ym<=ybs))
+					eList2.push({m:m,xm:xm,ym:ym});
+			}
+		}
+		function compare(a,b)
+		{
+			if(a.ym!=b.ym) return a.ym-b.ym;
+			return a.xm-b.xm;
+		}
+		eList2.sort(compare);
+		for(let e of eList2)
+			s+=pZ.doOnePieceDescription(e.m,pZ.r2d(e.xm+1),pZ.r2d(e.ym+1),longDescOn);
+		pZ.updateMessenger(s);
+	}
+	pZ.doDescription=function(ev,e)
+	{
+		let longDescOn=ev.shiftKey&&(pZ.pt=="quirky");
+		if(pZ.selectedArea) pZ.doDescriptionOfSelectedArea(longDescOn);
 		else if(pZ.figure)
 		{
+			// when the description starts with a edge which is not a north one
+			// the user can guess that there is a rotation
+			// it is an advantage for the visually impaired
+			// but the sighted can also guess that there is a rotation in many cases
+			// just looking at the content of the element
+			// so we let the description starting with a edge which is not a north one
 			let list=pZ.figure.querySelectorAll('.selected');
 			if(list&&list.length)
 			{
@@ -3219,11 +3834,14 @@ dialog button:hover
 				if(len>1) s+=len+pZ.locale(" selected puzzle elements! ");
 				else s+=1+pZ.locale(" selected puzzle element! ");
 				for(let ee of list)
-					s+=ee.ariaLabel+pZ.locale(", ")+pZ.doContent(ee)+pZ.locale(". ");
+					s+=pZ.doOneElementDescription(ee,longDescOn)+pZ.locale(". ");
 				pZ.updateMessenger(s);
 			}
 			else if(e?.classList?.contains("puzzleElement"))
-				pZ.updateMessenger(e.ariaLabel+pZ.locale(", ")+pZ.doContent(e));
+			{
+				let s=pZ.doOneElementDescription(e,longDescOn);
+				pZ.updateMessenger(s);
+			}
 		}
 	}
 	pZ.placeOne=function(e)
@@ -3231,9 +3849,16 @@ dialog button:hover
 		// just for testing
 		if(e?.classList?.contains("puzzleElement"))
 		{
+			let beepOn=pZ.beepOn;
+			pZ.beepOn=0;
 			pZ.clearSelectedArea();
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 			pZ.noFocusEffect=2;
+			if(pZ.rotationOn)
+			{
+				e.pZ.rotation=0;
+				pZ.rotate2(e);
+			}
 			let x=e.pZ.imin;
 			let y=e.pZ.jmin;
 			e.pZ.x=x;
@@ -3248,6 +3873,7 @@ dialog button:hover
 			pZ.updateScore();
 			e.focus();
 			pZ.noFocusEffect=0;
+			pZ.beepOn=beepOn;
 		}
 	}
 	pZ.placeSeveral=function(e,t)
@@ -3272,11 +3898,18 @@ dialog button:hover
 	pZ.placeAll=function()
 	{
 		// just for testing
+		let beepOn=pZ.beepOn;
+		pZ.beepOn=0;
 		pZ.clearSelectedArea();
 		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		pZ.noFocusEffect=2;
 		for(let e of pZ.figure.querySelectorAll('.puzzleElement'))
 		{
+			if(pZ.rotationOn)
+			{
+				e.pZ.rotation=0;
+				pZ.rotate2(e);
+			}
 			let x=e.pZ.imin;
 			let y=e.pZ.jmin;
 			e.pZ.x=x;
@@ -3296,6 +3929,7 @@ dialog button:hover
 		pZ.updateScore();
 		pZ.menu.querySelector("li:last-of-type").focus();
 		pZ.noFocusEffect=0;
+		pZ.beepOn=beepOn;
 	}
 	
 	pZ.updateSelectedElements=function()
@@ -3318,6 +3952,13 @@ dialog button:hover
 	pZ.doArrowMoveOneElement=function(ev,e)
 	{
 		let x1,y1,x2,y2,x3,y3,be,bf,i,j,d=pZ.moveStep*pZ.esz00,dl,dr,dt,db;
+		let exRotation;
+		if(pZ.rotationOn)
+		{
+			exRotation=e.pZ.rotation;
+			e.pZ.rotation=0;
+			pZ.rotate2(e);
+		}
 		be=e.getBoundingClientRect();
 		bf=pZ.figure.getBoundingClientRect();
 		x1=Math.round((be.x-bf.x)/pZ.rf)+pZ.to;
@@ -3344,6 +3985,11 @@ dialog button:hover
 			let y=y2/pZ.esz;
 			e.pZ.x=x;
 			e.pZ.y=y;
+			if(pZ.rotationOn)
+			{
+				e.pZ.rotation=exRotation;
+				pZ.rotate2(e);
+			}
 			let left=x*pZ.esz-pZ.to,top=y*pZ.esz-pZ.to;
 			e.style.left=left+"px";
 			e.style.top=top+"px";
@@ -3355,6 +4001,14 @@ dialog button:hover
 			// is it appropriate to force this scroll?
 			// seems not well working on chrome and safari for large puzzle elements
 			e.scrollIntoView({block:"nearest",inline:"nearest"});
+		}
+		else
+		{
+			if(pZ.rotationOn)
+			{
+				e.pZ.rotation=exRotation;
+				pZ.rotate2(e);
+			}
 		}
 	}
 		
@@ -3415,9 +4069,9 @@ dialog button:hover
 			pZ.selectedArea.focus();
 			let s;
 			s=pZ.locale("Selection area created at ");
-			s+=pZ.locale("(")+pZ.a2A(x)+pZ.locale(", ")+pZ.a2A(y)+pZ.locale(")")+pZ.locale(". ");
-			s+=pZ.locale("Width: ")+pZ.b2B(w)+pZ.locale(". ");
-			s+=pZ.locale("Height: ")+pZ.b2B(h)+pZ.locale(". ");
+			s+=pZ.locale("(")+pZ.a2A(x)+pZ.locale(", ")+pZ.a2A(y)+pZ.locale(")");
+			s+=pZ.locale(", ")+pZ.locale("width: ")+pZ.b2B(w);
+			s+=pZ.locale(", ")+pZ.locale("height: ")+pZ.b2B(h);
 			pZ.updateMessenger(s);
 		}
 		else
@@ -3427,33 +4081,40 @@ dialog button:hover
 			let e=pZ.selectedArea;
 			let be=e.getBoundingClientRect();
 			let bf=pZ.figure.getBoundingClientRect();
-			let w,h,xl,yt,xr,yb;
-			w=Math.max(Math.round(be.width/pZ.rf),pZ.esz2to);
-			h=Math.max(Math.round(be.height/pZ.rf),pZ.esz2to);
-			xl=Math.round((be.x-bf.x)/pZ.rf);
-			yt=Math.round((be.y-bf.y)/pZ.rf);
-			xr=xl+w;
-			yb=yt+h;
+			let w,h,xl,yt,xr,yb,w2,h2,xl2,yt2,xr2,yb2;
+			w2=w=Math.max(Math.round(be.width/pZ.rf),pZ.esz2to);
+			h2=h=Math.max(Math.round(be.height/pZ.rf),pZ.esz2to);
+			xl2=xl=Math.round((be.x-bf.x)/pZ.rf);
+			yt2=yt=Math.round((be.y-bf.y)/pZ.rf);
+			xr2=xr=xl+w;
+			yb2=yb=yt+h;
 			switch(ev.key)
 			{
-				case "ArrowLeft":xr-=d;xr=Math.max(xl+pZ.esz2to,xr);break;
-				case "ArrowRight":xr+=d;xr=Math.max(xl+pZ.esz2to,xr);break;
-				case "ArrowUp":yb-=d;yb=Math.max(yt+pZ.esz2to,yb);break;
-				case "ArrowDown":yb+=d;yb=Math.max(yt+pZ.esz2to,yb);break;
+				case "ArrowLeft":xr2-=d;xr2=Math.max(xl2+pZ.esz2to,xr2);break;
+				case "ArrowRight":xr2+=d;xr2=Math.max(xl2+pZ.esz2to,xr2);break;
+				case "ArrowUp":yb2-=d;yb2=Math.max(yt2+pZ.esz2to,yb2);break;
+				case "ArrowDown":yb2+=d;yb2=Math.max(yt2+pZ.esz2to,yb2);break;
 			}
-			let newLeft=xl;
-			let newTop=yt;
-			let newW=Math.max(Math.round(Math.abs(xr-xl)),pZ.esz2to);
-			let newH=Math.max(Math.round(Math.abs(yb-yt)),pZ.esz2to);
-			pZ.selectedArea.style.setProperty("left",newLeft+"px");
-			pZ.selectedArea.style.setProperty("top",newTop+"px");
-			pZ.selectedArea.style.setProperty("width",newW+"px");
-			pZ.selectedArea.style.setProperty("height",newH+"px");
+			let modif=0;
+			if((xl!=xl2)||(yt!=yt2)||(xr!=xr2)||(yb!=yb2))
+			{
+				w2=Math.max(Math.round(Math.abs(xr2-xl2)),pZ.esz2to);
+				h2=Math.max(Math.round(Math.abs(yb2-yt2)),pZ.esz2to);
+				pZ.selectedArea.style.setProperty("left",xl2+"px");
+				pZ.selectedArea.style.setProperty("top",yt2+"px");
+				pZ.selectedArea.style.setProperty("width",w2+"px");
+				pZ.selectedArea.style.setProperty("height",h2+"px");
+				modif=1;
+			}
 			let s;
-			s=pZ.locale("Selection area modified at ");
-			s+=pZ.locale("(")+pZ.a2A(xl)+pZ.locale(", ")+pZ.a2A(yt)+pZ.locale(")")+pZ.locale(". ");
-			s+=pZ.locale("Width: ")+pZ.b2B(newW)+pZ.locale(". ");
-			s+=pZ.locale("Height: ")+pZ.b2B(newH)+pZ.locale(". ");
+			if(modif)
+			{
+				s=pZ.locale("Selection area modified at ");
+				s+=pZ.locale("(")+pZ.a2A(xl2)+pZ.locale(", ")+pZ.a2A(yt2)+pZ.locale(")");
+				s+=pZ.locale(", ")+pZ.locale("width: ")+pZ.b2B(w2);
+				s+=pZ.locale(", ")+pZ.locale("height: ")+pZ.b2B(h2);
+			}
+			else s=pZ.locale("Selection area not modified");
 			pZ.updateMessenger(s);
 		}
 		pZ.updateSelectedElements();
@@ -3500,9 +4161,9 @@ dialog button:hover
 		pZ.updateSelectedElements();
 		let s;
 		s=pZ.locale("Selection area moved to ");
-		s+=pZ.locale("(")+pZ.a2A(left)+pZ.locale(", ")+pZ.a2A(top)+pZ.locale(")")+pZ.locale(". ");
-		s+=pZ.locale("Width: ")+pZ.b2B(w)+pZ.locale(". ");
-		s+=pZ.locale("Height: ")+pZ.b2B(h)+pZ.locale(". ");
+		s+=pZ.locale("(")+pZ.a2A(left)+pZ.locale(", ")+pZ.a2A(top)+pZ.locale(")");
+		s+=pZ.locale(", ")+pZ.locale("width: ")+pZ.b2B(w);
+		s+=pZ.locale(", ")+pZ.locale("height: ")+pZ.b2B(h);
 		pZ.updateMessenger(s);
 		pZ.selectedArea.scrollIntoView({block:"nearest",inline:"nearest"});
 	}
@@ -3565,28 +4226,44 @@ dialog button:hover
 			pZ.doArrowWhenSelectedArea(ev);
 			return;
 		}
-		if(a&&a.classList&&a.classList.contains("puzzleElement")&&(ev.key==" "))
+		if(a?.classList?.contains("puzzleElement")&&(ev.key==" "))
 		{
-			// check match
 			ev.preventDefault();
 			ev.stopPropagation();
+			// check match
 			if(pZ.hasSomeSelectedByKeyboard)
 			{
-				let list,ef=null,zm=0;
-				list=pZ.board.querySelectorAll('svg.selected');
-				for(let e of list) pZ.match(e);
-				// when several groups of elements match, the focus can be lost
-				// give again the focus to the top most element amid selected elements
-				// rebuild the list since they may be less elements than before matching
-				list=pZ.board.querySelectorAll('svg.selected');
-				for(let e of list)
+				let eList,ef=null,zm=0;
+				eList=pZ.board.querySelectorAll('svg.puzzleElement.selected');
+				if(pZ.rotationOn&&ev.shiftKey)
 				{
-					let z=pZ.getZIndex(e);
-					if(z>=zm) {ef=e;zm=z;}
+					for(let e of eList) if(pZ.rotationOn&&ev.shiftKey) pZ.rotate(e,90);
+					pZ.updateMessenger(pZ.locale("Rotation"));
 				}
-				if(ef) ef.focus();
+				else
+				{
+					pZ.match(eList);
+					// when several groups of elements match, the focus can be lost
+					// give again the focus to the top most element amid selected elements
+					// rebuild the eList since they may be less elements than before matching
+					eList=pZ.board.querySelectorAll('svg.puzzleElement.selected');
+					for(let e of eList)
+					{
+						let z=pZ.getZIndex(e);
+						if(z>=zm) {ef=e;zm=z;}
+					}
+					if(ef) ef.focus();
+				}
 			}
-			else pZ.match(a);
+			else
+			{
+				if(pZ.rotationOn&&ev.shiftKey)
+				{
+					pZ.rotate(a,90);
+					pZ.updateMessenger(pZ.locale("Rotation"));
+				}
+				else pZ.match([a]);
+			}
 			return;
 		}
 		if(pZ.selectedArea&&(ev.key==" "))
@@ -3621,7 +4298,7 @@ dialog button:hover
 		}
 		// manage shortcuts
 		let key=ev.key.toLowerCase();
-		if(key.match(/^[abdeghiprtuy]$/))
+		if(key.match(/^[abdefghiprt]$/))
 		{
 			ev.preventDefault();
 			ev.stopPropagation();
@@ -3629,8 +4306,13 @@ dialog button:hover
 			{
 				case "a":pZ.doClickOnAccessibility(ev);break;
 				case "b":pZ.doBoard(ev);break;
-				case "d":pZ.doDescription(a);break;
+				case "d":pZ.doDescription(ev,a);break;
 				case "e":pZ.doClickOnReframe(ev);break;
+				case "f":
+					pZ.clearSelectedArea();
+					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
+					pZ.ghost.focus();
+					break;
 				case "g":pZ.cancelAll();break;
 				case "h":
 					pZ.clearSelectedArea();
@@ -3643,9 +4325,11 @@ dialog button:hover
 					pZ.clearSelectedArea();
 					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 					pZ.restart.focus();break;
-				case "t":pZ.placeAll();break;
-				case "u":pZ.placeSeveral(a,"h");break;
-				case "y":pZ.placeSeveral(a,"v");break;
+				case "t":pZ.doTipsAndTricksAlert();break;
+				//for testing only:
+				//case "t":pZ.placeAll();break;
+				//case "u":pZ.placeSeveral(a,"h");break;
+				//case "y":pZ.placeSeveral(a,"v");break;
 			}
 		}
 	}
@@ -3653,8 +4337,8 @@ dialog button:hover
 	pZ.clearSelectedByKeyboard=function()
 	{
 		if(!pZ.figure) return;
-		let list=pZ.figure.querySelectorAll('.selected');
-		for(let e of list) e.classList.remove("selected");
+		let eList=pZ.figure.querySelectorAll('svg.puzzleElement.selected');
+		for(let e of eList) e.classList.remove("selected");
 		pZ.hasSomeSelectedByKeyboard=0;
 	}
 	
@@ -3667,7 +4351,7 @@ dialog button:hover
 	pZ.selectContinue=function(ev)
 	{
 		if(!ev.isPrimary) return;
-		// let some time for touch screen users to scroll
+		// give touchscreen users time to scroll instead of selecting
 		if((ev.timeStamp-pZ.selectStartTime)<500) return;
 		if(pZ.selectE&&(pZ.selectE.hasPointerCapture(ev.pointerId)))
 		{
@@ -3719,6 +4403,7 @@ dialog button:hover
 		let e=pZ.getSvg(ev,"background");
 		if(!e) return;
 		if(e.hasPointerCapture(ev.pointerId)) e.releasePointerCapture(ev.pointerId);
+		e.removeEventListener('pointermove',pZ.selectContinue);
 		if(pZ.selectE&&(e==pZ.selectE)&&pZ.selectedArea)
 		{
 			pZ.updateSelectedElements();
@@ -3728,7 +4413,6 @@ dialog button:hover
 			pZ.clearSelectedArea();
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		}
-		e.removeEventListener('pointermove',pZ.selectContinue);
 		pZ.selectE=null;
 	}
 	
@@ -3757,6 +4441,8 @@ dialog button:hover
 		else pZ.threshold=-(-localStorage.pZ_th); // threshold to stick a puzzle element in its place
 		if(localStorage.pZ_ms===undefined) localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
 		else pZ.moveStep=-(-localStorage.pZ_ms); // step when moving a puzzle element using the keyboard
+		if(localStorage.pZ_ro===undefined) localStorage.pZ_ro=pZ.rotationOn=pZ.defaultParams.ro;
+		else pZ.rotationOn=-(-localStorage.pZ_ro); // if 1, rotation is on
 		if(localStorage.pZ_ric===undefined) localStorage.pZ_ric=pZ.roundInitialCoordinates=pZ.defaultParams.ric;
 		else pZ.roundInitialCoordinates=-(-localStorage.pZ_ric); // if 1, round initial coordinates of a puzzle element to a multiple of pZ.moveStep
 		if(localStorage.pZ_showsw===undefined) localStorage.pZ_showsw=pZ.showStopwatch=pZ.defaultParams.showsw;
@@ -3769,6 +4455,8 @@ dialog button:hover
 		else pZ.scatter=localStorage.pZ_scatter; // "inside" or "outside"
 		if(localStorage.pZ_bkc===undefined) localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
 		else pZ.bkColor=localStorage.pZ_bkc;
+		if(localStorage.pZ_bo===undefined) localStorage.pZ_bo=pZ.beepOn=pZ.defaultParams.bo;
+		else pZ.beepOn=-(-localStorage.pZ_bo); // if 1, beep when matching
 	}
 	
 	pZ.initFirst=function()
@@ -3891,7 +4579,7 @@ dialog button:hover
 		}
 		s+="<li>";
 		s+="<button data-k=\""+k+"\" title=\""+title+"\" type=\"button\" class=\"imgSelector\" value=\""+a.file_name+"\">";
-		s+="<img class=\""+cls+"\" aria-hidden=\"true\" alt=\""+title+"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
+		s+="<img class=\""+cls+"\" alt=\"\" src=\""+a.thumbnail+"\" loading=\"lazy\">";
 		s+="</button>";
 		s+="<button title=\""+pZ.locale("About this image")+"\" data-k=\""+k+"\" type=\"button\" class=\"imgAlert\">";
 		s+="<span aria-hidden=\"true\">"+title+"</span>";
@@ -3903,32 +4591,56 @@ dialog button:hover
 	{
 		let s="<p>";
 		s+=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
-		s+="</p><p>";
+		s+="</p>";
 		if(a["owner"])
 		{
-			s+="<em>";
+			s+="<p>";
+			s+=pZ.locale("Credits: ");
 			if(a["source"]&&a["source"].match(/^(http|_img)/))
 			{
-				s+=pZ.locale("Credits: ");
 				s+="<a href=\""+a["source"]+"\" target=\"_blank\">"+a["owner"]+"</a>";
 			}
 			else s+=a["owner"];
-			s+="</em>";
+			s+="</p>";
 		}
 		else if(a["source"]&&(a["source"]!="?"))
 		{
 			if(a["source"]=="generated by an AI")
-				s+="<em>"+pZ.ucFirst(pZ.locale("generated by an AI"))+"</em>";
+				s+="<p>"+pZ.ucFirst(pZ.locale("generated by an AI"))+"</p>";
+			else if(a["source"]=="Parsimonhi")
+			{
+				s+=pZ.locale("Credits: ");
+				s+="<p>"+pZ.ucFirst(pZ.locale("Parismonhi"))+"</p>";
+			}
 			else
 			{
-				s+="<em><a href=\""+a["source"]+"\" target=\"_blank\">";
+				s+="<p><a href=\""+a["source"]+"\" target=\"_blank\">";
 				s+=pZ.locale("Source");
-				s+="</a></em>";
+				s+="</a></p>";
 			}
 		}
-		else if(a["license"]&&(a["license"]=="Public-domain"))
-			s+="<em>"+pZ.locale("Public domain")+"</em>";
-		s+="</p><p>"+pZ.locale("To launch the puzzle, click on the image!")+"</p>";
+		if(a["license"])
+		{
+			s+="<p>"+pZ.locale("License: ");
+			if(a["license"]=="Public-domain") s+=pZ.locale("Public domain");
+			else
+			{
+				let licenseLabel="",licenseLink="";
+				for(let e of pZ.licensesJson)
+				{
+					if(e["license_code"]==a["license"])
+					{
+						licenseLink=e["license_link"];
+						break;
+					}
+				}
+				if(licenseLink) s+="<a href=\""+licenseLink+"\">";
+				s+=pZ.ucFirst(a["license"]);
+				if(licenseLink) s+="</a>";
+			}
+			s+="</p>";
+		}
+		s+="<p>"+pZ.locale("To launch the puzzle, click on the image!")+"</p>";
 		return s;
 	}
 	
@@ -3962,7 +4674,7 @@ dialog button:hover
 		if([...e.dataTransfer.items].some((item)=>item.kind==="file")) e.preventDefault();
 	});
 	
-	pZ.doChooseContinue=function()
+	pZ.doChooseContinue2=function()
 	{
 		// choose an image on a server
 		let t=pZ.locale("Choose an image"),s="";
@@ -4011,12 +4723,14 @@ dialog button:hover
 			s+="<details><summary>"+pZ.locale(c.title)+"</summary>";
 			s+="<ul class=\"imgList\">";
 			for(let a of pZ.originJson)
+			{
 				if((a.category==c.type)&&(a.visible=="1"))
 				{
 					k++;
 					listOfImages[k]=a;
 					s+=pZ.makeInitialImgBtn(a,k);
 				}
+			}
 			s+="</ul>"
 			s+="</details>";
 		}
@@ -4075,10 +4789,15 @@ dialog button:hover
 		pZ.dropZone.addEventListener("drop",pZ.dropHandler);
 		pZ.dropZone.addEventListener("dragover",pZ.dragOverHandler);
 	}
-	
+	pZ.doChooseContinue=function()
+	{
+		fetch("licenses.json",{cache:"no-cache"})
+		.then(r=>r.json())
+		.then(j=>{pZ.licensesJson=j;pZ.doChooseContinue2();});
+	}
 	pZ.choose=function()
 	{
-		fetch("images.json")
+		fetch("images.json",{cache:"no-cache"})
 		.then(r=>r.json())
 		.then(j=>{pZ.originJson=pZ.shuffleArray(j);pZ.doChooseContinue();});
 	}
@@ -4115,12 +4834,14 @@ dialog button:hover
 			emb:5,
 			th:30,
 			ms:50,
+			ro:0,
 			ric:1,
 			showsw:1,
 			showsc:1,
 			showgh:1,
 			scatter:"inside",
-			bkc:"#ffffff"
+			bkc:"#ffffff",
+			bo:1
 		};
 		pZ.maxLoadingTime=50*pZ.iwhMax;
 		pZ.embossFilterHtml=pZ.makeEmbossFilter();
@@ -4136,7 +4857,7 @@ dialog button:hover
 	{
 		if(pZ.lang.match(/^fr/))
 		{
-			fetch("_i18n/puzzle-i18n-fr.json")
+			fetch("_i18n/puzzle-i18n-fr.json",{cache:"no-cache"})
 			.then(r=>r.json())
 			.then(j=>{pZ.i18n=j;pZ.start2();});
 		}
@@ -4164,6 +4885,7 @@ dialog button:hover
 <span>Copyright © 2024</span>
 <a href=\"https://github.com/parsimonhi\">Parsimonhi</a>
 </p>
+<a href="#">Back to top</a>
 </footer>
 
 <script>
@@ -4171,6 +4893,8 @@ window.addEventListener("load",()=>
 {
 	let y=new Date().getFullYear();
 	document.querySelector('.copyright span').innerHTML+=(y!=2024)?"-"+y:"";
+	if(document.documentElement.lang.match(/^fr/))
+		document.querySelector('footer>a:last-of-type').innerHTML="Haut de page";
 });
 // register the PWA service worker
 if ("serviceWorker" in navigator) {navigator.serviceWorker.register("sw.js");}

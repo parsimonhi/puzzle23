@@ -1,6 +1,6 @@
 // when a resource is modified, then change the version to force a cache update
 // execute Date.now() in the console to generate the number
-const VERSION="v1763370110193";
+const VERSION="v1764272318412";
 console.log(VERSION);
 // the name of the cache
 const CACHE_NAME=`puzzle23-${VERSION}`;
@@ -10,6 +10,7 @@ const APP_STATIC_RESOURCES=[
 	"./",
 	"manifest.json",
 	"images.json",
+	"licenses.json",
 	"_i18n/puzzle-i18n-fr.json",
 	"_icon/home.svg",
 	"_icon/open.svg",
@@ -110,13 +111,15 @@ const putInCache=async (request,response)=>
 
 const cacheFirst=async ({request,event})=>
 {
-	// first try to get the resource from the cache
+	// always get the php ressource from the server
+	let ext=(new URL(request.url)).pathname.split(".").pop();
+	if(ext=="php") return await fetch(request);
+	// try to get the resource from the cache
 	const responseFromCache=await caches.match(request);
 	if (responseFromCache) return responseFromCache;
-	// next try to get the resource from the network
 	try
 	{
-		// second try to get the ressource from the net
+		// try to get the ressource from the net
 		// todo: manage "opaque response" if any
 		const responseFromNetwork=await fetch(request);
 		// cache the ressource

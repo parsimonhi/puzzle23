@@ -7,6 +7,14 @@ License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 What is new?
 
+2025/11/27
+
+- improve texts for screen readers
+- add an optional beep when matching
+- add the rotation option
+- masonry effect on the image list (if the browser can do it)
+- various minor updates
+
 2025/11/17
 
 - various minor updates
