@@ -2450,8 +2450,8 @@ footer>a:last-of-type
 				top=(e.pZ.movedPieceY-pZ.figureY)/pZ.rf;
 				if(pZ.rotationOn)
 				{
-					left-=pZ.rotationDeltaX;
-					top-=pZ.rotationDeltaY;
+					left-=e.pZ.rotationDeltaX;
+					top-=e.pZ.rotationDeltaY;
 				}
 				e.pZ.x=(left+pZ.to)/pZ.esz;
 				e.pZ.y=(top+pZ.to)/pZ.esz;
@@ -2501,21 +2501,19 @@ footer>a:last-of-type
 			pZ.selectedAreaX=bs.x;
 			pZ.selectedAreaY=bs.y;
 		}
-		let first=1;
 		for(let e2 of pZ.selectedElements)
 		{
 			pZ.sendAbove(e2);
 			let be2=e2.getBoundingClientRect();
 			e2.pZ.movedPieceX=be2.x;
 			e2.pZ.movedPieceY=be2.y;
-			if(pZ.rotationOn&&first)
+			if(pZ.rotationOn)
 			{
 				let top,left,x,y;
 				left=(e2.pZ.movedPieceX-pZ.figureX)/pZ.rf,
 				top=(e2.pZ.movedPieceY-pZ.figureY)/pZ.rf;
-				pZ.rotationDeltaX=left-e2.pZ.x*pZ.esz+pZ.to;
-				pZ.rotationDeltaY=top-e2.pZ.y*pZ.esz+pZ.to;
-				first=0;
+				e2.pZ.rotationDeltaX=left-e2.pZ.x*pZ.esz+pZ.to;
+				e2.pZ.rotationDeltaY=top-e2.pZ.y*pZ.esz+pZ.to;
 			}
 		}
 		pZ.sendAbove(e);
