@@ -10,10 +10,12 @@
 <style>
 :root
 {
-	/* --u is my special length unit */
-	/* 1rem if the viewport width is more than 20rem */
-	/* 5vw if the viewport width is between 10rem and 20rem */
-	/* 0.5rem if the viewport width is less than 10rem */
+	/*
+	--u, special length unit
+	1rem if viewport width > 20rem
+	5vw if 20rem > viewport width > 10rem
+	0.5rem if 10rem > viewport width
+	*/
 	--u:max(0.5rem,min(1rem,5vw));
 	/* prefer long hex colors here, required for color input tag */
 	--c-light:#ffffff;
@@ -844,7 +846,6 @@ footer>a:last-of-type
 	}
 	pZ.computeWH=function()
 	{
-		pZ.initialScore=1;
 		pZ.w=Math.max(2,Math.round(Math.sqrt(pZ.whmax*pZ.iw/pZ.ih)));
 		pZ.h=Math.ceil(pZ.w*pZ.ih/pZ.iw);
 		pZ.wh=pZ.w*pZ.h;
@@ -1766,7 +1767,7 @@ footer>a:last-of-type
 	}
 	pZ.resetScore=function()
 	{
-		pZ.initialScore=1;
+		pZ.currentScore=-1;
 		pZ.score.innerHTML="";
 	}
 	pZ.initScore=function()
@@ -2484,8 +2485,8 @@ footer>a:last-of-type
 			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 			pZ.selectedElements.push(e);
 		}
-		// some browsers (ios?) do not give the focus to the element when dragging starts
-		// thus one has to put the element on the upper layer manually
+		// some browsers (on touch screen device?) do not give the focus to the element
+		// when dragging starts thus one has to put the element on the upper layer manually
 		e.addEventListener('pointermove',pZ.dragContinue);
 		e.setPointerCapture(ev.pointerId);
 		pZ.movedPiece=e;
@@ -2588,7 +2589,6 @@ footer>a:last-of-type
 		}
 		e.ariaLabel=pZ.ucFirst(s);
 	}
-
 	pZ.forceToReturnToDefault=function()
 	{
 		localStorage.pZ_whmax=pZ.whmax=pZ.defaultParams.whmax;
@@ -2607,7 +2607,6 @@ footer>a:last-of-type
 		localStorage.pZ_bkc=pZ.bkColor=pZ.defaultParams.bkc;
 		localStorage.pZ_bo=pZ.beepOn=pZ.defaultParams.bo;
 	}
-	
 	pZ.abort=function(t)
 	{
 		if(pZ.abortSignal) return;
@@ -2622,7 +2621,6 @@ footer>a:last-of-type
 				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please choose a lighter image or reduce the number of pieces via the \"Preferences\" button!"));
 		}
 	}
-
 	pZ.terminateInitPuzzle=function()
 	{
 		let t1 = performance.now(),s=pZ.locale("Puzzle of ")+pZ.w+pZ.locale(" by ")+pZ.h+pZ.locale(" pieces");
@@ -2634,7 +2632,6 @@ footer>a:last-of-type
 		// let svgs=Array.from(pZ.figure.querySelectorAll('svg'));
 		svgs=pZ.shuffleArray(pZ.svgs);
 		for(let svg of svgs) pZ.figure.append(svg);
-		//pZ.figure.style.setProperty("opacity",0);
 		pZ.board.append(pZ.figure);
 		if(pZ.restoreOn)
 		{
@@ -2661,7 +2658,6 @@ footer>a:last-of-type
 		pZ.updateMessenger(s);
 		t1 = performance.now();
 	}
-
 	pZ.createCn=function(k,dw,dh)
 	{
 		// safari seems to need integer coordinates
@@ -2671,7 +2667,6 @@ footer>a:last-of-type
 		pZ["cn"+k]=cn;
 		pZ["cx"+k]=cn.getContext("2d");
 	}
-
 	pZ.base64Bmp=function(bmp,dw,dh)
 	{
 		// bmp is an object of the same kind as those created by createImageBitmap()
@@ -2683,7 +2678,6 @@ footer>a:last-of-type
 		cx.drawImage(bmp,0,0,dw,dh);
 		return cn.toDataURL("image/png");
 	}
-		
 	pZ.base64ImagePortion=function(pA)
 	{
 		// safari seems to need integer coordinates
@@ -2707,7 +2701,6 @@ footer>a:last-of-type
 		pZ.cx1.drawImage(pZ.imgBmp?pZ.imgBmp:pZ.imgObj,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight);
 		return pZ.cn1.toDataURL("image/png");
 	}
-
 	pZ.base64Image=function(img,dw,dh)
 	{
 		// img is an object of the same kind as those created by new Image()
@@ -2718,7 +2711,6 @@ footer>a:last-of-type
 		pZ.cx2.drawImage(img,0,0,Math.floor(dw),Math.floor(dh));
 		return pZ.cn2.toDataURL("image/png");
 	}
-
 	pZ.buildImgHref=function(pA)
 	{
 		if(pZ.abortSignal) return 0;
@@ -2756,7 +2748,6 @@ footer>a:last-of-type
 		let data=new XMLSerializer().serializeToString(svg);
 		return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(data)}`;
 	}
-	
 	pZ.buildImg=function(pA)
 	{
 		if(pZ.abortSignal) return 0;
@@ -2799,7 +2790,6 @@ footer>a:last-of-type
 		let imgHref=pZ.buildImgHref(pA);
 		if(imgHref) img.src=imgHref;
 	}
-
 	pZ.pAlea=function(t=0)
 	{
 		let a=[],fx=pZ.fx,fy=pZ.fy,ft=pZ.ft,fa=pZ.fa;
@@ -2892,7 +2882,6 @@ footer>a:last-of-type
 		else if(pZ.pScatter.length>pZ.kScatter.length)
 			pZ.pScatter=pZ.pScatter.slice(0,pZ.kScatter.length);
 	}
-
 	pZ.generateTopLeft=function(i,j)
 	{
 		let left,top,a,b,c,k,ko,po;
@@ -3297,7 +3286,6 @@ footer>a:last-of-type
 			if(pZ.figure.pZ.countCreation==pZ.wh) pZ.terminateInitPuzzle();
 		}
 	}
-	
 	pZ.clearFigure=function()
 	{
 		pZ.inInit=1;
@@ -3309,7 +3297,6 @@ footer>a:last-of-type
 			pZ.figure=null;
 		}
 	}
-	
 	pZ.initPuzzle=function()
 	{
 		pZ.t0=performance.now();
@@ -3467,11 +3454,11 @@ footer>a:last-of-type
 		if(pZ.isPuzzleCompleted())
 		{
 			pZ.doGameOver();
-			pZ.updateScore();
+			pZ.updateScore(); // after pZ.doGameOver()
 		}
 		else
 		{
-			pZ.updateScore();
+			pZ.updateScore(); // before pZ.adaptScrollArea()
 			if(pZ.minMaxChange||pZ.selectedArea) pZ.adaptScrollArea();
 		}
 	}
@@ -3847,94 +3834,6 @@ footer>a:last-of-type
 			}
 		}
 	}
-	pZ.placeOne=function(e)
-	{
-		// just for testing
-		if(e?.classList?.contains("puzzleElement"))
-		{
-			let beepOn=pZ.beepOn;
-			pZ.beepOn=0;
-			pZ.clearSelectedArea();
-			if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
-			pZ.noFocusEffect=2;
-			if(pZ.rotationOn)
-			{
-				e.pZ.rotation=0;
-				pZ.rotate2(e);
-			}
-			let x=e.pZ.imin;
-			let y=e.pZ.jmin;
-			e.pZ.x=x;
-			e.pZ.y=y;
-			e.style.left=(x*pZ.esz-pZ.to)+"px";
-			e.style.top=(y*pZ.esz-pZ.to)+"px";
-			let mo=e.pZ.m.z[0];
-			for(let m of e.pZ.m.z) pZ.doGluing(m);
-			pZ.saveElement(mo.svg);
-			pZ.updatePuzzleElementLabel(mo.svg);
-			pZ.sendAbove(e);
-			pZ.updateScore();
-			e.focus();
-			pZ.noFocusEffect=0;
-			pZ.beepOn=beepOn;
-		}
-	}
-	pZ.placeSeveral=function(e,t)
-	{
-		// just for testing
-		if(e?.classList?.contains("puzzleElement"))
-		{
-			if(t=="v")
-			{
-				let i=e.pZ.imin;
-				for(let j=0;j<pZ.h;j++)
-					if(!pZ.map[i][j].englued) pZ.placeOne(pZ.map[i][j].svg);
-			}
-			else
-			{
-				let j=e.pZ.jmin;
-				for(let i=0;i<pZ.w;i++)
-					if(!pZ.map[i][j].englued) pZ.placeOne(pZ.map[i][j].svg);
-			}
-		}
-	}
-	pZ.placeAll=function()
-	{
-		// just for testing
-		let beepOn=pZ.beepOn;
-		pZ.beepOn=0;
-		pZ.clearSelectedArea();
-		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
-		pZ.noFocusEffect=2;
-		for(let e of pZ.figure.querySelectorAll('.puzzleElement'))
-		{
-			if(pZ.rotationOn)
-			{
-				e.pZ.rotation=0;
-				pZ.rotate2(e);
-			}
-			let x=e.pZ.imin;
-			let y=e.pZ.jmin;
-			e.pZ.x=x;
-			e.pZ.y=y;
-			e.style.left=(x*pZ.esz-pZ.to)+"px";
-			e.style.top=(y*pZ.esz-pZ.to)+"px";
-		}
-		for(let i=0;i<pZ.w;i++)
-			for(let j=0;j<pZ.h;j++)
-				pZ.doGluing(pZ.map[i][j]);
-		let svgs=pZ.figure.querySelectorAll('.puzzleElement');
-		for(let svg of svgs)
-		{
-			pZ.saveElement(svg);
-			pZ.updatePuzzleElementLabel(svg);
-		}
-		pZ.updateScore();
-		pZ.menu.querySelector("li:last-of-type").focus();
-		pZ.noFocusEffect=0;
-		pZ.beepOn=beepOn;
-	}
-	
 	pZ.updateSelectedElements=function()
 	{
 		if(!pZ.selectedArea) return;
@@ -3951,10 +3850,9 @@ footer>a:last-of-type
 				pZ.selectedElements.push(e);
 		}
 	}
-
 	pZ.doArrowMoveOneElement=function(ev,e)
 	{
-		let x1,y1,x2,y2,x3,y3,be,bf,i,j,d=pZ.moveStep*pZ.esz00,dl,dr,dt,db;
+		let x1,y1,x2,y2,x3,y3,be,bf,i,j,d=pZ.moveStep*pZ.esz00,dw,dh;
 		let exRotation;
 		if(pZ.rotationOn)
 		{
@@ -3968,16 +3866,14 @@ footer>a:last-of-type
 		y1=Math.round((be.y-bf.y)/pZ.rf)+pZ.to;
 		x3=Math.round(x1/d)*d;
 		y3=Math.round(y1/d)*d;
-		dl=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
-		dr=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
-		dt=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
-		db=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
+		dw=pZ.nearlyEqual(x1,x3)?d:(x1<x3)?(d+x1-x3):(d+x3-x1);
+		dh=pZ.nearlyEqual(y1,y3)?d:(y1<y3)?(d+y1-y3):(d+y3-y1);
 		switch(ev.key)
 		{
-			case "ArrowLeft":x2=x1-dl;y2=Math.round(y1/d)*d;break;
-			case "ArrowRight":x2=x1+dr;y2=Math.round(y1/d)*d;break;
-			case "ArrowUp":x2=Math.round(x1/d)*d;y2=y1-dt;break;
-			case "ArrowDown":x2=Math.round(x1/d)*d;y2=y1+db;break;
+			case "ArrowLeft":x2=x1-dw;y2=Math.round(y1/d)*d;break;
+			case "ArrowRight":x2=x1+dw;y2=Math.round(y1/d)*d;break;
+			case "ArrowUp":x2=Math.round(x1/d)*d;y2=y1-dh;break;
+			case "ArrowDown":x2=Math.round(x1/d)*d;y2=y1+dh;break;
 		}
 		if(!pZ.nearlyEqual(x1,x2)||!pZ.nearlyEqual(y1,y2))
 		{
@@ -4005,16 +3901,12 @@ footer>a:last-of-type
 			// seems not well working on chrome and safari for large puzzle elements
 			e.scrollIntoView({block:"nearest",inline:"nearest"});
 		}
-		else
+		else if(pZ.rotationOn)
 		{
-			if(pZ.rotationOn)
-			{
-				e.pZ.rotation=exRotation;
-				pZ.rotate2(e);
-			}
+			e.pZ.rotation=exRotation;
+			pZ.rotate2(e);
 		}
 	}
-		
 	pZ.doArrowWhenPuzzleElementOnFocus=function(ev)
 	{
 		// move all selected elements (but pZ.selectedElements no longer exists)
@@ -4034,7 +3926,6 @@ footer>a:last-of-type
 		}
 		pZ.dirty=1;
 	}
-		
 	pZ.doShiftArrow=function(ev)
 	{
 		// create pZ.selectedArea if not already created, or move it of one moveStep
@@ -4123,7 +4014,6 @@ footer>a:last-of-type
 		pZ.updateSelectedElements();
 		pZ.selectedArea.scrollIntoView({block:"nearest",inline:"nearest"});
 	}
-	
 	pZ.doArrowWhenSelectedArea=function(ev)
 	{
 		// assume pZ.selectedArea already exists
@@ -4170,22 +4060,19 @@ footer>a:last-of-type
 		pZ.updateMessenger(s);
 		pZ.selectedArea.scrollIntoView({block:"nearest",inline:"nearest"});
 	}
-
 	pZ.getZIndex=function(e)
 	{      
 		let z=getComputedStyle(e).getPropertyValue('z-index');
 		if (isNaN(z)) return 0;
 		return z; 
 	}
-
-	pZ.cancelAll=function()
+	pZ.cancelSelect=function()
 	{
 		pZ.clearSelectedArea();
 		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 		document.activeElement.blur();
 		pZ.updateMessenger(pZ.locale("Nothing is selected or is in focus anymore."));
 	}
-	
 	pZ.doKeydown=function(ev)
 	{
 		if(pZ.inDialog) return;
@@ -4272,7 +4159,7 @@ footer>a:last-of-type
 		if(pZ.selectedArea&&(ev.key==" "))
 		{
 			// give the focus to the top most element inside pZ.selectedElements
-			// if the Shift key is also pressed, mark as selected all elements inside pZ.selectedElements
+			// if shiftKey, mark as selected all elements inside pZ.selectedElements
 			// else mark as selected only the top most element
 			ev.preventDefault();
 			ev.stopPropagation();
@@ -4301,7 +4188,7 @@ footer>a:last-of-type
 		}
 		// manage shortcuts
 		let key=ev.key.toLowerCase();
-		if(key.match(/^[abdefghiprt]$/))
+		if(key.match(/^[abdefghprt]$/))
 		{
 			ev.preventDefault();
 			ev.stopPropagation();
@@ -4316,27 +4203,21 @@ footer>a:last-of-type
 					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 					pZ.ghost.focus();
 					break;
-				case "g":pZ.cancelAll();break;
+				case "g":pZ.cancelSelect();break;
 				case "h":
 					pZ.clearSelectedArea();
 					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 					pZ.home.focus();
 					break;
-				case "i":pZ.placeOne(a);break;
 				case "p":pZ.doClickOnPreferences(ev);break;
 				case "r":
 					pZ.clearSelectedArea();
 					if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
 					pZ.restart.focus();break;
 				case "t":pZ.doTipsAndTricksAlert();break;
-				//for testing only:
-				//case "t":pZ.placeAll();break;
-				//case "u":pZ.placeSeveral(a,"h");break;
-				//case "y":pZ.placeSeveral(a,"v");break;
 			}
 		}
 	}
-	
 	pZ.clearSelectedByKeyboard=function()
 	{
 		if(!pZ.figure) return;
@@ -4344,13 +4225,11 @@ footer>a:last-of-type
 		for(let e of eList) e.classList.remove("selected");
 		pZ.hasSomeSelectedByKeyboard=0;
 	}
-	
 	pZ.clearSelectedArea=function()
 	{
 		if(pZ.selectedArea){pZ.selectedArea.remove();pZ.selectedArea=null;}
 		pZ.selectedElements=[];
 	}
-	
 	pZ.selectContinue=function(ev)
 	{
 		if(!ev.isPrimary) return;
@@ -4380,7 +4259,6 @@ footer>a:last-of-type
 			}
 		}
 	}
-	
 	pZ.selectStart=function(ev)
 	{
 		if(!ev.isPrimary) return;
@@ -4399,7 +4277,6 @@ footer>a:last-of-type
 		pZ.selectY=ev.clientY;
 		pZ.selectStartTime=ev.timeStamp;
 	}
-	
 	pZ.selectEnd=function(ev)
 	{
 		if(!ev.isPrimary) return;
@@ -4418,7 +4295,6 @@ footer>a:last-of-type
 		}
 		pZ.selectE=null;
 	}
-	
 	pZ.initBackground=function()
 	{
 		pZ.background=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -4429,7 +4305,6 @@ footer>a:last-of-type
 		pZ.currentScript.after(pZ.background);
 		pZ.selectedElements=[];
 	}
-	
 	pZ.initParameters=function()
 	{
 		if(localStorage.pZ_whmax===undefined) localStorage.pZ_whmax=pZ.whmax=pZ.defaultParams.whmax;
@@ -4461,7 +4336,6 @@ footer>a:last-of-type
 		if(localStorage.pZ_bo===undefined) localStorage.pZ_bo=pZ.beepOn=pZ.defaultParams.bo;
 		else pZ.beepOn=-(-localStorage.pZ_bo); // if 1, beep when matching
 	}
-	
 	pZ.initFirst=function()
 	{
 		pZ.board.classList.replace("initial","puzzle");
@@ -4492,7 +4366,6 @@ footer>a:last-of-type
 		}).observe(pZ.menu);
 		setTimeout(()=>pZ.initPuzzle(),100);
 	}
-	
 	pZ.afterFetch=function(svgImgOn)
 	{
 		pZ.imgObj=new Image();
@@ -4527,7 +4400,6 @@ footer>a:last-of-type
 		if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
 		else pZ.imgObj.src=pZ.imgUrl;
 	}
-	
 	pZ.fetch=function(o={})
 	{
 		pZ.showWait();
@@ -4562,7 +4434,6 @@ footer>a:last-of-type
 		})
 		.catch((e)=>{pZ.imgUrl=pZ.defaultImgUrl;pZ.fetch();});
 	}
-
 	pZ.makeInitialImgBtn=function(a,k)
 	{
 		let s="",title=(pZ.lang=="fr")?a.image_title_fr:a.image_title_en;
@@ -4645,7 +4516,6 @@ footer>a:last-of-type
 		s+="<p>"+pZ.locale("To launch the puzzle, click on the image!")+"</p>";
 		return s;
 	}
-	
 	pZ.dragOverHandler=function(e)
 	{
 		const files=[...e.dataTransfer.items].filter((item)=>item.kind==="file");
@@ -4803,20 +4673,17 @@ footer>a:last-of-type
 		.then(r=>r.json())
 		.then(j=>{pZ.originJson=pZ.shuffleArray(j);pZ.doChooseContinue();});
 	}
-
 	pZ.doRestoreContinue=function()
 	{
 		pZ.restoreOn=1;
 		pZ.fetch();
 	}
-	
 	pZ.doRestoreCancel=function()
 	{
 		// must be named "doRestoreCancel" to be also fired when the "esc" key is pressed
 		pZ.clearRestoreData();
 		pZ.choose();
 	}
-	
 	pZ.doRestoreDialog=function()
 	{
 		let t=pZ.locale("Restore"),s,
@@ -4825,7 +4692,6 @@ footer>a:last-of-type
 		pZ.noH2Outline=1;
 		pZ.doDialog("Restore",t,s,o);
 	}
-
 	pZ.start2=function()
 	{
 		pZ.initialLoading=1;
@@ -4854,7 +4720,6 @@ footer>a:last-of-type
 		if(localStorage.imgDataUrl) pZ.doRestoreDialog();
 		else pZ.choose();
 	}
-	
 	pZ.start=function()
 	{
 		if(pZ.lang.match(/^fr/))
@@ -4865,7 +4730,6 @@ footer>a:last-of-type
 		}
 		else pZ.start2();
 	}
-	
 	pZ.search=window.location.search.replace(/[^?A-Za-z0-9=]/g,"");
 	pZ.all=((pZ.hashCode(pZ.search)+"")==="1908939687");
 	pZ.currentScript=document.currentScript;
@@ -4880,7 +4744,6 @@ footer>a:last-of-type
 	window.addEventListener('load',pZ.start);
 })();
 </script>
-
 <footer>
 <p class="copyright">
 <a href="https://github.com/parsimonhi/puzzle23">Puzzle23</a>
@@ -4889,7 +4752,6 @@ footer>a:last-of-type
 </p>
 <a href="#">Back to top</a>
 </footer>
-
 <script>
 window.addEventListener("load",()=>
 {
