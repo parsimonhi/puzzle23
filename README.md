@@ -7,6 +7,10 @@ License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 What is new?
 
+2025/12/01
+
+- various minor updates
+
 2025/11/28
 
 - various minor updates

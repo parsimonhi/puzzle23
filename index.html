@@ -820,12 +820,14 @@ footer>a:last-of-type
 	{
 		return s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
 	}
-	pZ.beep=function(d=0.02)
+	pZ.beep=function(d=0.05)
 	{
-		let a=new AudioContext(),o=new OscillatorNode(a);
-		o.connect(a.destination);
-		o.start(0);
-		o.stop(d);
+		// recommended to create only one AudioContext
+		if(!pZ.acx) pZ.acx=new AudioContext();
+		let o=pZ.acx.createOscillator();
+		o.connect(pZ.acx.destination);
+		o.start();
+		o.stop(pZ.acx.currentTime+d);
 	}
 	pZ.computeRf=function()
 	{
