@@ -1202,10 +1202,6 @@ footer>a:last-of-type
 		e=document.querySelector('[name="bo"]');
 		e.checked=pZ.defaultParams.bo?true:false;
 	}
-	pZ.afterEmbossSettings=function()
-	{
-		pZ.internalBordersOn=pZ.emboss?1:0;
-	}
 	pZ.makeEmbossFilter=function()
 	{
 		let s='<filter id="emboss" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">';
@@ -1312,7 +1308,6 @@ footer>a:last-of-type
 			if(whmax!=pZ.whmax)
 			{
 				localStorage.pZ_whmax=pZ.whmax=whmax;
-				pZ.computeWH();
 				changeStatus|=32;
 			}
 		}
@@ -1329,7 +1324,6 @@ footer>a:last-of-type
 			if(emb!=pZ.emboss)
 			{
 				localStorage.pZ_emb=pZ.emboss=emb;
-				pZ.afterEmbossSettings();
 				changeStatus|=2;
 			}
 		}
@@ -1661,6 +1655,40 @@ footer>a:last-of-type
 		let data=figure.innerHTML;
 		return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(data)}`;
 	}
+	pZ.loader=function(svgImgOn)
+	{
+		pZ.imgObj=new Image();
+		pZ.imgObj.crossOrigin="anonymous";
+		pZ.imgObj.addEventListener("load",()=>
+		{
+			pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
+			pZ.iw=pZ.imgObj.width;
+			pZ.ih=pZ.imgObj.height;
+			if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
+			{
+				let iw=pZ.iw,ih=pZ.ih;
+				if(iw<ih){pZ.iw=pZ.iwhMax*iw/ih;pZ.ih=pZ.iwhMax;}
+				else{pZ.iw=pZ.iwhMax;pZ.ih=pZ.iwhMax*ih/iw;}
+				let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
+				pZ.iw=Math.floor(pZ.iw);
+				pZ.ih=Math.floor(pZ.ih);
+				createImageBitmap(pZ.imgObj,o)
+				.then((imgBmp)=>
+				{
+					pZ.imgBmp=imgBmp;
+					localStorage.imgDataUrl=pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
+					pZ.initFirst();
+				});
+			}
+			else
+			{
+				localStorage.imgDataUrl=pZ.imgDataUrl;
+				pZ.initFirst();
+			}
+		});
+		if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
+		else pZ.imgObj.src=pZ.imgUrl;
+	}
 	pZ.doReadFile=function(f)
 	{
 		pZ.showWait();
@@ -1681,39 +1709,7 @@ footer>a:last-of-type
 			pZ.board.innerHTML="";
 			if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
 			else pZ.imgDataUrl=reader.result;
-			pZ.imgObj=new Image();
-			pZ.imgObj.addEventListener("load",()=>
-			{
-				pZ.initialLoading=0;
-				pZ.iw=pZ.imgObj.width;
-				pZ.ih=pZ.imgObj.height;
-				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
-				pZ.computeWH();
-				if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
-				{
-					let w=pZ.iw,h=pZ.ih;
-					if(w<h){pZ.iw=pZ.iwhMax*w/h;pZ.ih=pZ.iwhMax;}
-					else{pZ.iw=pZ.iwhMax;pZ.ih=pZ.iwhMax*h/w;}
-					let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
-					pZ.iw=Math.floor(pZ.iw);
-					pZ.ih=Math.floor(pZ.ih);
-					createImageBitmap(pZ.imgObj,o)
-					.then((imgBmp)=>
-					{
-						pZ.imgBmp=imgBmp;
-						pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
-						localStorage.imgDataUrl=pZ.imgDataUrl;
-						pZ.initFirst();
-					});
-				}
-				else
-				{
-					localStorage.imgDataUrl=pZ.imgDataUrl;
-					pZ.initFirst();
-				}
-			});
-			if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
-			else pZ.imgObj.src=pZ.imgUrl;
+			pZ.loader(svgImgOn);
 		});
 		if(svgImgOn) reader.readAsText(f);
 		else reader.readAsDataURL(f);
@@ -2592,10 +2588,8 @@ footer>a:last-of-type
 	pZ.forceToReturnToDefault=function()
 	{
 		localStorage.pZ_whmax=pZ.whmax=pZ.defaultParams.whmax;
-		pZ.computeWH();
 		localStorage.pZ_pt=pZ.pt=pZ.defaultParams.pt;
 		localStorage.pZ_emb=pZ.emboss=pZ.defaultParams.emb;
-		pZ.afterEmbossSettings();
 		localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th;
 		localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
 		localStorage.pZ_ro=pZ.rotationOn=pZ.defaultParams.ro;
@@ -2615,10 +2609,7 @@ footer>a:last-of-type
 		if(t)
 		{
 			pZ.noH2Outline=1;
-			if(pZ.initialLoading)
-				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please reduce the number of pieces via the \"Preferences\" button!"));
-			else 
-				pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please choose a lighter image or reduce the number of pieces via the \"Preferences\" button!"));
+			pZ.doAlert(pZ.locale("Error"),pZ.locale("Sorry, too long! Please reduce the number of pieces via the \"Preferences\" button!"));
 		}
 	}
 	pZ.terminateInitPuzzle=function()
@@ -3303,6 +3294,8 @@ footer>a:last-of-type
 		if(pZ.setTimeoutId) clearTimeout(pZ.setTimeoutId);
 		pZ.clearFigure();
 		pZ.lastFocused=null;
+		pZ.computeWH();
+		pZ.internalBordersOn=pZ.emboss?1:0;
 		pZ.esz=pZ.computeEsz();
 		pZ.to=pZ.esz/2;
 		pZ.esz2to=pZ.esz+2*pZ.to;
@@ -4309,12 +4302,10 @@ footer>a:last-of-type
 	{
 		if(localStorage.pZ_whmax===undefined) localStorage.pZ_whmax=pZ.whmax=pZ.defaultParams.whmax;
 		else pZ.whmax=-(-localStorage.pZ_whmax); // number of piece on the width of the puzzle
-		pZ.computeWH(); // number of piece on width and height of the puzzle
 		if(localStorage.pZ_pt===undefined) localStorage.pZ_pt=pZ.pt=pZ.defaultParams.pt;
 		else pZ.pt=localStorage.pZ_pt; // puzzle element type (squared, curvy, quirky)
 		if(localStorage.pZ_emb===undefined) localStorage.pZ_emb=pZ.emboss=pZ.defaultParams.emb;
 		else pZ.emboss=-(-localStorage.pZ_emb); // emboss effect, if 0 then no piece borders
-		pZ.afterEmbossSettings();
 		if(localStorage.pZ_th===undefined) localStorage.pZ_th=pZ.threshold=pZ.defaultParams.th; // better if more than half moveStep below
 		else pZ.threshold=-(-localStorage.pZ_th); // threshold to stick a puzzle element in its place
 		if(localStorage.pZ_ms===undefined) localStorage.pZ_ms=pZ.moveStep=pZ.defaultParams.ms;
@@ -4366,40 +4357,6 @@ footer>a:last-of-type
 		}).observe(pZ.menu);
 		setTimeout(()=>pZ.initPuzzle(),100);
 	}
-	pZ.afterFetch=function(svgImgOn)
-	{
-		pZ.imgObj=new Image();
-		pZ.imgObj.crossOrigin="anonymous"
-		pZ.imgObj.addEventListener("load",()=>
-		{
-			pZ.iw=pZ.imgObj.width;
-			pZ.ih=pZ.imgObj.height;
-			if(Math.max(pZ.iw,pZ.ih)>pZ.iwhMax)
-			{
-				let iw=pZ.iw,ih=pZ.ih;
-				if(iw<ih){pZ.iw=pZ.iwhMax*iw/ih;pZ.ih=pZ.iwhMax;}
-				else{pZ.iw=pZ.iwhMax;pZ.ih=pZ.iwhMax*ih/iw;}
-				let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
-				pZ.iw=Math.floor(pZ.iw);
-				pZ.ih=Math.floor(pZ.ih);
-				createImageBitmap(pZ.imgObj,o)
-				.then((imgBmp)=>
-				{
-					pZ.imgBmp=imgBmp;
-					pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
-					localStorage.imgDataUrl=pZ.imgDataUrl;
-					pZ.initFirst();
-				});
-			}
-			else
-			{
-				localStorage.imgDataUrl=pZ.imgDataUrl;
-				pZ.initFirst();
-			}
-		});
-		if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
-		else pZ.imgObj.src=pZ.imgUrl;
-	}
 	pZ.fetch=function(o={})
 	{
 		pZ.showWait();
@@ -4407,7 +4364,7 @@ footer>a:last-of-type
 		.then((r)=>
 		{
 			if (r.ok) return r.blob();
-			throw new Error(pZ.locale("Error while trying to retrieve the data"));
+			throw new Error(pZ.locale("Error retrieving data"));
 		})
 		.then((b)=>
 		{
@@ -4415,8 +4372,7 @@ footer>a:last-of-type
 			{
 				pZ.imgDataUrl=localStorage.imgDataUrl; // can be used in doPreferencesOK()
 				pZ.imgUrl=URL.createObjectURL(b);
-				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
-				setTimeout(()=>pZ.afterFetch(0),100);
+				setTimeout(()=>pZ.loader(0),100);
 			}
 			else
 			{
@@ -4426,7 +4382,7 @@ footer>a:last-of-type
 				{
 					if(svgImgOn) pZ.imgDataUrl=pZ.setWHToSvg(reader.result);
 					else pZ.imgDataUrl=reader.result;
-					pZ.afterFetch(svgImgOn);
+					pZ.loader(svgImgOn);
 				});
 				if(svgImgOn) reader.readAsText(b);
 				else reader.readAsDataURL(b);
@@ -4639,7 +4595,6 @@ footer>a:last-of-type
 			b.addEventListener('click',function()
 			{
 				pZ.imgUrl=b.value;
-				pZ.board.style.setProperty("--img",`url('${pZ.imgUrl}')`);
 				pZ.board.innerHTML="";
 				// may consider pZ.fetch({mode:"cors"});
 				// without the "cors" option, one can receive an "opaque" response
@@ -4694,7 +4649,6 @@ footer>a:last-of-type
 	}
 	pZ.start2=function()
 	{
-		pZ.initialLoading=1;
 		pZ.defaultParams=
 		{
 			whmax:100,

@@ -2,7 +2,7 @@
 	{
 		"Puzzle":"Puzzle",
 		"Error":"Erreur",
-		"Error while trying to retrieve the data":"Erreur en essayant de récupérer les données",
+		"Error retrieving data":"Erreur lors de la récupération des données",
 		"Yes":"Oui",
 		"No":"Non",
 		"Choose an image":"Choisir une image",
@@ -144,7 +144,6 @@
 		"Beep when matching":"Beep si correspondance",
 		"Sorry, cannot open this file!":"Désolé, impossible d'ouvrir ce fichier !",
 		"Sorry, too long! Please reduce the number of pieces via the \"Preferences\" button!":"Désolé, trop long! Merci de réduire le nombre de pièces via le bouton \"Préférences\" !",
-		"Sorry, too long! Please choose a lighter image or reduce the number of pieces via the \"Preferences\" button!":"Désolé, trop long! Merci de choisir une image plus légère ou de réduire le nombre de pièces via le bouton \"Préférences\" !",
 		"Please wait!":"Merci de patienter !",
 		"A puzzle has not been completed.":"Un puzzle n'a pas été terminé.",
 		"The puzzle has not been completed.":"Le puzzle n'a pas été terminé.",
