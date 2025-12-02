@@ -2667,7 +2667,7 @@ footer>a:last-of-type
 		cn.height=dh;
 		cx=cn.getContext("2d");
 		cx.drawImage(bmp,0,0,dw,dh);
-		return cn.toDataURL("image/png");
+		return cn.toDataURL("image/webp");
 	}
 	pZ.base64ImagePortion=function(pA)
 	{
@@ -2690,7 +2690,7 @@ footer>a:last-of-type
 		pZ.cx1.fillStyle= "#fff";
 		pZ.cx1.fillRect(0,0,pZ.cn1.width,pZ.cn1.height);
 		pZ.cx1.drawImage(pZ.imgBmp?pZ.imgBmp:pZ.imgObj,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight);
-		return pZ.cn1.toDataURL("image/png");
+		return pZ.cn1.toDataURL("image/webp");
 	}
 	pZ.base64Image=function(img,dw,dh)
 	{
@@ -2700,7 +2700,7 @@ footer>a:last-of-type
 		if(pZ.abortSignal) return 0;
 		pZ.cx2.clearRect(0,0,pZ.cn2.width,pZ.cn2.height);
 		pZ.cx2.drawImage(img,0,0,Math.floor(dw),Math.floor(dh));
-		return pZ.cn2.toDataURL("image/png");
+		return pZ.cn2.toDataURL("image/webp");
 	}
 	pZ.buildImgHref=function(pA)
 	{
