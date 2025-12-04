@@ -411,7 +411,6 @@ summary:focus-visible
 	visibility:hidden; /* faster than display:none, no reflow, just repaint */
 	animation:none;
 }
-
 .board.initial
 {
 	padding:0 var(--u) var(--u) var(--u);
@@ -1007,7 +1006,6 @@ footer>a:last-of-type
 		let n=z/pZ.esz;
 		return pZ.r2d(n-2*pZ.to/pZ.esz);
 	}
-	
 	// tipsAndTricks
 	pZ.doTipsAndTricksAlert=function()
 	{
@@ -1391,8 +1389,6 @@ footer>a:last-of-type
 			}
 			else
 			{
-				// in theory localStorage.imgDataUrl can be null here, but not pZ.imgDataUrl
-				if(!localStorage.imgDataUrl&&pZ.imgDataUrl) localStorage.imgDataUrl=pZ.imgDataUrl;
 				pZ.restoreOn=changeStatus;
 				pZ.showWait();
 				pZ.clearFigure();
@@ -1669,22 +1665,18 @@ footer>a:last-of-type
 				let iw=pZ.iw,ih=pZ.ih;
 				if(iw<ih){pZ.iw=pZ.iwhMax*iw/ih;pZ.ih=pZ.iwhMax;}
 				else{pZ.iw=pZ.iwhMax;pZ.ih=pZ.iwhMax*ih/iw;}
-				let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
 				pZ.iw=Math.floor(pZ.iw);
 				pZ.ih=Math.floor(pZ.ih);
+				let o={resizeWidth:pZ.iw,resizeHeight:pZ.ih,resizeQuality:"high"};
 				createImageBitmap(pZ.imgObj,o)
 				.then((imgBmp)=>
 				{
 					pZ.imgBmp=imgBmp;
-					localStorage.imgDataUrl=pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
+					pZ.imgDataUrl=pZ.base64Bmp(imgBmp,pZ.iw,pZ.ih);
 					pZ.initFirst();
 				});
 			}
-			else
-			{
-				localStorage.imgDataUrl=pZ.imgDataUrl;
-				pZ.initFirst();
-			}
+			else pZ.initFirst();
 		});
 		if(svgImgOn) pZ.imgObj.src=pZ.imgDataUrl;
 		else pZ.imgObj.src=pZ.imgUrl;
@@ -1946,7 +1938,7 @@ footer>a:last-of-type
 		pZ.ghost.append(document.createElement('img'));
 		pZ.ghost.firstChild.setAttribute("aria-hidden","true");
 		pZ.ghost.firstChild.draggable=false;;
-		pZ.ghost.firstChild.src=localStorage.imgDataUrl;
+		pZ.ghost.firstChild.src=pZ.imgDataUrl;
 		pZ.showHideGhost();
 		pZ.board.after(pZ.ghost);
 		pZ.ghost.addEventListener('keydown',pZ.resizeGhost);
@@ -2673,15 +2665,15 @@ footer>a:last-of-type
 	{
 		// safari seems to need integer coordinates
 		if(pZ.abortSignal) return 0;
-		let w=pA.esz2to;
-		let h=pA.esz2to;
-		let r=pA.rif;
-		let sx=Math.floor((pA.i?(pA.i*pA.esz-pA.to):0)*r);
-		let sy=Math.floor((pA.j?(pA.j*pA.esz-pA.to-pA.ho):0)*r);
-		let sWidth=Math.floor((((pA.i==0)||(pA.i==(pA.w-1)))?w-pA.to:w)*r);
-		let sHeight=Math.floor((((pA.j==0)||(pA.j==(pA.h-1)))?h-pA.to-pA.ho:h)*r);
-		let dx=Math.floor(pA.i?0:pA.to*r);
-		let dy=Math.floor(pA.j?0:(pA.to+pA.ho)*r);
+		let w=pZ.esz2to;
+		let h=pZ.esz2to;
+		let r=pZ.rif;
+		let sx=Math.floor((pA.i?(pA.i*pZ.esz-pZ.to):0)*r);
+		let sy=Math.floor((pA.j?(pA.j*pZ.esz-pZ.to-pZ.ho):0)*r);
+		let sWidth=Math.floor((((pA.i==0)||(pA.i==(pZ.w-1)))?w-pZ.to:w)*r);
+		let sHeight=Math.floor((((pA.j==0)||(pA.j==(pZ.h-1)))?h-pZ.to-pZ.ho:h)*r);
+		let dx=Math.floor(pA.i?0:pZ.to*r);
+		let dy=Math.floor(pA.j?0:(pZ.to+pZ.ho)*r);
 		let dWidth=sWidth;
 		let dHeight=sHeight;
 		// do not clip in canvas because it pixelizes!
@@ -2705,7 +2697,7 @@ footer>a:last-of-type
 	pZ.buildImgHref=function(pA)
 	{
 		if(pZ.abortSignal) return 0;
-		let i=pA.i,j=pA.j,esz2to=pA.esz2to;
+		let i=pA.i,j=pA.j,esz2to=pZ.esz2to;
 		let svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 		svg.setAttributeNS(null,"viewBox","0 0 "+esz2to+" "+esz2to);
 		svg.setAttribute("width",esz2to);
@@ -2742,9 +2734,9 @@ footer>a:last-of-type
 	pZ.buildImg=function(pA)
 	{
 		if(pZ.abortSignal) return 0;
-		const t1=performance.now()-pA.t0;
+		const t1=performance.now()-pZ.t0;
 		if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime)){pZ.abort(t1);return;}
-		let esz2to=pA.esz2to;
+		let esz2to=pZ.esz2to;
 		let elementImg=document.createElementNS('http://www.w3.org/2000/svg','image');
 		pZ.map[pA.i][pA.j].img=elementImg;
 		elementImg.setAttribute("x",0);
@@ -2767,16 +2759,16 @@ footer>a:last-of-type
 				elementImg.setAttributeNS(null,"href",imgDataUrl);
 				pA.svg.prepend(elementImg);
 				pZ.svgs.push(pA.svg);
-				pA.figure.pZ.countCreation++;
-				if(pA.figure.pZ.countCreation==pA.wh) pZ.terminateInitPuzzle();
+				pZ.countCreation++;
+				if(pZ.countCreation==pZ.wh) pZ.terminateInitPuzzle();
 				else 
 				{
 					let i1=pA.i,j1=pA.j,i2,j2;
 					if(j1==(pZ.h-1)) {i2=i1+1;j2=0;}
 					else {i2=i1;j2=j1+1;}
-					pZ.initElement(i2,j2,pA.to,pA.ho,pA.hor,pA.a,pA.qt,pA.qa,pA.qx,pA.qy);
+					pZ.initElement(i2,j2,pZ.to,pZ.ho,pZ.hor,pZ.a,pZ.qt,pZ.qa,pZ.qx,pZ.qy);
 				}
-			},Math.round(Math.max(1,pA.esz/30)));
+			},Math.round(Math.max(1,pZ.esz/30)));
 		});
 		let imgHref=pZ.buildImgHref(pA);
 		if(imgHref) img.src=imgHref;
@@ -3218,8 +3210,8 @@ footer>a:last-of-type
 			localStorage["l"+i+"_"+j]=left;
 			localStorage["t"+i+"_"+j]=top;
 		}
-		x=(left+pZ.to)/pZ.esz;
-		y=(top+pZ.to)/pZ.esz;
+		x=(left+to)/pZ.esz;
+		y=(top+to)/pZ.esz;
 		svg.style.left=left+"px";
 		svg.style.top=top+"px";
 		svg.pZ.x=x;
@@ -3238,7 +3230,7 @@ footer>a:last-of-type
 		if(!pZ.internalBordersOn)
 		{
 			svg.style.backgroundSize=(pZ.w*pZ.esz)+"px auto";
-			svg.style.backgroundPosition=(pZ.to-i*pZ.esz)+"px "+(pZ.to-j*pZ.esz+ho)+"px";
+			svg.style.backgroundPosition=(to-i*pZ.esz)+"px "+(to-j*pZ.esz+ho)+"px";
 			svg.style.backgroundRepeat="no-repeat";
 			// Safari seems to need a fake element covering all the svg to make clip working conveniently
 			// otherwise, coordinates of the clipping area are wrong
@@ -3257,24 +3249,15 @@ footer>a:last-of-type
 		pZ.map[i][j].ds={d:d,d10:d10,d20:d20,d30:d30,d40:d40,d1:d1,d2:d2,d3:d3,d4:d4,bb:15,desc:desc};
 		pZ.updateMinMax(left,top);
 		pZ.updatePuzzleElementLabel(svg);
-		if(pZ.internalBordersOn)
-		{
-			let pA={
-				figure:pZ.figure,svg:svg,
-				i:i,j:j,to:to,ho:ho,hor:hor,d:d,w:pZ.w,h:pZ.h,wh:pZ.wh,
-				iw:pZ.iw,ih:pZ.ih,iwhMax:pZ.iwhMax,rif:pZ.rif,
-				esz:pZ.esz,esz2to:pZ.esz2to,esz00:pZ.esz00,t0:pZ.t0,
-				a:a,qt:qt,qa:qa,qx:qx,qy:qy};
-			pZ.buildImg(pA);
-		}
+		if(pZ.internalBordersOn) pZ.buildImg({svg:svg,i:i,j:j,d:d});
 		else
 		{
 			const t1 = performance.now()-pZ.t0;
 			if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime/10)){pZ.abort(t1);return;}// 10 times less than when embossing?
 			svg.append(outline);
 			pZ.svgs.push(svg);
-			pZ.figure.pZ.countCreation++;
-			if(pZ.figure.pZ.countCreation==pZ.wh) pZ.terminateInitPuzzle();
+			pZ.countCreation++;
+			if(pZ.countCreation==pZ.wh) pZ.terminateInitPuzzle();
 		}
 	}
 	pZ.clearFigure=function()
@@ -3302,6 +3285,7 @@ footer>a:last-of-type
 		pZ.esz00=pZ.esz/100;
 		document.body.style.setProperty("--esz00",pZ.esz00);
 		pZ.ho=pZ.esz*(pZ.h-pZ.w*pZ.ih/pZ.iw)/2;
+		pZ.hor=(1-pZ.ho/pZ.esz)*(1-pZ.ho/pZ.esz);
 		pZ.initScrollArea();
 		pZ.clearSelectedArea();
 		if(pZ.hasSomeSelectedByKeyboard) pZ.clearSelectedByKeyboard();
@@ -3309,7 +3293,7 @@ footer>a:last-of-type
 		pZ.zIndex=0;
 		let to=pZ.to; // magic offset to keep room for tenon and piece deformation
 		let ho=pZ.ho; // magic h offset when the image and puzzle ratio are not the same
-		let hor=(1-ho/pZ.esz)*(1-ho/pZ.esz);
+		let hor=pZ.hor; // magic coefficient to reduce edge piece deformation
 		if(pZ.scatter=="outside") pZ.prepareOutsideScattering();
 		pZ.fb=((pZ.pt=="curvy")||(pZ.pt=="quirky"))?1:0; // curve
 		pZ.ft=(pZ.pt=="quirky")?1:0; // tenon offset
@@ -3344,8 +3328,13 @@ footer>a:last-of-type
 			qy=pZ.pAlea("qy"); // corner offset y coordinate
 			localStorage.qy=JSON.stringify(qy);
 		}
+		pZ.a=a;
+		pZ.qt=qt;
+		pZ.qa=qa;
+		pZ.qx=qx;
+		pZ.qy=qy;
+		pZ.countCreation=0;
 		pZ.figure=document.createElement('figure');
-		pZ.figure.pZ={countCreation:0};
 		pZ.figure.classList.add('figure');
 		if(!pZ.internalBordersOn) pZ.figure.classList.add('noBorders');
 		pZ.figure.style.width=(pZ.esz*pZ.w)+"px";
@@ -3378,7 +3367,6 @@ footer>a:last-of-type
 				pZ.initElement(i,j,to,ho,hor,a,qt,qa,qx,qy);
 			}
 	}
-
 	// keydown
 	pZ.focus=function(e)
 	{
@@ -4329,6 +4317,8 @@ footer>a:last-of-type
 	}
 	pZ.initFirst=function()
 	{
+		// do not save too large imgDataUrl, as localStorage capacity is limited
+		if(pZ.imgDataUrl.length<4000001) localStorage.imgDataUrl=pZ.imgDataUrl;
 		pZ.board.classList.replace("initial","puzzle");
 		document.addEventListener("keydown",pZ.doKeydown);
 		pZ.initBackground();
@@ -4370,7 +4360,8 @@ footer>a:last-of-type
 		{
 			if(pZ.restoreOn)
 			{
-				pZ.imgDataUrl=localStorage.imgDataUrl; // can be used in doPreferencesOK()
+				// localStorage.imgDataUrl must not and cannot be null here
+				pZ.imgDataUrl=localStorage.imgDataUrl;
 				pZ.imgUrl=URL.createObjectURL(b);
 				setTimeout(()=>pZ.loader(0),100);
 			}
@@ -4691,7 +4682,8 @@ footer>a:last-of-type
 	document.documentElement.lang=pZ.lang;
 	// 2520: smallest number divisible by all integers from 1 to 10
 	// 1280: common width on Wikimedia Commons
-	// 1260: half of 2520
+	// choose a value small enough to produce PNG data URL lenght < 4000000
+	// otherwise, the image will be not saved in the localStorage
 	pZ.iwhMax=1280;
 	pZ.defaultImgUrl="_icon/puzzle-not-found.svg"; // default img in case of problem
 	pZ.imgUrl=pZ.defaultImgUrl;
