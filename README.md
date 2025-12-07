@@ -7,8 +7,9 @@ License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 What is new?
 
-2025/12/04
+2025/12/07
 
+- modify shadows
 - various minor updates
 
 2025/11/27

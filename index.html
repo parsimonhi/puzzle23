@@ -39,6 +39,8 @@
 	--logo-filter:none;
 	--magic-filter:none; /* none or invert(1) */
 	--orientation:portrait; /* use a css keyword, not a string */
+	--h1-text-shadow:-1px 1px 3px #00f7;
+	--shadow:-1px 1px 3px #0007;
 }
 *
 {
@@ -56,8 +58,7 @@ body
 {
 	--rf:1;
 	--esz00:1;
-	/* avoid to use vmin, vmax, vw or vh as font-size units */
-	/* because some browsers will zoom these units and some others will not */
+	--piece-shadow:calc(-1px / var(--rf)) calc(1px / var(--rf)) calc(3px / var(--rf)) #0007;
 	margin:0;
 	padding:0;
 	min-width:10rem;
@@ -209,7 +210,7 @@ dialog
 	color:var(--color-dlg);
 	background:var(--bk-dlg);
 	border:0;
-	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	box-shadow:var(--shadow);
 }
 dialog::backdrop
 {
@@ -310,7 +311,7 @@ dialog a
 	background-position:center;
 	background-repeat:no-repeat;
 	background-size:100% auto;
-	filter:drop-shadow(-2px 2px 3px #0007);
+	filter:drop-shadow(var(--piece-shadow));
 	margin:0;
 	padding:0;
 }
@@ -433,8 +434,8 @@ h1
 	padding:0.25em 0.5em;
 	color:var(--color-h1);
 	background:var(--bk-h1);
-	text-shadow:0rem 0.125rem 0.25rem #0000ff77;
-	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	text-shadow:var(--h1-text-shadow);
+	box-shadow:var(--shadow);
 }
 h1:after
 {
@@ -449,7 +450,7 @@ h1:after
 	height:1.5em;
 	background:#fff;
 	filter:var(--logo-filter);
-	filter:drop-shadow(0rem 0.125rem 0.25rem #0007);
+	filter:drop-shadow(var(--shadow));
 }
 .board.initial>section.preferences,
 .board.initial>section.tipsAndTricks
@@ -588,7 +589,7 @@ h1:after
 	margin:0 auto;
 	padding:0;
 	cursor:pointer;
-	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	box-shadow:var(--shadow);
 }
 .board.initial button.imgAlert
 {
@@ -625,7 +626,7 @@ dialog button
 	color:var(--color-btn);
 	background:var(--bk-btn);
 	font-weight:bold;
-	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	box-shadow:var(--shadow);
 	text-transform:uppercase;
 }
 .board.initial>h2:nth-of-type(1)+button.standardBtn
@@ -645,7 +646,8 @@ dialog button
 	max-width:max-content;
 	margin:0 0 calc(2 * var(--u)) 0;
 	padding:var(--u);
-	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	background:#eee;
+	box-shadow:var(--shadow);
 }
 #drop-zone span
 {
@@ -687,7 +689,7 @@ dialog button:hover
 	overflow:hidden;
 	margin:0;
 	width:20vmin;
-	box-shadow:rgba(0,0,0,0.25) 0rem 0.125rem 0.25rem;
+	box-shadow:var(--shadow);
 }
 .ghost:focus-visible,
 .ghost:focus-visible img /* invert img twice voluntarily */
@@ -3052,7 +3054,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][0];
 				kb=a[i][j][0]*bRef;
 				qaa=qa[i][j][0]*qaRef;
-				an=anRef+qaa;
+				an=anRef+qaa+pZ.esz00*(-qx[i][j][0]+qx[i][j][1])/4;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad-(kx1-kx2)/2;
@@ -3088,7 +3090,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][1];
 				kb=a[i][j][1]*bRef;
 				qaa=qa[i][j][1]*qaRef;
-				an=anRef+qaa;
+				an=anRef+qaa+pZ.esz00*(-qy[i][j][1]+qy[i][j][2])/4;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad-(ky1-ky2)/2-hoo/2;
@@ -3123,7 +3125,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][2];
 				kb=a[i][j][2]*bRef;
 				qaa=qa[i][j][2]*qaRef;
-				an=anRef+qaa;
+				an=anRef+qaa+pZ.esz00*(qx[i][j][2]-qx[i][j][3])/4;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad+(kx1-kx2)/2;
@@ -3159,7 +3161,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][3];
 				kb=a[i][j][3]*bRef;
 				qaa=qa[i][j][3]*qaRef;
-				an=anRef+qaa;
+				an=anRef+qaa+pZ.esz00*(qy[i][j][3]-qy[i][j][0])/4;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad+(ky1-ky2)/2-hoo/2;
@@ -3194,7 +3196,7 @@ footer>a:last-of-type
 			d3="h-"+mesz2+"v"+(mesz*a[i][j][2])+"h-"+mesz+"v"+(-mesz*a[i][j][2])+"h-"+mesz2;
 			desc[2]={tmt:a[i][j][2]};
 			d4="v"+(-(mesz2-hoo/2))+"h"+(mesz*a[i][j][3])+"v-"+mesz+"h"+(-mesz*a[i][j][3])+"v"+(-(mesz2-hoo/2));
-			desc[2]={tmt:a[i][j][2]};
+			desc[3]={tmt:a[i][j][3]};
 		}
 		d=d10+d1+d2+d3+d4+"z";
 		if((pZ.restoreOn>0)&&(pZ.restoreOn<8)&&localStorage["l"+i+"_"+j]&&localStorage["t"+i+"_"+j])
