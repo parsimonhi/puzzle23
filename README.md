@@ -1,5 +1,5 @@
 # puzzle23
-Creates puzzles on the fly.
+Online puzzles created on the fly.
 
 Demo: https://parsimonhi.github.io/puzzle23/
 
