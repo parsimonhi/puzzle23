@@ -3027,6 +3027,7 @@ footer>a:last-of-type
 		let qttRef=pZ.esz00;
 		let qxyRef=8*pZ.esz00;
 		let anRef=15*pZ.esz00;
+		let anDiv=2;
 		let qaRef=pZ.esz00;
 		let adRef=50*pZ.esz00;
 		// desc
@@ -3054,7 +3055,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][0];
 				kb=a[i][j][0]*bRef;
 				qaa=qa[i][j][0]*qaRef;
-				an=anRef+qaa+pZ.esz00*(-qx[i][j][0]+qx[i][j][1])/4;
+				an=anRef+qaa+pZ.esz00*(-qx[i][j][0]+qx[i][j][1])/anDiv;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad-(kx1-kx2)/2;
@@ -3090,7 +3091,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][1];
 				kb=a[i][j][1]*bRef;
 				qaa=qa[i][j][1]*qaRef;
-				an=anRef+qaa+pZ.esz00*(-qy[i][j][1]+qy[i][j][2])/4;
+				an=anRef+qaa+pZ.esz00*(-qy[i][j][1]+qy[i][j][2])/anDiv;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad-(ky1-ky2)/2-hoo/2;
@@ -3125,7 +3126,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][2];
 				kb=a[i][j][2]*bRef;
 				qaa=qa[i][j][2]*qaRef;
-				an=anRef+qaa+pZ.esz00*(qx[i][j][2]-qx[i][j][3])/4;
+				an=anRef+qaa+pZ.esz00*(qx[i][j][2]-qx[i][j][3])/anDiv;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad+(kx1-kx2)/2;
@@ -3161,7 +3162,7 @@ footer>a:last-of-type
 				kt=qtt*qt[i][j][3];
 				kb=a[i][j][3]*bRef;
 				qaa=qa[i][j][3]*qaRef;
-				an=anRef+qaa+pZ.esz00*(qy[i][j][3]-qy[i][j][0])/4;
+				an=anRef+qaa+pZ.esz00*(qy[i][j][3]-qy[i][j][0])/anDiv;
 				ad=adRef-an/2;
 				af=pZ.esz-2*ad;
 				ad=ad+(ky1-ky2)/2-hoo/2;

@@ -9,6 +9,7 @@ What is new?
 
 2025/12/07
 
+- modify tenons and mortises sizes
 - modify shadows
 - various minor updates
 
