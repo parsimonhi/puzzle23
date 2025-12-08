@@ -1,5 +1,5 @@
 # puzzle23
-Online puzzles created on the fly.
+Online jigsaw puzzles created on the fly.
 
 Demo: https://parsimonhi.github.io/puzzle23/
 
