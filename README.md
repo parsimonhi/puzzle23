@@ -1,7 +1,15 @@
 # puzzle23
+
 Online jigsaw puzzles created on the fly.
 
 Demo: https://parsimonhi.github.io/puzzle23/
+
+Main features:
+- made in html + svg + js (+ an admin page in php to manage the list of the pictures)
+- can be displayed in a browser or used as a PWA
+- can be played using any pointer (mouse, trackpad, fingers, etc.)
+- can be played using the keyboard
+- messages for screen readers describing the position and shape of the puzzle pieces
 
 License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
