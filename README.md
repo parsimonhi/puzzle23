@@ -4,10 +4,16 @@ Online jigsaw puzzles created on the fly.
 
 Demo: https://parsimonhi.github.io/puzzle23/
 
+Installation:
+- copy all the files in a folder of a webserver,
+- use a browser to visit the index.html page,
+- use the browser to install it as a PWA (optional).
+
 Main features:
-- made in html + svg + js (+ an admin page in php to manage the list of the pictures)
+- made in html + css + svg + js
+- administration page in php to manage the image list (optional)
 - can be displayed in a browser or used as a PWA
-- can be played using any pointer (mouse, trackpad, fingers, etc.)
+- can be played using any pointer (mouse, trackpad, fingers…)
 - can be played using the keyboard
 - messages for screen readers describing the position and shape of the puzzle pieces
 
