@@ -1204,46 +1204,71 @@ footer>a:last-of-type
 	}
 	pZ.makeEmbossFilter=function()
 	{
-		let s='<filter id="emboss" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">';
-		s+='<feGaussianBlur stdDeviation="3" in="SourceAlpha" result="G"></feGaussianBlur>';
-		s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L11">';
-		s+='<fePointLight x="0" y="-10000" z="100"></fePointLight>';
-		s+='</feSpecularLighting>';
-		s+='<feComposite in="L11" in2="SourceAlpha" operator="in" result="R11"></feComposite>';
-		s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L12">';
-		s+='<fePointLight x="0" y="10000" z="100"></fePointLight>';
-		s+='</feSpecularLighting>';
-		s+='<feComposite in="L12" in2="SourceAlpha" operator="in" result="R12"></feComposite>';
-		s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L21">';
-		s+='<fePointLight x="10000" y="0" z="100"></fePointLight>';
-		s+='</feSpecularLighting>';
-		s+='<feComposite in="L21" in2="SourceAlpha" operator="in" result="R21"></feComposite>';
-		s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L22">';
-		s+='<fePointLight x="-10000" y="0" z="100"></fePointLight>';
-		s+='</feSpecularLighting>';
-		s+='<feComposite in="L22" in2="SourceAlpha" operator="in" result="R22"></feComposite>';
-		s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L31">';
-		s+='<fePointLight x="7000" y="-7000" z="100"></fePointLight>';
-		s+='</feSpecularLighting>';
-		s+='<feComposite in="L31" in2="SourceAlpha" operator="in" result="R31"></feComposite>';
-		s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L32">';
-		s+='<fePointLight x="-7000" y="7000" z="100"></fePointLight>';
-		s+='</feSpecularLighting>';
-		s+='<feComposite in="L32" in2="SourceAlpha" operator="in" result="R32"></feComposite>';
-		s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R12" result="R13"></feColorMatrix>';
-		s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R11" in2="R13" operator="arithmetic" result="C1"></feComposite>';
-		s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R22" result="R23"></feColorMatrix>';
-		s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R21" in2="R23" operator="arithmetic" result="C2"></feComposite>';
-		s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R32" result="R33"></feColorMatrix>';
-		s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R31" in2="R33" operator="arithmetic" result="C3"></feComposite>';
-		s+='<feMerge>';
-		s+='<feMergeNode in="SourceGraphic"></feMergeNode>';
-		s+='<feMergeNode in="C1"></feMergeNode>';
-		s+='<feMergeNode in="C2"></feMergeNode>';
-		s+='<feMergeNode in="C3"></feMergeNode>';
-		s+='</feMerge>';
-		s+='</filter>';
-    	return s;
+		let roMax=pZ.rotationOn?4:1;
+		let fs=[];
+		for(let ro=0;ro<roMax;ro++)
+		{
+			let xs=[],ys=[];
+			switch(ro)
+			{
+				case 1:
+					xs=[0,0,-10000,10000,-7000,7000];
+					ys=[-10000,10000,0,0,-7000,7000];
+					break;
+				case 2:
+					xs=[0,0,-10000,10000,-7000,7000];
+					ys=[10000,-10000,0,0,7000,-7000];
+					break;
+				case 3:
+					xs=[0,0,10000,-10000,7000,-7000];
+					ys=[10000,-10000,0,0,7000,-7000];
+					break;
+				default:
+					xs=[0,0,10000,-10000,7000,-7000];
+					ys=[-10000,10000,0,0,-7000,7000];
+			}
+			let s='<filter id="emboss" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">';
+			s+='<feGaussianBlur stdDeviation="3" in="SourceAlpha" result="G"></feGaussianBlur>';
+			s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L11">';
+			s+='<fePointLight x="'+xs[0]+'" y="'+ys[0]+'" z="100"></fePointLight>';
+			s+='</feSpecularLighting>';
+			s+='<feComposite in="L11" in2="SourceAlpha" operator="in" result="R11"></feComposite>';
+			s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L12">';
+			s+='<fePointLight x="'+xs[1]+'" y="'+ys[1]+'" z="100"></fePointLight>';
+			s+='</feSpecularLighting>';
+			s+='<feComposite in="L12" in2="SourceAlpha" operator="in" result="R12"></feComposite>';
+			s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L21">';
+			s+='<fePointLight x="'+xs[2]+'" y="'+ys[2]+'" z="100"></fePointLight>';
+			s+='</feSpecularLighting>';
+			s+='<feComposite in="L21" in2="SourceAlpha" operator="in" result="R21"></feComposite>';
+			s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L22">';
+			s+='<fePointLight x="'+xs[3]+'" y="'+ys[3]+'" z="100"></fePointLight>';
+			s+='</feSpecularLighting>';
+			s+='<feComposite in="L22" in2="SourceAlpha" operator="in" result="R22"></feComposite>';
+			s+='<feSpecularLighting surfaceScale="3" specularConstant="0.2" specularExponent="10" in="G" result="L31">';
+			s+='<fePointLight x="'+xs[4]+'" y="'+ys[4]+'" z="100"></fePointLight>';
+			s+='</feSpecularLighting>';
+			s+='<feComposite in="L31" in2="SourceAlpha" operator="in" result="R31"></feComposite>';
+			s+='<feSpecularLighting surfaceScale="3" specularConstant="2" specularExponent="10" in="G" result="L32">';
+			s+='<fePointLight x="'+xs[5]+'" y="'+ys[5]+'" z="100"></fePointLight>';
+			s+='</feSpecularLighting>';
+			s+='<feComposite in="L32" in2="SourceAlpha" operator="in" result="R32"></feComposite>';
+			s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R12" result="R13"></feColorMatrix>';
+			s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R11" in2="R13" operator="arithmetic" result="C1"></feComposite>';
+			s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R22" result="R23"></feColorMatrix>';
+			s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R21" in2="R23" operator="arithmetic" result="C2"></feComposite>';
+			s+='<feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" in="R32" result="R33"></feColorMatrix>';
+			s+='<feComposite k1="0" k2="0.8" k3="0.5" k4="0" in="R31" in2="R33" operator="arithmetic" result="C3"></feComposite>';
+			s+='<feMerge>';
+			s+='<feMergeNode in="SourceGraphic"></feMergeNode>';
+			s+='<feMergeNode in="C1"></feMergeNode>';
+			s+='<feMergeNode in="C2"></feMergeNode>';
+			s+='<feMergeNode in="C3"></feMergeNode>';
+			s+='</feMerge>';
+			s+='</filter>';
+			fs[ro]=s;
+		}
+    	return fs;
 	}
 	pZ.computeEsz=function()
 	{
@@ -1256,8 +1281,12 @@ footer>a:last-of-type
 		let r1=esz/250;
 		let stdD=r1*pZ.emboss;
 		let sc=r1*pZ.emboss;
-		pZ.embossFilterHtml=pZ.embossFilterHtml.replace(/stdDeviation="[0-9.]+"/g,"stdDeviation=\""+stdD+"\"");
-		pZ.embossFilterHtml=pZ.embossFilterHtml.replace(/surfaceScale="[0-9.]+"/g,"surfaceScale=\""+sc+"\"");
+		let roMax=pZ.rotationOn?4:1;
+		for(let ro=0;ro<roMax;ro++)
+		{
+			pZ.embossFilterHtml[ro]=pZ.embossFilterHtml[ro].replace(/stdDeviation="[0-9.]+"/g,"stdDeviation=\""+stdD+"\"");
+			pZ.embossFilterHtml[ro]=pZ.embossFilterHtml[ro].replace(/surfaceScale="[0-9.]+"/g,"surfaceScale=\""+sc+"\"");
+		}
 		return esz;
 	}
 	pZ.setBkColor=function()
@@ -2367,9 +2396,15 @@ footer>a:last-of-type
 			let d="",c=[],p=[];
 			if(pZ.internalBordersOn) for(let m of a.z)
 			{
-				m.img.setAttributeNS(null,"x",(m.i-imin)*pZ.esz);
-				m.img.setAttributeNS(null,"y",(m.j-jmin)*pZ.esz);
-				svg.append(m.img);
+				let roMax=pZ.rotationOn?4:1;
+				for(let ro=0;ro<roMax;ro++)
+					if(m.imgs[ro])
+					{
+						m.imgs[ro].setAttributeNS(null,"x",(m.i-imin)*pZ.esz);
+						m.imgs[ro].setAttributeNS(null,"y",(m.j-jmin)*pZ.esz);
+					}
+				let ro2=Math.round(svg.pZ.rotation/90);
+				svg.append(m.imgs[ro2]);
 			}
 			for(let m of a.z) if(m.svg!=svg){m.svg.remove();m.svg=svg;}
 			for(let m of a.z)
@@ -2532,6 +2567,29 @@ footer>a:last-of-type
 		else if(e.pZ.rotation<0) e.pZ.rotation=270;
 		if(!e.pZ.rotation) e.style.removeProperty("transform");
 		else e.style.setProperty("transform","rotate("+e.pZ.rotation+"deg)");
+		if(pZ.internalBordersOn)
+		{
+			let ro=e.pZ.rotation?Math.round(e.pZ.rotation/90):0;
+			let imgList=e.querySelectorAll('image');
+			for(let img of imgList)
+			{
+				let i=img.pZ.i,j=img.pZ.j;
+				if(!pZ.map[i][j].imgs[ro])
+				{
+					let pA={svg:e,i:i,j:j,d:pZ.map[i][j].ds.d,ro:ro,img:img,visible:1};
+					pZ.buildImg2(pA);
+				}
+				else img.replaceWith(pZ.map[i][j].imgs[ro]);
+				for(let ro2=0;ro2<4;ro2++)
+				{
+					if((ro2!=ro)&&!pZ.map[i][j].imgs[ro2])
+					{
+						let pA={svg:e,i:i,j:j,d:pZ.map[i][j].ds.d,ro:ro2,img:img,visible:0};
+						pZ.buildImg2(pA);
+					}
+				}
+			}
+		}
 	}
 	pZ.rotate=function(e,r)
 	{
@@ -2624,13 +2682,14 @@ footer>a:last-of-type
 			for(i=0;i<pZ.w;i++)
 				for(j=0;j<pZ.h;j++)
 					pZ.doGluing(pZ.map[i][j]);
-			let svgs2=pZ.figure.querySelectorAll('.puzzleElement');
-			for(let svg2 of svgs2)
-			{
-				// no need to save the element since it is already in the local storage
-				pZ.updatePuzzleElementLabel(svg2);
-			}
 			pZ.restoreOn=0;
+		}
+		let svgs2=pZ.figure.querySelectorAll('.puzzleElement');
+		for(let svg2 of svgs2)
+		{
+			if(pZ.rotationOn&&svg2.pZ.rotation) pZ.rotate2(svg2);
+			// no need to save the element since it is already in the local storage
+			pZ.updatePuzzleElementLabel(svg2);
 		}
 		pZ.startStopwatch();
 		pZ.updateScore();
@@ -2705,8 +2764,8 @@ footer>a:last-of-type
 		svg.setAttribute("width",esz2to);
 		svg.setAttribute("height",esz2to);
 		let g=document.createElementNS('http://www.w3.org/2000/svg','g');
-		let filterId="emboss"+i+"_"+j;
-		svg.innerHTML=pZ.embossFilterHtml.replace(/id="emboss"/,"id=\""+filterId+"\"");
+		let filterId="emboss"+i+"_"+j+"_"+pA.ro;
+		svg.innerHTML=pZ.embossFilterHtml[pA.ro].replace(/id="emboss"/,"id=\""+filterId+"\"");
 		let def,clipPath,clipPathId="clipPath"+i+"_"+j,p;
 		defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
 		clipPath=document.createElementNS('http://www.w3.org/2000/svg','clipPath');
@@ -2718,8 +2777,8 @@ footer>a:last-of-type
 		g.append(defs);
 		g.setAttribute("filter","url(#"+filterId+")");
 		let img=document.createElementNS('http://www.w3.org/2000/svg','image');
-		img.setAttribute("x",0);
-		img.setAttribute("y",0);
+		img.setAttributeNS(null,"x",0);
+		img.setAttributeNS(null,"y",0);
 		img.setAttribute("width",esz2to);
 		img.setAttribute("height",esz2to);
 		// has to use data image base64 below since one draws this svg on a canvas later
@@ -2740,9 +2799,10 @@ footer>a:last-of-type
 		if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime)){pZ.abort(t1);return;}
 		let esz2to=pZ.esz2to;
 		let elementImg=document.createElementNS('http://www.w3.org/2000/svg','image');
-		pZ.map[pA.i][pA.j].img=elementImg;
-		elementImg.setAttribute("x",0);
-		elementImg.setAttribute("y",0);
+		pZ.map[pA.i][pA.j].imgs=[null,null,null,null];
+		pZ.map[pA.i][pA.j].imgs[pA.ro]=elementImg;
+		elementImg.setAttributeNS(null,"x",0);
+		elementImg.setAttributeNS(null,"y",0);
 		elementImg.setAttribute("width",esz2to);
 		elementImg.setAttribute("height",esz2to);
 		// set "aria-hidden" to "true" otherwise some screen readers
@@ -2759,6 +2819,7 @@ footer>a:last-of-type
 				let imgDataUrl=pZ.base64Image(img,esz2to,esz2to);
 				if(!imgDataUrl) return 0;
 				elementImg.setAttributeNS(null,"href",imgDataUrl);
+				elementImg.pZ={i:pA.i,j:pA.j};
 				pA.svg.prepend(elementImg);
 				pZ.svgs.push(pA.svg);
 				pZ.countCreation++;
@@ -2770,6 +2831,36 @@ footer>a:last-of-type
 					else {i2=i1;j2=j1+1;}
 					pZ.initElement(i2,j2,pZ.to,pZ.ho,pZ.hor,pZ.a,pZ.qt,pZ.qa,pZ.qx,pZ.qy);
 				}
+			},Math.round(Math.max(1,pZ.esz/30)));
+		});
+		let imgHref=pZ.buildImgHref(pA);
+		if(imgHref) img.src=imgHref;
+	}
+	pZ.buildImg2=function(pA)
+	{
+		// used only if rotation
+		let esz2to=pZ.esz2to;
+		let elementImg=document.createElementNS('http://www.w3.org/2000/svg','image');
+		pZ.map[pA.i][pA.j].imgs[pA.ro]=elementImg;
+		elementImg.setAttributeNS(null,"x",pA.img.getAttributeNS(null,"x"));
+		elementImg.setAttributeNS(null,"y",pA.img.getAttributeNS(null,"y"));
+		elementImg.setAttribute("width",esz2to);
+		elementImg.setAttribute("height",esz2to);
+		// set "aria-hidden" to "true" otherwise some screen readers
+		// (for instance safari+voiceover) may annonce "image" when reading the page
+		elementImg.setAttribute("aria-hidden","true");
+		elementImg.pZ={i:pA.i,j:pA.j};
+		// transforming the embossed svg in a bitmap image is decisive for play speed
+		let img=new Image();
+		img.addEventListener("load",()=>
+		{
+			// safari seems to need a small delay
+			setTimeout(()=>
+			{
+				let imgDataUrl=pZ.base64Image(img,esz2to,esz2to);
+				if(!imgDataUrl) return 0;
+				elementImg.setAttributeNS(null,"href",imgDataUrl);
+				if(pA.visible) pA.img.replaceWith(elementImg);
 			},Math.round(Math.max(1,pZ.esz/30)));
 		});
 		let imgHref=pZ.buildImgHref(pA);
@@ -3229,7 +3320,6 @@ footer>a:last-of-type
 				else svg.pZ.rotation=-(-localStorage["r"+i+"_"+j]);
 			}
 		}
-		if(pZ.rotationOn&&svg.pZ.rotation) pZ.rotate2(svg);
 		if(!pZ.internalBordersOn)
 		{
 			svg.style.backgroundSize=(pZ.w*pZ.esz)+"px auto";
@@ -3252,13 +3342,14 @@ footer>a:last-of-type
 		pZ.map[i][j].ds={d:d,d10:d10,d20:d20,d30:d30,d40:d40,d1:d1,d2:d2,d3:d3,d4:d4,bb:15,desc:desc};
 		pZ.updateMinMax(left,top);
 		pZ.updatePuzzleElementLabel(svg);
-		if(pZ.internalBordersOn) pZ.buildImg({svg:svg,i:i,j:j,d:d});
+		if(pZ.internalBordersOn) pZ.buildImg({svg:svg,i:i,j:j,d:d,ro:svg.pZ.rotation?Math.round(svg.pZ.rotation/90):0});
 		else
 		{
 			const t1 = performance.now()-pZ.t0;
 			if(!pZ.restoreOn&&(t1>pZ.maxLoadingTime/10)){pZ.abort(t1);return;}// 10 times less than when embossing?
 			svg.append(outline);
 			pZ.svgs.push(svg);
+			if(pZ.rotationOn&&svg.pZ.rotation) pZ.rotate2(svg);
 			pZ.countCreation++;
 			if(pZ.countCreation==pZ.wh) pZ.terminateInitPuzzle();
 		}
@@ -3282,6 +3373,7 @@ footer>a:last-of-type
 		pZ.lastFocused=null;
 		pZ.computeWH();
 		pZ.internalBordersOn=pZ.emboss?1:0;
+		pZ.embossFilterHtml=pZ.makeEmbossFilter();
 		pZ.esz=pZ.computeEsz();
 		pZ.to=pZ.esz/2;
 		pZ.esz2to=pZ.esz+2*pZ.to;
@@ -4660,7 +4752,6 @@ footer>a:last-of-type
 			bo:1
 		};
 		pZ.maxLoadingTime=50*pZ.iwhMax;
-		pZ.embossFilterHtml=pZ.makeEmbossFilter();
 		pZ.board=document.createElement('main');
 		pZ.board.classList.add("board","initial");
 		pZ.currentScript.after(pZ.board);

@@ -1,6 +1,6 @@
 // when a resource is modified, then change the version to force a cache update
 // execute Date.now() in the console to generate the number
-const VERSION="v17650129123456";
+const VERSION="v1765409310000";
 console.log(VERSION);
 // the name of the cache
 const CACHE_NAME=`puzzle23-${VERSION}`;

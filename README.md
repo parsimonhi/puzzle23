@@ -21,6 +21,10 @@ License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 What is new?
 
+2025/12/11
+
+- improve embossing when rotation
+
 2025/12/07
 
 - modify tenons and mortises sizes
