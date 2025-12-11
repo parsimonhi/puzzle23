@@ -3371,6 +3371,8 @@ footer>a:last-of-type
 	{
 		pZ.t0=performance.now();
 		if(pZ.setTimeoutId) clearTimeout(pZ.setTimeoutId);
+		// do not save too large imgDataUrl, as localStorage capacity is limited
+		if(pZ.imgDataUrl.length<4000001) localStorage.imgDataUrl=pZ.imgDataUrl;
 		pZ.clearFigure();
 		pZ.lastFocused=null;
 		pZ.computeWH();
@@ -4414,8 +4416,6 @@ footer>a:last-of-type
 	}
 	pZ.initFirst=function()
 	{
-		// do not save too large imgDataUrl, as localStorage capacity is limited
-		if(pZ.imgDataUrl.length<4000001) localStorage.imgDataUrl=pZ.imgDataUrl;
 		pZ.board.classList.replace("initial","puzzle");
 		document.addEventListener("keydown",pZ.doKeydown);
 		pZ.initBackground();
