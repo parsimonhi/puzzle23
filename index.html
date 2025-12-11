@@ -1575,7 +1575,6 @@ footer>a:last-of-type
 	{
 		ev.stopPropagation();
 		if(pZ.abortSignal) return;
-		console.log("dirty",pZ.dirty);
 		if(pZ.inInit)
 		{
 			let s=pZ.locale("Impossible to restart while a puzzle is being built!");
@@ -2404,7 +2403,7 @@ footer>a:last-of-type
 						m.imgs[ro].setAttributeNS(null,"x",(m.i-imin)*pZ.esz);
 						m.imgs[ro].setAttributeNS(null,"y",(m.j-jmin)*pZ.esz);
 					}
-				let ro2=Math.round(svg.pZ.rotation/90);
+				let ro2=svg.pZ.rotation?Math.round(svg.pZ.rotation/90):0;
 				svg.append(m.imgs[ro2]);
 			}
 			for(let m of a.z) if(m.svg!=svg){m.svg.remove();m.svg=svg;}
@@ -3372,6 +3371,7 @@ footer>a:last-of-type
 		pZ.t0=performance.now();
 		if(pZ.setTimeoutId) clearTimeout(pZ.setTimeoutId);
 		// do not save too large imgDataUrl, as localStorage capacity is limited
+		// in practice, should not happen if pZ.iwhMax<=1280
 		if(pZ.imgDataUrl.length<4000001) localStorage.imgDataUrl=pZ.imgDataUrl;
 		pZ.clearFigure();
 		pZ.lastFocused=null;
