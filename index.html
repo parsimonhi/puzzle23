@@ -1575,6 +1575,7 @@ footer>a:last-of-type
 	{
 		ev.stopPropagation();
 		if(pZ.abortSignal) return;
+		console.log("dirty",pZ.dirty);
 		if(pZ.inInit)
 		{
 			let s=pZ.locale("Impossible to restart while a puzzle is being built!");
@@ -2683,7 +2684,9 @@ footer>a:last-of-type
 				for(j=0;j<pZ.h;j++)
 					pZ.doGluing(pZ.map[i][j]);
 			pZ.restoreOn=0;
+			pZ.dirty=1;
 		}
+		else pZ.dirty=0;
 		let svgs2=pZ.figure.querySelectorAll('.puzzleElement');
 		for(let svg2 of svgs2)
 		{
@@ -2696,7 +2699,6 @@ footer>a:last-of-type
 		pZ.inInit=0;
 		if(!document.activeElement||!document.activeElement.closest('.menu'))
 			pZ.tabTofirst=1;
-		pZ.dirty=0;
 		pZ.reframe();
 		pZ.hideWait();
 		pZ.updateMessenger(s);
